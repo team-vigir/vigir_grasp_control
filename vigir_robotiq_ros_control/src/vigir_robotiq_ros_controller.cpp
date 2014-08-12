@@ -29,8 +29,7 @@
 #include <ros/ros.h>
 
 #include <controller_manager/controller_manager.h>
-#include <flor_grasp_controllers/vigir_robotiq_ros_controller.h>
-
+#include <vigir_robotiq_ros_control/vigir_robotiq_ros_controller.h>
 #define RAD_TO_BYTE    209.01638145
 #define RAD_BC_TO_BYTE 225.663693848
 #define SPR_TO_BYTE    496.785549105
