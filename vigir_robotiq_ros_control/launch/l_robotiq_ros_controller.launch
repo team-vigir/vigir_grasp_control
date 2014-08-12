@@ -1,0 +1,93 @@
+<?xml version="1.0"?>
+
+<launch>
+  <!-- send urdf to param server
+  <param name="robot_description" command="$(find xacro)/xacro.py '$(find schunk_lwa4p_control)/urdf/lwa4p.urdf.xacro'" /> -->
+        
+  <!-- robot state publisher
+  <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher"/> -->
+
+  <!-- Load joint controller configurations from YAML file to parameter server -->
+  <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_states_controller.yaml" 
+            command = "load"/>
+  <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_position_controller.yaml"
+            command = "load"/>            
+  <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_effort_controller.yaml"
+            command = "load"/>            
+  <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_velocity_controller.yaml"
+            command = "load"/>
+            
+  <!-- load the controllers -->
+  <node name    = "left_robotiq_state_controller_spawner"
+        pkg     = "controller_manager"
+        type    = "spawner" 
+        respawn = "false" 
+        ns      = "left_robotiq" 
+        output  = "screen"  
+        args    = "joint_state_controller"/>  
+        
+  <node name    = "left_robotiq_postition_controller_spawner" 
+        pkg     = "controller_manager" 
+        type    = "spawner" 
+        respawn = "false" 
+        ns      = "left_robotiq" 
+        output  = "screen" 
+        args    = "left_f0_j1_position_controller
+                   left_f1_j1_position_controller
+                   left_f2_j1_position_controller
+                   left_f1_j0_position_controller
+                   left_f2_j0_position_controller
+                   left_f0_j2_position_controller
+                   left_f1_j2_position_controller
+                   left_f2_j2_position_controller
+                   left_f0_j3_position_controller
+                   left_f1_j3_position_controller
+                   left_f2_j3_position_controller "/>  
+                   
+  <node name    = "left_robotiq_effort_controller_spawner" 
+        pkg     = "controller_manager" 
+        type    = "spawner" 
+        respawn = "false" 
+        ns      = "left_robotiq" 
+        output  = "screen" 
+        args    = "left_f0_j1_effort_controller
+                   left_f1_j1_effort_controller
+                   left_f2_j1_effort_controller
+                   left_f1_j0_effort_controller
+                   left_f2_j0_effort_controller
+                   left_f0_j2_effort_controller
+                   left_f1_j2_effort_controller
+                   left_f2_j2_effort_controller
+                   left_f0_j3_effort_controller
+                   left_f1_j3_effort_controller
+                   left_f2_j3_effort_controller "/>  
+                   
+  <node name    = "left_robotiq_velocity_controller_spawner" 
+        pkg     = "controller_manager" 
+        type    = "spawner" 
+        respawn = "false" 
+        ns      = "left_robotiq" 
+        output  = "screen" 
+        args    = "left_f0_j1_velocity_controller
+                   left_f1_j1_velocity_controller
+                   left_f2_j1_velocity_controller
+                   left_f1_j0_velocity_controller
+                   left_f2_j0_velocity_controller
+                   left_f0_j2_velocity_controller
+                   left_f1_j2_velocity_controller
+                   left_f2_j2_velocity_controller
+                   left_f0_j3_velocity_controller
+                   left_f1_j3_velocity_controller
+                   left_f2_j3_velocity_controller "/>                                    
+        
+
+  <node name    = "left_robotiq_ros_controller" 
+        pkg     = "vigir_robotiq_ros_control" 
+        type    = "robotiq_ros_controller_node" 
+        ns      = "left_robotiq"
+        output  = "screen">
+        <param name="hand_side" value="left" />
+        <rosparam file    = "$(find vigir_robotiq_ros_control)/config/robotiq_joints.yaml" 
+                  command = "load" />
+  </node>
+</launch>
