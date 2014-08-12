@@ -68,6 +68,7 @@ private:
   //Robotiq specific communication code
 
   void robotiq_Callback(const robotiq_s_model_control::SModel_robot_input::ConstPtr &msg);
+  void InitializeRobotiq();
 
   hardware_interface::JointStateInterface    joint_state_interface_;
   hardware_interface::PositionJointInterface position_joint_interface_;

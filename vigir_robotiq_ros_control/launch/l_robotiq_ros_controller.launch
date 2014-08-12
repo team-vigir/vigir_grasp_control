@@ -83,7 +83,7 @@
 
   <node name    = "left_robotiq_ros_controller" 
         pkg     = "vigir_robotiq_ros_control" 
-        type    = "vigir_robotiq_ros_controller" 
+        type    = "vigir_robotiq_ros_controller_node" 
         ns      = "left_robotiq"
         output  = "screen">
         <param name="hand_side" value="left" />

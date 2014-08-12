@@ -39,6 +39,7 @@ catkin_package(
 
 
 include_directories(include ${catkin_INCLUDE_DIRS})
+link_directories(${catkin_LIBRARY_DIRS})
 
 SET(HEADERS
 include/${PROJECT_NAME}/vigir_robotiq_ros_controller.h
@@ -48,11 +49,6 @@ SET(SOURCE
 src/vigir_robotiq_ros_controller.cpp
 )
 
-add_executable(vigir_robotiq_ros_controller ${SOURCE} ${HEADERS})
-target_link_libraries(vigir_robotiq_ros_controller ${catkin_LIBRARIES} )
-
-
-add_dependencies(vigir_robotiq_ros_controller ${catkin_EXPORTED_TARGETS})
-
-add_library(${PROJECT_NAME} ${HEADERS} ${SOURCE})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+add_executable(vigir_robotiq_ros_controller_node ${SOURCE} ${HEADERS})
+target_link_libraries(vigir_robotiq_ros_controller_node ${catkin_LIBRARIES} )
+add_dependencies(vigir_robotiq_ros_controller_node ${catkin_EXPORTED_TARGETS})

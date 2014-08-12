@@ -135,8 +135,77 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
     // ROS topic advertisers for Robotiq Output
     robotiq_output_pub_ = rosnode->advertise<robotiq_s_model_control::SModel_robot_output>("/robotiq_hands/"+hand_side_+"/SModelRobotOutput", 1, true);
 
+
+    //Activate Robotiq hand
+    InitializeRobotiq();
+
     subscriber_spinner_.reset(new ros::AsyncSpinner(1, &subscriber_queue_));
     subscriber_spinner_->start();
+}
+
+void RobotiqHardwareInterface::InitializeRobotiq(){
+    //INITIALIZE ROBOTIQ HAND MSG
+    robotiq_output_msg_.rATR = 0; //NO Automatic release
+    robotiq_output_msg_.rGTO = 0; //Got to position
+    robotiq_output_msg_.rICF = 0; //Individual control finger
+    robotiq_output_msg_.rICS = 0; //Individual scissor control
+    robotiq_output_msg_.rMOD = 0; //Ignore modes due ICS activated
+
+    //Position Request
+    robotiq_output_msg_.rPRA = 0; //FINGER OPEN
+    robotiq_output_msg_.rPRB = 0; //FINGER OPEN
+    robotiq_output_msg_.rPRC = 0; //FINGER OPEN
+    robotiq_output_msg_.rPRS = 0; //FINGER OPEN
+    //Speed Request
+    robotiq_output_msg_.rSPA = 0; //FINGER SPEED
+    robotiq_output_msg_.rSPB = 0; //FINGER SPEED
+    robotiq_output_msg_.rSPC = 0; //FINGER SPEED
+    robotiq_output_msg_.rSPS = 0; //FINGER SPEED
+    //Force Request
+    robotiq_output_msg_.rFRA = 0; //FINGER FORCE
+    robotiq_output_msg_.rFRB = 0; //FINGER FORCE
+    robotiq_output_msg_.rFRC = 0; //FINGER FORCE
+    robotiq_output_msg_.rFRS = 0; //FINGER FORCE
+
+    //First Reset Hand
+    robotiq_output_msg_.rACT = 0; //Set to ZERO to reset
+    robotiq_output_pub_.publish(robotiq_output_msg_);
+
+    ros::Duration(0.5).sleep(); //SLEEP WAITING FOR THE HAND TO ACTIVATE
+
+    //ACTIVATE ROBOTIQ HAND
+    robotiq_output_msg_.rSPA = 255; //FINGER SPEED
+    robotiq_output_msg_.rFRA = 150; //FINGER FORCE
+    robotiq_output_msg_.rGTO = 1; //Got to position
+    robotiq_output_msg_.rACT = 1; //Set to ONE to activate
+    robotiq_output_pub_.publish(robotiq_output_msg_);
+
+    ROS_WARN("ACTIVATING %s Robotiq... ",hand_side_.c_str() );
+
+    ros::Duration(16.0).sleep(); //SLEEP WAITING FOR THE HAND TO ACTIVATE
+
+    ROS_WARN("%s Robotiq ACTIVATED",hand_side_.c_str() );
+
+    robotiq_output_msg_.rICF = 1; //Individual control finger
+    robotiq_output_msg_.rICS = 1; //Individual scissor control
+    robotiq_output_pub_.publish(robotiq_output_msg_);
+
+    ros::Duration(0.5).sleep(); //SLEEP
+
+    //SPEED REQUEST
+    robotiq_output_msg_.rSPA = 255;
+    robotiq_output_msg_.rSPB = 255;
+    robotiq_output_msg_.rSPC = 255;
+    robotiq_output_msg_.rSPS = 255;
+    //Force Request
+    robotiq_output_msg_.rFRA = 0;
+    robotiq_output_msg_.rFRB = 0;
+    robotiq_output_msg_.rFRC = 0;
+    robotiq_output_msg_.rFRS = 0;
+
+    robotiq_output_pub_.publish(robotiq_output_msg_);
+
+
 }
 
 void RobotiqHardwareInterface::cleanup()
@@ -237,7 +306,7 @@ int main(int argc, char** argv)
     }
     catch(...)
     {
-        ROS_ERROR("Unhandled exception!");
+        ROS_ERROR("Unhandled exception! ");
         return -1;
     }
 
