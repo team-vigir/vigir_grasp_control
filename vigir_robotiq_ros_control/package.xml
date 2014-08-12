@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+<package>
+  <name>vigir_robotiq_ros_control</name>
+  <version>0.0.0</version>
+  <description>The vigir_robotiq_ros_control package</description>
+  <maintainer email="romay@sim.tu-darmstadt.de">Alberto Romay</maintainer>
+  <license>TODO</license>
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>trajectory_msgs</build_depend>
+  <build_depend>atlas_msgs</build_depend>
+  <build_depend>flor_grasp_msgs</build_depend>
+  <build_depend>flor_ocs_msgs</build_depend>
+  <build_depend>flor_control_msgs</build_depend>
+  <build_depend>moveit_core</build_depend>
+  <build_depend>robotiq_s_model_control</build_depend>
+  <build_depend>hardware_interface</build_depend>
+  <build_depend>controller_manager</build_depend>
+
+  <run_depend>roscpp</run_depend>
+  <run_depend>rospy</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>trajectory_msgs</run_depend>
+  <run_depend>atlas_msgs</run_depend>
+  <run_depend>flor_grasp_msgs</run_depend>
+  <run_depend>flor_ocs_msgs</run_depend>
+  <run_depend>flor_control_msgs</run_depend>
+  <run_depend>moveit_core</run_depend>
+  <run_depend>robotiq_s_model_control</run_depend>
+  <run_depend>hardware_interface</run_depend>
+  <run_depend>controller_manager</run_depend>
+
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- You can specify that this package is a metapackage here: -->
+    <!-- <metapackage/> -->
+
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>
