@@ -224,17 +224,17 @@ bool RobotiqHardwareInterface::checkForConflict(const std::list<hardware_interfa
 void RobotiqHardwareInterface::read(ros::Time time, ros::Duration period)
 {
 //    ROS_INFO("Reading from %s Robotiq...", hand_side_.c_str());
-    joint_positions_states_[joint_names_[0]] = robotiq_input_msg_.gPOA *  0.004784314;         //position for finger A. Do math stuff to figure out joint 1 value
-    joint_positions_states_[joint_names_[1]] = robotiq_input_msg_.gPOB *  0.004431373;         //position for finger B. Do math stuff to figure out joint 1 value
-    joint_positions_states_[joint_names_[2]] = robotiq_input_msg_.gPOC *  0.004431373;         //position for finger C. Do math stuff to figure out joint 1 value
-    joint_positions_states_[joint_names_[3]] = robotiq_input_msg_.gPOS * -0.002012941 + 0.275; //position for scissors finger B.
-    joint_positions_states_[joint_names_[4]] = robotiq_input_msg_.gPOS *  0.002012941 - 0.275; //position for scissors finger C.
+    joint_positions_states_[joint_names_[0]] = robotiq_input_msg_.gPOA *  0.004784314;         //position of finger A. Do math stuff to figure out joint 1 value
+    joint_positions_states_[joint_names_[1]] = robotiq_input_msg_.gPOB *  0.004431373;         //position of finger B. Do math stuff to figure out joint 1 value
+    joint_positions_states_[joint_names_[2]] = robotiq_input_msg_.gPOC *  0.004431373;         //position of finger C. Do math stuff to figure out joint 1 value
+    joint_positions_states_[joint_names_[3]] = robotiq_input_msg_.gPOS * -0.002012941 + 0.275; //position of scissors finger B.
+    joint_positions_states_[joint_names_[4]] = robotiq_input_msg_.gPOS *  0.002012941 - 0.275; //position of scissors finger C.
 
-    joint_efforts_states_[  joint_names_[0]] = robotiq_input_msg_.gCUA; //Current for finger A.
-    joint_efforts_states_[  joint_names_[1]] = robotiq_input_msg_.gCUB; //Current for finger B.
-    joint_efforts_states_[  joint_names_[2]] = robotiq_input_msg_.gCUC; //Current for finger C.
-    joint_efforts_states_[  joint_names_[3]] = robotiq_input_msg_.gCUS; //Current for scissors finger B.
-    joint_efforts_states_[  joint_names_[4]] = robotiq_input_msg_.gCUS; //Current for scissors finger C.
+    joint_efforts_states_[  joint_names_[0]] = robotiq_input_msg_.gCUA; //Current of finger A.
+    joint_efforts_states_[  joint_names_[1]] = robotiq_input_msg_.gCUB; //Current of finger B.
+    joint_efforts_states_[  joint_names_[2]] = robotiq_input_msg_.gCUC; //Current of finger C.
+    joint_efforts_states_[  joint_names_[3]] = robotiq_input_msg_.gCUS; //Current of scissors finger B.
+    joint_efforts_states_[  joint_names_[4]] = robotiq_input_msg_.gCUS; //Current of scissors finger C.
 }
 
 void RobotiqHardwareInterface::write(ros::Time time, ros::Duration period)
