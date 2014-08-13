@@ -87,6 +87,7 @@
         ns      = "left_robotiq"
         output  = "screen">
         <param name="hand_side" value="left" />
+        <param name="hand_name" value="l_hand"/>
         <rosparam file    = "$(find vigir_robotiq_ros_control)/config/robotiq_joints.yaml" 
                   command = "load" />
   </node>

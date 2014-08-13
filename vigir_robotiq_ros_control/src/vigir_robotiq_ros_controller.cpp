@@ -52,6 +52,7 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
     rosnode->setCallbackQueue(&subscriber_queue_);
 
     private_nh.param<std::string>("hand_side", hand_side_, std::string("left"));
+    private_nh.param<std::string>("hand_name", hand_name_, std::string("l_hand"));
 
     std::string param = "joint_names";
 
@@ -118,7 +119,7 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
     // ROS topic subscribtions for Robotiq Input
     ros::SubscribeOptions robotiqSo =
     ros::SubscribeOptions::create<robotiq_s_model_control::SModel_robot_input>(
-        "/robotiq_hands/"+hand_side_+"/SModelRobotInput", 1,boost::bind(&RobotiqHardwareInterface::robotiq_Callback, this, _1),
+        "/robotiq_hands/"+hand_name_+"/SModelRobotInput", 1,boost::bind(&RobotiqHardwareInterface::robotiq_Callback, this, _1),
         ros::VoidPtr(), rosnode->getCallbackQueue());
 
     // Because TCP causes bursty communication with high jitter,
@@ -133,7 +134,7 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
 
 
     // ROS topic advertisers for Robotiq Output
-    robotiq_output_pub_ = rosnode->advertise<robotiq_s_model_control::SModel_robot_output>("/robotiq_hands/"+hand_side_+"/SModelRobotOutput", 1, true);
+    robotiq_output_pub_ = rosnode->advertise<robotiq_s_model_control::SModel_robot_output>("/robotiq_hands/"+hand_name_+"/SModelRobotOutput", 1, true);
 
 
     //Activate Robotiq hand

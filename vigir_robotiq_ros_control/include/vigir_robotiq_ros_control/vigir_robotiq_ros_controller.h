@@ -93,6 +93,7 @@ private:
   robotiq_s_model_control::SModel_robot_output robotiq_output_msg_;
 
   std::string hand_side_;
+  std::string hand_name_;
   std::vector<std::string> joint_names_;
 };
 
