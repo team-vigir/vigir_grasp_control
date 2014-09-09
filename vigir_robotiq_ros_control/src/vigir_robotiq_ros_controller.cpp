@@ -128,7 +128,7 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
     // Note that we'll still accept TCP connections for this topic
     // (e.g., from rospy nodes, which don't support UDP);
     // we just prefer UDP.
-    robotiqSo.transport_hints = ros::TransportHints().unreliable();
+    robotiqSo.transport_hints = ros::TransportHints().reliable();
 
     robotiq_input_sub_ = rosnode->subscribe(robotiqSo);
 
@@ -288,7 +288,7 @@ int main(int argc, char** argv)
         {
             //ROS_INFO("in main loop");
             rate.sleep();
-            ros::spinOnce();
+            //ros::spinOnce();
 
             ros::Time current_time = ros::Time::now();
             ros::Duration elapsed_time = current_time - last_time;
