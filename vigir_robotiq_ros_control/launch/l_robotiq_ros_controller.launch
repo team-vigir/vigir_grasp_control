@@ -16,6 +16,18 @@
             command = "load"/>            
   <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_velocity_controller.yaml"
             command = "load"/>
+
+  <rosparam ns      = "left_robotiq"
+            file    = "$(find vigir_robotiq_ros_control)/config/robotiq_position_trajectory_controller.yaml"
+            command = "load"/>
+
+  <node name    = "left_robotiq_position_trajectory_controller"
+        pkg     = "controller_manager"
+        type    = "spawner"
+        ns      = "left_robotiq"
+        output  = "screen"
+        args    = "left_hand_traj_controller"/>
+
             
   <!-- load the controllers -->
   <node name    = "left_robotiq_state_controller_spawner"
@@ -32,7 +44,8 @@
         respawn = "false" 
         ns      = "left_robotiq" 
         output  = "screen" 
-        args    = "left_f0_j1_position_controller
+        args    = "--stopped
+                   left_f0_j1_position_controller
                    left_f1_j1_position_controller
                    left_f2_j1_position_controller
                    left_f1_j0_position_controller
@@ -50,7 +63,8 @@
         respawn = "false" 
         ns      = "left_robotiq" 
         output  = "screen" 
-        args    = "left_f0_j1_effort_controller
+        args    = "--stopped
+                   left_f0_j1_effort_controller
                    left_f1_j1_effort_controller
                    left_f2_j1_effort_controller
                    left_f1_j0_effort_controller
@@ -68,7 +82,8 @@
         respawn = "false" 
         ns      = "left_robotiq" 
         output  = "screen" 
-        args    = "left_f0_j1_velocity_controller
+        args    = "--stopped
+                   left_f0_j1_velocity_controller
                    left_f1_j1_velocity_controller
                    left_f2_j1_velocity_controller
                    left_f1_j0_velocity_controller

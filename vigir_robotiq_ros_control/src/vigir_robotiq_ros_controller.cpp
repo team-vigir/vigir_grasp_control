@@ -32,7 +32,9 @@
 #include <vigir_robotiq_ros_control/vigir_robotiq_ros_controller.h>
 #define RAD_TO_BYTE    209.01638145
 #define RAD_BC_TO_BYTE 225.663693848
-#define SPR_TO_BYTE    496.785549105
+#define BYTE_TO_SPR    0.001098039
+#define SPR_TO_BYTE    (1/BYTE_TO_SPR)
+#define SPR_ZERO       (BYTE_TO_SPR * 137)
 #define PER_TO_BYTE      2.55
 
 namespace RobotiqHardwareInterface
@@ -228,8 +230,8 @@ void RobotiqHardwareInterface::read(ros::Time time, ros::Duration period)
     joint_positions_states_[joint_names_[0]] = robotiq_input_msg_.gPOA *  0.004784314;         //position of finger A. Do math stuff to figure out joint 1 value
     joint_positions_states_[joint_names_[1]] = robotiq_input_msg_.gPOB *  0.004431373;         //position of finger B. Do math stuff to figure out joint 1 value
     joint_positions_states_[joint_names_[2]] = robotiq_input_msg_.gPOC *  0.004431373;         //position of finger C. Do math stuff to figure out joint 1 value
-    joint_positions_states_[joint_names_[3]] = robotiq_input_msg_.gPOS * -0.002012941 + 0.275; //position of scissors finger B.
-    joint_positions_states_[joint_names_[4]] = robotiq_input_msg_.gPOS *  0.002012941 - 0.275; //position of scissors finger C.
+    joint_positions_states_[joint_names_[3]] = robotiq_input_msg_.gPOS *  BYTE_TO_SPR - SPR_ZERO; //position of scissors finger B.
+    joint_positions_states_[joint_names_[4]] = robotiq_input_msg_.gPOS * -BYTE_TO_SPR + SPR_ZERO; //position of scissors finger C.
 
     joint_efforts_states_[  joint_names_[0]] = robotiq_input_msg_.gCUA; //Current of finger A.
     joint_efforts_states_[  joint_names_[1]] = robotiq_input_msg_.gCUB; //Current of finger B.
@@ -245,7 +247,7 @@ void RobotiqHardwareInterface::write(ros::Time time, ros::Duration period)
     robotiq_output_msg_.rPRA = std::max(float(0.0), std::min(float(joint_position_commands_[ joint_names_[0]]  * RAD_TO_BYTE)   ,float(255.0)));
     robotiq_output_msg_.rPRB = std::max(float(0.0), std::min(float(joint_position_commands_[ joint_names_[1]]  * RAD_BC_TO_BYTE),float(255.0)));
     robotiq_output_msg_.rPRC = std::max(float(0.0), std::min(float(joint_position_commands_[ joint_names_[2]]  * RAD_BC_TO_BYTE),float(255.0)));
-    robotiq_output_msg_.rPRS = std::max(float(0.0), std::min(float((joint_position_commands_[joint_names_[3]]) * SPR_TO_BYTE)   ,float(255.0)));
+    robotiq_output_msg_.rPRS = std::max(float(0.0), std::min(float(((joint_position_commands_[joint_names_[3]]) + SPR_ZERO) * SPR_TO_BYTE)   ,float(255.0)));
     //Converting Speed request
     robotiq_output_msg_.rSPA = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[0]])                  ,float(255.0)));
     robotiq_output_msg_.rSPB = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[1]])                  ,float(255.0)));
