@@ -42,36 +42,65 @@ void pick(moveit::planning_interface::MoveGroup &group)
   std::vector<moveit_msgs::Grasp> grasps;
 
   geometry_msgs::PoseStamped p;
-  p.header.frame_id = "pelvis";
-  p.pose.position.x = 0.32;
-  p.pose.position.y = -0.7;
-  p.pose.position.z = 0.5;
-  p.pose.orientation.x = 0;
-  p.pose.orientation.y = 0;
-  p.pose.orientation.z = 0;
-  p.pose.orientation.w = 1;
+  p.header.frame_id    = "/world";
+  p.pose.position.x    =  0.239987597961;
+  p.pose.position.y    = -0.708906810204;
+  p.pose.position.z    =  1.26838464158;
+  p.pose.orientation.x = -0.454574987236;
+  p.pose.orientation.y =  0.677787964489;
+  p.pose.orientation.z =  0.288904518079;
+  p.pose.orientation.w =  0.500498986619;
+
   moveit_msgs::Grasp g;
   g.grasp_pose = p;
 
-  g.pre_grasp_approach.direction.vector.x = 1.0;
+  g.pre_grasp_approach.direction.vector.y = -1.0;
   g.pre_grasp_approach.direction.header.frame_id = "r_hand";
-  g.pre_grasp_approach.min_distance = 0.2;
-  g.pre_grasp_approach.desired_distance = 0.4;
+  g.pre_grasp_approach.min_distance = 0.1;
+  g.pre_grasp_approach.desired_distance = 0.2;
 
-  g.post_grasp_retreat.direction.header.frame_id = "pelvis";
+  g.post_grasp_retreat.direction.header.frame_id = "world";
   g.post_grasp_retreat.direction.vector.z = 1.0;
   g.post_grasp_retreat.min_distance = 0.1;
   g.post_grasp_retreat.desired_distance = 0.25;
 
-  g.pre_grasp_posture.joint_names.resize(1, "r_hand");
-  g.pre_grasp_posture.points.resize(1);
-  g.pre_grasp_posture.points[0].positions.resize(1);
-  g.pre_grasp_posture.points[0].positions[0] = 1;
+  g.pre_grasp_posture.joint_names.resize(3);
+  g.pre_grasp_posture.joint_names[0] = "right_f0_j1";
+  g.pre_grasp_posture.joint_names[1] = "right_f1_j1";
+  g.pre_grasp_posture.joint_names[2] = "right_f2_j1";
+  g.pre_grasp_posture.points.resize(3);
+  g.pre_grasp_posture.points[0].positions.resize(3);
+  g.pre_grasp_posture.points[0].positions[0] = 0;
+  g.pre_grasp_posture.points[0].positions[1] = 0;
+  g.pre_grasp_posture.points[0].positions[2] = 0;
+  g.pre_grasp_posture.points[1].positions.resize(3);
+  g.pre_grasp_posture.points[1].positions[0] = 0;
+  g.pre_grasp_posture.points[1].positions[1] = 0;
+  g.pre_grasp_posture.points[1].positions[2] = 0;
+  g.pre_grasp_posture.points[2].positions.resize(3);
+  g.pre_grasp_posture.points[2].positions[0] = 0;
+  g.pre_grasp_posture.points[2].positions[1] = 0;
+  g.pre_grasp_posture.points[2].positions[2] = 0;
 
-  g.grasp_posture.joint_names.resize(1, "r_hand");
-  g.grasp_posture.points.resize(1);
-  g.grasp_posture.points[0].positions.resize(1);
-  g.grasp_posture.points[0].positions[0] = 0;
+  g.grasp_posture.joint_names.resize(3);
+  g.grasp_posture.joint_names[0] = "right_f0_j1";
+  g.grasp_posture.joint_names[1] = "right_f1_j1";
+  g.grasp_posture.joint_names[2] = "right_f2_j1";
+  g.grasp_posture.points.resize(3);
+  g.grasp_posture.points[0].positions.resize(3);
+  g.grasp_posture.points[0].positions[0] = 1;
+  g.grasp_posture.points[0].positions[1] = 1;
+  g.grasp_posture.points[0].positions[2] = 1;
+  g.grasp_posture.points[1].positions.resize(3);
+  g.grasp_posture.points[1].positions[0] = 1;
+  g.grasp_posture.points[1].positions[1] = 1;
+  g.grasp_posture.points[1].positions[2] = 1;
+  g.grasp_posture.points[2].positions.resize(3);
+  g.grasp_posture.points[2].positions[0] = 1;
+  g.grasp_posture.points[2].positions[1] = 1;
+  g.grasp_posture.points[2].positions[2] = 1;
+
+  g.id = "KAL_grasp";
 
   grasps.push_back(g);
   group.setSupportSurfaceName("table");
