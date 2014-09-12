@@ -43,13 +43,13 @@ void pick(moveit::planning_interface::MoveGroup &group)
 
   geometry_msgs::PoseStamped p;
   p.header.frame_id    = "/world";
-  p.pose.position.x    =  0.239987597961;
-  p.pose.position.y    = -0.708906810204;
-  p.pose.position.z    =  1.26838464158;
-  p.pose.orientation.x = -0.454574987236;
-  p.pose.orientation.y =  0.677787964489;
-  p.pose.orientation.z =  0.288904518079;
-  p.pose.orientation.w =  0.500498986619;
+  p.pose.position.x    =  0.24277830431;
+  p.pose.position.y    = -0.645004221203;
+  p.pose.position.z    =  1.26911157683;
+  p.pose.orientation.x = -0.446351722051;
+  p.pose.orientation.y =  0.563471242384;
+  p.pose.orientation.z =  0.449446130412;
+  p.pose.orientation.w =  0.530347504081;
 
   moveit_msgs::Grasp g;
   g.grasp_pose = p;

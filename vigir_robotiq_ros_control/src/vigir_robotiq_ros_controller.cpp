@@ -32,10 +32,11 @@
 #include <vigir_robotiq_ros_control/vigir_robotiq_ros_controller.h>
 #define RAD_TO_BYTE    209.01638145
 #define RAD_BC_TO_BYTE 225.663693848
-#define BYTE_TO_SPR    0.001098039
+#define SPREAD_RAD     0.28   //Radians range of the spread fingers
+#define BYTE_TO_SPR    (SPREAD_RAD/255.0)
 #define SPR_TO_BYTE    (1/BYTE_TO_SPR)
 #define SPR_ZERO       (BYTE_TO_SPR * 137)
-#define PER_TO_BYTE      2.55
+#define PER_TO_BYTE    2.55
 
 namespace RobotiqHardwareInterface
 {
