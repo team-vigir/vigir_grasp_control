@@ -1,0 +1,23 @@
+# trajectory controllers ---------------------------------------
+  left_hand_traj_controller:
+    type: "position_controllers/JointTrajectoryController"
+    joints:
+      - left_f0_j1
+      - left_f1_j1
+      - left_f2_j1
+      - left_f1_j0
+      - left_f2_j0
+    constraints:
+      goal_time: &goal_time_constraint 0.2
+      left_f0_j1:
+        goal: &goal_pos_constraint 0.1
+      left_f1_j1:
+        goal: *goal_pos_constraint
+      left_f2_j1:
+        goal: *goal_pos_constraint
+      left_f1_j0:
+        goal: *goal_pos_constraint
+      left_f2_j0:
+        goal: *goal_pos_constraint
+
+    stop_trajectory_duration: 0.0

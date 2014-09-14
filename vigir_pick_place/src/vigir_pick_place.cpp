@@ -43,7 +43,7 @@ void pick(moveit::planning_interface::MoveGroup &group)
 
   geometry_msgs::PoseStamped p;
   p.header.frame_id    = "/world";
-  p.pose.position.x    =  0.24277830431;
+  p.pose.position.x    =  0.14277830431;
   p.pose.position.y    = -0.645004221203;
   p.pose.position.z    =  1.26911157683;
   p.pose.orientation.x = -0.446351722051;
@@ -64,41 +64,38 @@ void pick(moveit::planning_interface::MoveGroup &group)
   g.post_grasp_retreat.min_distance = 0.1;
   g.post_grasp_retreat.desired_distance = 0.25;
 
-  g.pre_grasp_posture.joint_names.resize(3);
+  g.pre_grasp_posture.joint_names.resize(5);
   g.pre_grasp_posture.joint_names[0] = "right_f0_j1";
   g.pre_grasp_posture.joint_names[1] = "right_f1_j1";
   g.pre_grasp_posture.joint_names[2] = "right_f2_j1";
-  g.pre_grasp_posture.points.resize(3);
-  g.pre_grasp_posture.points[0].positions.resize(3);
-  g.pre_grasp_posture.points[0].positions[0] = 0;
-  g.pre_grasp_posture.points[0].positions[1] = 0;
-  g.pre_grasp_posture.points[0].positions[2] = 0;
-  g.pre_grasp_posture.points[1].positions.resize(3);
-  g.pre_grasp_posture.points[1].positions[0] = 0;
-  g.pre_grasp_posture.points[1].positions[1] = 0;
-  g.pre_grasp_posture.points[1].positions[2] = 0;
-  g.pre_grasp_posture.points[2].positions.resize(3);
-  g.pre_grasp_posture.points[2].positions[0] = 0;
-  g.pre_grasp_posture.points[2].positions[1] = 0;
-  g.pre_grasp_posture.points[2].positions[2] = 0;
+  g.pre_grasp_posture.joint_names[3] = "right_f1_j0";
+  g.pre_grasp_posture.joint_names[4] = "right_f2_j0";
+  g.pre_grasp_posture.points.resize(1);
+  g.pre_grasp_posture.points[0].positions.resize(5);
+  g.pre_grasp_posture.points[0].positions[0] = 0.2;
+  g.pre_grasp_posture.points[0].positions[1] = 0.2;
+  g.pre_grasp_posture.points[0].positions[2] = 0.2;
+  g.pre_grasp_posture.points[0].positions[3] = 0.0;
+  g.pre_grasp_posture.points[0].positions[4] = 0.0;
 
-  g.grasp_posture.joint_names.resize(3);
+  g.pre_grasp_posture.points[0].time_from_start = ros::Duration(3.0);
+
+  g.grasp_posture.joint_names.resize(5);
   g.grasp_posture.joint_names[0] = "right_f0_j1";
   g.grasp_posture.joint_names[1] = "right_f1_j1";
   g.grasp_posture.joint_names[2] = "right_f2_j1";
-  g.grasp_posture.points.resize(3);
-  g.grasp_posture.points[0].positions.resize(3);
-  g.grasp_posture.points[0].positions[0] = 1;
-  g.grasp_posture.points[0].positions[1] = 1;
-  g.grasp_posture.points[0].positions[2] = 1;
-  g.grasp_posture.points[1].positions.resize(3);
-  g.grasp_posture.points[1].positions[0] = 1;
-  g.grasp_posture.points[1].positions[1] = 1;
-  g.grasp_posture.points[1].positions[2] = 1;
-  g.grasp_posture.points[2].positions.resize(3);
-  g.grasp_posture.points[2].positions[0] = 1;
-  g.grasp_posture.points[2].positions[1] = 1;
-  g.grasp_posture.points[2].positions[2] = 1;
+  g.grasp_posture.joint_names[3] = "right_f1_j0";
+  g.grasp_posture.joint_names[4] = "right_f2_j0";
+  g.grasp_posture.points.resize(1);
+  g.grasp_posture.points[0].positions.resize(5);
+  g.grasp_posture.points[0].positions[0] = 1.0;
+  g.grasp_posture.points[0].positions[1] = 1.0;
+  g.grasp_posture.points[0].positions[2] = 1.0;
+  g.grasp_posture.points[0].positions[3] = 0.0;
+  g.grasp_posture.points[0].positions[4] = 0.0;
+
+  g.grasp_posture.points[0].time_from_start = ros::Duration(3.0);
+
 
   g.id = "KAL_grasp";
 
@@ -112,30 +109,48 @@ void place(moveit::planning_interface::MoveGroup &group)
   std::vector<moveit_msgs::PlaceLocation> loc;
 
   geometry_msgs::PoseStamped p;
-  p.header.frame_id = "pelvis";
-  p.pose.position.x = 0.7;
-  p.pose.position.y = 0.0;
-  p.pose.position.z = 0.5;
-  p.pose.orientation.x = 0;
-  p.pose.orientation.y = 0;
-  p.pose.orientation.z = 0;
-  p.pose.orientation.w = 1;
+  p.header.frame_id    = "/world";
+  p.pose.position.x    =  0.24277830431;
+  p.pose.position.y    = -0.60;
+  p.pose.position.z    =  1.26911157683;
+  p.pose.orientation.x = -0.446351722051;
+  p.pose.orientation.y =  0.563471242384;
+  p.pose.orientation.z =  0.449446130412;
+  p.pose.orientation.w =  0.530347504081;
   moveit_msgs::PlaceLocation g;
   g.place_pose = p;
 
   g.pre_place_approach.direction.vector.z = -1.0;
   g.post_place_retreat.direction.vector.x = -1.0;
-  g.post_place_retreat.direction.header.frame_id = "pelvis";
+  g.post_place_retreat.direction.header.frame_id = "world";
   g.pre_place_approach.direction.header.frame_id = "r_hand";
   g.pre_place_approach.min_distance = 0.1;
   g.pre_place_approach.desired_distance = 0.2;
   g.post_place_retreat.min_distance = 0.1;
   g.post_place_retreat.desired_distance = 0.25;
 
-  g.post_place_posture.joint_names.resize(1, "r_hand");
+  g.post_place_posture.joint_names.resize(1, "right_f0_j1");
   g.post_place_posture.points.resize(1);
   g.post_place_posture.points[0].positions.resize(1);
-  g.post_place_posture.points[0].positions[0] = 1;
+  g.post_place_posture.points[0].positions[0] = 0;
+
+//  g.post_place_posture.joint_names.resize(3);
+//  g.post_place_posture.joint_names[0] = "right_f0_j1";
+//  g.post_place_posture.joint_names[1] = "right_f1_j1";
+//  g.post_place_posture.joint_names[2] = "right_f2_j1";
+//  g.post_place_posture.points.resize(3);
+//  g.post_place_posture.points[0].positions.resize(3);
+//  g.post_place_posture.points[0].positions[0] = 0;
+//  g.post_place_posture.points[0].positions[1] = 0;
+//  g.post_place_posture.points[0].positions[2] = 0;
+//  g.post_place_posture.points[1].positions.resize(3);
+//  g.post_place_posture.points[1].positions[0] = 0;
+//  g.post_place_posture.points[1].positions[1] = 0;
+//  g.post_place_posture.points[1].positions[2] = 0;
+//  g.post_place_posture.points[2].positions.resize(3);
+//  g.post_place_posture.points[2].positions[0] = 0;
+//  g.post_place_posture.points[2].positions[1] = 0;
+//  g.post_place_posture.points[2].positions[2] = 0;
 
   loc.push_back(g);
   group.setSupportSurfaceName("table");
@@ -174,7 +189,7 @@ int main(int argc, char **argv)
   ros::WallDuration(1.0).sleep();
 
   moveit::planning_interface::MoveGroup group("r_arm_group");
-  group.setPlanningTime(45.0);
+  group.setPlanningTime(15.0);
 
   moveit_msgs::CollisionObject co;
   co.header.stamp = ros::Time::now();

@@ -1,0 +1,26 @@
+joint_limits:
+  left_f0_j1:
+    has_velocity_limits: true
+    max_velocity: 12
+    has_acceleration_limits: true
+    max_acceleration: 2.4
+  left_f1_j1:
+    has_velocity_limits: true
+    max_velocity: 12
+    has_acceleration_limits: true
+    max_acceleration: 2.4
+  left_f2_j1:
+    has_velocity_limits: true
+    max_velocity: 12
+    has_acceleration_limits: true
+    max_acceleration: 2.4
+  left_f1_j0:
+    has_velocity_limits: true
+    max_velocity: 12
+    has_acceleration_limits: true
+    max_acceleration: 2.4
+  left_f2_j0:
+    has_velocity_limits: true
+    max_velocity: 12
+    has_acceleration_limits: true
+    max_acceleration: 2.4  

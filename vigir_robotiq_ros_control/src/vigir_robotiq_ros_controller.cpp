@@ -43,6 +43,11 @@ namespace RobotiqHardwareInterface
 
 void RobotiqHardwareInterface::robotiq_Callback(const robotiq_s_model_control::SModel_robot_input::ConstPtr &msg)
 {
+    if(first_time_){
+        last_robotiq_input_msg_ = *msg;
+        first_time_ = false;
+    }else
+        last_robotiq_input_msg_ = robotiq_input_msg_;
     robotiq_input_msg_ = *msg;
     new_data_ready_    = true;
 }
@@ -118,6 +123,7 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
     registerInterface(&effort_joint_interface_  );
 
     new_data_ready_ = false;
+    first_time_     = true;
 
     // ROS topic subscribtions for Robotiq Input
     ros::SubscribeOptions robotiqSo =
@@ -227,12 +233,26 @@ bool RobotiqHardwareInterface::checkForConflict(const std::list<hardware_interfa
 
 void RobotiqHardwareInterface::read(ros::Time time, ros::Duration period)
 {
+
+
 //    ROS_INFO("Reading from %s Robotiq...", hand_side_.c_str());
     joint_positions_states_[joint_names_[0]] = robotiq_input_msg_.gPOA *  0.004784314;         //position of finger A. Do math stuff to figure out joint 1 value
     joint_positions_states_[joint_names_[1]] = robotiq_input_msg_.gPOB *  0.004431373;         //position of finger B. Do math stuff to figure out joint 1 value
     joint_positions_states_[joint_names_[2]] = robotiq_input_msg_.gPOC *  0.004431373;         //position of finger C. Do math stuff to figure out joint 1 value
     joint_positions_states_[joint_names_[3]] = robotiq_input_msg_.gPOS *  BYTE_TO_SPR - SPR_ZERO; //position of scissors finger B.
     joint_positions_states_[joint_names_[4]] = robotiq_input_msg_.gPOS * -BYTE_TO_SPR + SPR_ZERO; //position of scissors finger C.
+
+    last_joint_positions_states_[joint_names_[0]] = last_robotiq_input_msg_.gPOA *  0.004784314;         //position of finger A. Do math stuff to figure out joint 1 value
+    last_joint_positions_states_[joint_names_[1]] = last_robotiq_input_msg_.gPOB *  0.004431373;         //position of finger B. Do math stuff to figure out joint 1 value
+    last_joint_positions_states_[joint_names_[2]] = last_robotiq_input_msg_.gPOC *  0.004431373;         //position of finger C. Do math stuff to figure out joint 1 value
+    last_joint_positions_states_[joint_names_[3]] = last_robotiq_input_msg_.gPOS *  BYTE_TO_SPR - SPR_ZERO; //position of scissors finger B.
+    last_joint_positions_states_[joint_names_[4]] = last_robotiq_input_msg_.gPOS * -BYTE_TO_SPR + SPR_ZERO; //position of scissors finger C.
+
+    joint_velocitys_states_[joint_names_[0]] = (joint_positions_states_[joint_names_[0]] - last_joint_positions_states_[joint_names_[0]])/period.toSec();
+    joint_velocitys_states_[joint_names_[1]] = (joint_positions_states_[joint_names_[1]] - last_joint_positions_states_[joint_names_[1]])/period.toSec();
+    joint_velocitys_states_[joint_names_[2]] = (joint_positions_states_[joint_names_[2]] - last_joint_positions_states_[joint_names_[2]])/period.toSec();
+    joint_velocitys_states_[joint_names_[3]] = (joint_positions_states_[joint_names_[3]] - last_joint_positions_states_[joint_names_[3]])/period.toSec();
+    joint_velocitys_states_[joint_names_[4]] = (joint_positions_states_[joint_names_[4]] - last_joint_positions_states_[joint_names_[4]])/period.toSec();
 
     joint_efforts_states_[  joint_names_[0]] = robotiq_input_msg_.gCUA; //Current of finger A.
     joint_efforts_states_[  joint_names_[1]] = robotiq_input_msg_.gCUB; //Current of finger B.
@@ -289,21 +309,23 @@ int main(int argc, char** argv)
 
         while (ros::ok())
         {
-            //ROS_INFO("in main loop");
-            rate.sleep();
-            //ros::spinOnce();
+
 
             ros::Time current_time = ros::Time::now();
             ros::Duration elapsed_time = current_time - last_time;
             last_time = current_time;
 
-            if(robotiq_hw.new_data_ready_)
+            //if(robotiq_hw.new_data_ready_)
             {
                 robotiq_hw.read(current_time, elapsed_time);
                 cm.update(current_time, elapsed_time);
                 robotiq_hw.write(current_time, elapsed_time);
                 robotiq_hw.new_data_ready_ = false;
             }
+
+            //ROS_INFO("in main loop");
+            rate.sleep();
+            //ros::spinOnce();
         }
 
         robotiq_hw.cleanup();

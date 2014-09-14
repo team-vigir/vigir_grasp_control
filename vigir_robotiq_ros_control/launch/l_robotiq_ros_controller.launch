@@ -16,9 +16,13 @@
             command = "load"/>            
   <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_velocity_controller.yaml"
             command = "load"/>
+  <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_controllers.yaml"
+            command = "load"/>
+  <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_joint_limits.yaml"
+            command = "load"/>
 
   <rosparam ns      = "left_robotiq"
-            file    = "$(find vigir_robotiq_ros_control)/config/robotiq_position_trajectory_controller.yaml"
+            file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_position_trajectory_controller.yaml"
             command = "load"/>
 
   <node name    = "left_robotiq_position_trajectory_controller"
@@ -105,5 +109,16 @@
         <param name="hand_name" value="l_hand"/>
         <rosparam file    = "$(find vigir_robotiq_ros_control)/config/robotiq_joints.yaml" 
                   command = "load" />
+  </node>
+  
+  <arg name="input_joints"  default="/left_robotiq/joint_states" />
+  <arg name="output_joints" default="/joint_states" />
+  
+  <node name    = "left_robotiq_republisher" 
+        pkg     = "topic_tools" 
+        type    = "relay" 
+        ns      = "left_robotiq"
+        args    = "$(arg input_joints)
+                   $(arg output_joints)">
   </node>
 </launch>

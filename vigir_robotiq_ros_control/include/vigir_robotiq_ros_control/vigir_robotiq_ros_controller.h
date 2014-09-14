@@ -63,6 +63,8 @@ public:
 
   bool new_data_ready_;
 
+  bool first_time_;
+
 private:
 
   //Robotiq specific communication code
@@ -80,6 +82,7 @@ private:
   std::map<std::string, double> joint_effort_commands_;
 
   std::map<std::string, double> joint_positions_states_;
+  std::map<std::string, double> last_joint_positions_states_;
   std::map<std::string, double> joint_velocitys_states_;
   std::map<std::string, double> joint_efforts_states_;
 
@@ -87,9 +90,11 @@ private:
   ros::CallbackQueue subscriber_queue_;
 
   ros::Publisher robotiq_output_pub_;
+  ros::Publisher robotiq_joint_states_pub_;
   ros::Subscriber robotiq_input_sub_;
 
   robotiq_s_model_control::SModel_robot_input   robotiq_input_msg_;
+  robotiq_s_model_control::SModel_robot_input   last_robotiq_input_msg_;
   robotiq_s_model_control::SModel_robot_output robotiq_output_msg_;
 
   std::string hand_side_;

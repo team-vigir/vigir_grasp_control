@@ -1,0 +1,11 @@
+controller_list:
+ - name: /left_robotiq/left_hand_traj_controller
+   action_ns: follow_joint_trajectory
+   type: FollowJointTrajectory
+   default: true
+   joints:
+      - left_f0_j1
+      - left_f1_j1
+      - left_f2_j1
+      - left_f1_j0
+      - left_f2_j0
