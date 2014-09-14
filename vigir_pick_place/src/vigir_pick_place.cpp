@@ -42,9 +42,9 @@ void pick(moveit::planning_interface::MoveGroup &group)
   std::vector<moveit_msgs::Grasp> grasps;
 
   geometry_msgs::PoseStamped p;
-  p.header.frame_id    = "/world";
+  p.header.frame_id    = "world";
   p.pose.position.x    =  0.14277830431;
-  p.pose.position.y    = -0.645004221203;
+  p.pose.position.y    = -0.745004221203;
   p.pose.position.z    =  1.26911157683;
   p.pose.orientation.x = -0.446351722051;
   p.pose.orientation.y =  0.563471242384;
@@ -96,6 +96,8 @@ void pick(moveit::planning_interface::MoveGroup &group)
 
   g.grasp_posture.points[0].time_from_start = ros::Duration(3.0);
 
+  g.allowed_touch_objects.push_back("part");
+
 
   g.id = "KAL_grasp";
 
@@ -109,48 +111,43 @@ void place(moveit::planning_interface::MoveGroup &group)
   std::vector<moveit_msgs::PlaceLocation> loc;
 
   geometry_msgs::PoseStamped p;
-  p.header.frame_id    = "/world";
-  p.pose.position.x    =  0.24277830431;
-  p.pose.position.y    = -0.60;
-  p.pose.position.z    =  1.26911157683;
-  p.pose.orientation.x = -0.446351722051;
-  p.pose.orientation.y =  0.563471242384;
-  p.pose.orientation.z =  0.449446130412;
-  p.pose.orientation.w =  0.530347504081;
+  p.header.frame_id    = "world";
+  p.pose.position.x    =  0.6;
+  p.pose.position.y    = -0.6;
+  p.pose.position.z    =  1.225;
+  p.pose.orientation.x =  0.0;
+  p.pose.orientation.y =  0.0;
+  p.pose.orientation.z =  0.0;
+  p.pose.orientation.w =  1.0;
   moveit_msgs::PlaceLocation g;
   g.place_pose = p;
 
-  g.pre_place_approach.direction.vector.z = -1.0;
-  g.post_place_retreat.direction.vector.x = -1.0;
-  g.post_place_retreat.direction.header.frame_id = "world";
-  g.pre_place_approach.direction.header.frame_id = "r_hand";
-  g.pre_place_approach.min_distance = 0.1;
-  g.pre_place_approach.desired_distance = 0.2;
+  g.post_place_retreat.direction.vector.y = 1.0;
+  g.post_place_retreat.direction.header.frame_id = "r_hand";
   g.post_place_retreat.min_distance = 0.1;
   g.post_place_retreat.desired_distance = 0.25;
 
-  g.post_place_posture.joint_names.resize(1, "right_f0_j1");
-  g.post_place_posture.points.resize(1);
-  g.post_place_posture.points[0].positions.resize(1);
-  g.post_place_posture.points[0].positions[0] = 0;
+  g.pre_place_approach.direction.vector.z = -1.0;
+  g.pre_place_approach.direction.header.frame_id = "world";
+  g.pre_place_approach.min_distance = 0.1;
+  g.pre_place_approach.desired_distance = 0.2;
 
-//  g.post_place_posture.joint_names.resize(3);
-//  g.post_place_posture.joint_names[0] = "right_f0_j1";
-//  g.post_place_posture.joint_names[1] = "right_f1_j1";
-//  g.post_place_posture.joint_names[2] = "right_f2_j1";
-//  g.post_place_posture.points.resize(3);
-//  g.post_place_posture.points[0].positions.resize(3);
-//  g.post_place_posture.points[0].positions[0] = 0;
-//  g.post_place_posture.points[0].positions[1] = 0;
-//  g.post_place_posture.points[0].positions[2] = 0;
-//  g.post_place_posture.points[1].positions.resize(3);
-//  g.post_place_posture.points[1].positions[0] = 0;
-//  g.post_place_posture.points[1].positions[1] = 0;
-//  g.post_place_posture.points[1].positions[2] = 0;
-//  g.post_place_posture.points[2].positions.resize(3);
-//  g.post_place_posture.points[2].positions[0] = 0;
-//  g.post_place_posture.points[2].positions[1] = 0;
-//  g.post_place_posture.points[2].positions[2] = 0;
+
+  g.post_place_posture.joint_names.resize(5);
+  g.post_place_posture.joint_names[0] = "right_f0_j1";
+  g.post_place_posture.joint_names[1] = "right_f1_j1";
+  g.post_place_posture.joint_names[2] = "right_f2_j1";
+  g.post_place_posture.joint_names[3] = "right_f1_j0";
+  g.post_place_posture.joint_names[4] = "right_f2_j0";
+  g.post_place_posture.points.resize(1);
+  g.post_place_posture.points[0].positions.resize(5);
+  g.post_place_posture.points[0].positions[0] = 0;
+  g.post_place_posture.points[0].positions[1] = 0;
+  g.post_place_posture.points[0].positions[2] = 0;
+  g.post_place_posture.points[0].positions[3] = 0;
+  g.post_place_posture.points[0].positions[4] = 0;
+
+  g.post_place_posture.points[0].time_from_start = ros::Duration(3.0);
 
   loc.push_back(g);
   group.setSupportSurfaceName("table");
@@ -171,7 +168,7 @@ void place(moveit::planning_interface::MoveGroup &group)
   ocm.absolute_z_axis_tolerance = M_PI;
   ocm.weight = 1.0;
   //  group.setPathConstraints(constr);
-  group.setPlannerId("RRTConnectkConfigDefault");
+  //group.setPlannerId("RRTConnectkConfigDefault");
 
   group.place("part", loc);
 }
@@ -193,7 +190,7 @@ int main(int argc, char **argv)
 
   moveit_msgs::CollisionObject co;
   co.header.stamp = ros::Time::now();
-  co.header.frame_id = "pelvis";
+  co.header.frame_id = "world";
 
   // remove pole
   co.id = "obstacle";
@@ -206,12 +203,12 @@ int main(int argc, char **argv)
   co.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
   co.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.3;
-  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.1;
+  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.05;
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 1.0;
   co.primitive_poses.resize(1);
   co.primitive_poses[0].position.x = 0.7;
-  co.primitive_poses[0].position.y = -0.4;
-  co.primitive_poses[0].position.z = 0.675;
+  co.primitive_poses[0].position.y = -0.7;
+  co.primitive_poses[0].position.z = 1.575;
   co.primitive_poses[0].orientation.w = 1.0;
   pub_co.publish(co);
 
@@ -229,7 +226,7 @@ int main(int argc, char **argv)
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.35;
   co.primitive_poses[0].position.x = 0.7;
   co.primitive_poses[0].position.y = -0.2;
-  co.primitive_poses[0].position.z = 0.0;
+  co.primitive_poses[0].position.z = 0.9;
   pub_co.publish(co);
 
 
@@ -248,8 +245,8 @@ int main(int argc, char **argv)
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.3;
 
   co.primitive_poses[0].position.x = 0.6;
-  co.primitive_poses[0].position.y = -0.7;
-  co.primitive_poses[0].position.z = 0.325;
+  co.primitive_poses[0].position.y = -0.8;
+  co.primitive_poses[0].position.z = 1.225;
   pub_co.publish(co);
 
   // wait a bit for ros things to initialize
