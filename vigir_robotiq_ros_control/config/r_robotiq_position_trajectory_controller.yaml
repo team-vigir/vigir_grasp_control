@@ -7,6 +7,12 @@
       - right_f2_j1
       - right_f1_j0
       - right_f2_j0
+      - right_f0_j2
+      - right_f1_j2
+      - right_f2_j2
+      - right_f0_j3
+      - right_f1_j3
+      - right_f2_j3
     constraints:
       goal_time: &goal_time_constraint 4.0
       stopped_velocity_tolerance: 1.0
@@ -23,6 +29,24 @@
         goal: *goal_pos_constraint
         trajectory: *trajectory_pos_constraint
       right_f2_j0:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      right_f0_j2:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      right_f1_j2:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      right_f2_j2:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      right_f0_j3:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      right_f1_j3:
+        goal: *goal_pos_constraint
+        trajectory: *trajectory_pos_constraint
+      right_f2_j3:
         goal: *goal_pos_constraint
         trajectory: *trajectory_pos_constraint
 

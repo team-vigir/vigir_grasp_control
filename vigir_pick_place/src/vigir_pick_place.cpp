@@ -43,7 +43,7 @@ void pick(moveit::planning_interface::MoveGroup &group)
 
   geometry_msgs::PoseStamped p;
   p.header.frame_id    = "world";
-  p.pose.position.x    =  0.14277830431;
+  p.pose.position.x    =  0.24277830431;
   p.pose.position.y    = -0.745004221203;
   p.pose.position.z    =  1.26911157683;
   p.pose.orientation.x = -0.446351722051;
@@ -72,13 +72,13 @@ void pick(moveit::planning_interface::MoveGroup &group)
   g.pre_grasp_posture.joint_names[4] = "right_f2_j0";
   g.pre_grasp_posture.points.resize(1);
   g.pre_grasp_posture.points[0].positions.resize(5);
-  g.pre_grasp_posture.points[0].positions[0] = 0.2;
-  g.pre_grasp_posture.points[0].positions[1] = 0.2;
-  g.pre_grasp_posture.points[0].positions[2] = 0.2;
+  g.pre_grasp_posture.points[0].positions[0] = 0.0;
+  g.pre_grasp_posture.points[0].positions[1] = 0.0;
+  g.pre_grasp_posture.points[0].positions[2] = 0.0;
   g.pre_grasp_posture.points[0].positions[3] = 0.0;
   g.pre_grasp_posture.points[0].positions[4] = 0.0;
 
-  g.pre_grasp_posture.points[0].time_from_start = ros::Duration(3.0);
+  g.pre_grasp_posture.points[0].time_from_start = ros::Duration(8.0);
 
   g.grasp_posture.joint_names.resize(5);
   g.grasp_posture.joint_names[0] = "right_f0_j1";
@@ -88,15 +88,16 @@ void pick(moveit::planning_interface::MoveGroup &group)
   g.grasp_posture.joint_names[4] = "right_f2_j0";
   g.grasp_posture.points.resize(1);
   g.grasp_posture.points[0].positions.resize(5);
-  g.grasp_posture.points[0].positions[0] = 1.0;
-  g.grasp_posture.points[0].positions[1] = 1.0;
-  g.grasp_posture.points[0].positions[2] = 1.0;
+  g.grasp_posture.points[0].positions[0] = 0.2;
+  g.grasp_posture.points[0].positions[1] = 0.2;
+  g.grasp_posture.points[0].positions[2] = 0.2;
   g.grasp_posture.points[0].positions[3] = 0.0;
   g.grasp_posture.points[0].positions[4] = 0.0;
 
-  g.grasp_posture.points[0].time_from_start = ros::Duration(3.0);
+  g.grasp_posture.points[0].time_from_start = ros::Duration(8.0);
 
-  g.allowed_touch_objects.push_back("part");
+  g.allowed_touch_objects.resize(1);
+  g.allowed_touch_objects[0] = "part";
 
 
   g.id = "KAL_grasp";
@@ -112,7 +113,7 @@ void place(moveit::planning_interface::MoveGroup &group)
 
   geometry_msgs::PoseStamped p;
   p.header.frame_id    = "world";
-  p.pose.position.x    =  0.6;
+  p.pose.position.x    =  0.5;
   p.pose.position.y    = -0.6;
   p.pose.position.z    =  1.225;
   p.pose.orientation.x =  0.0;
@@ -147,7 +148,7 @@ void place(moveit::planning_interface::MoveGroup &group)
   g.post_place_posture.points[0].positions[3] = 0;
   g.post_place_posture.points[0].positions[4] = 0;
 
-  g.post_place_posture.points[0].time_from_start = ros::Duration(3.0);
+  g.post_place_posture.points[0].time_from_start = ros::Duration(8.0);
 
   loc.push_back(g);
   group.setSupportSurfaceName("table");
@@ -203,11 +204,11 @@ int main(int argc, char **argv)
   co.primitives[0].type = shape_msgs::SolidPrimitive::BOX;
   co.primitives[0].dimensions.resize(shape_tools::SolidPrimitiveDimCount<shape_msgs::SolidPrimitive::BOX>::value);
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_X] = 0.3;
-  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.05;
+  co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.01;
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 1.0;
   co.primitive_poses.resize(1);
-  co.primitive_poses[0].position.x = 0.7;
-  co.primitive_poses[0].position.y = -0.7;
+  co.primitive_poses[0].position.x = 0.67;
+  co.primitive_poses[0].position.y = 0.67;
   co.primitive_poses[0].position.z = 1.575;
   co.primitive_poses[0].orientation.w = 1.0;
   pub_co.publish(co);
