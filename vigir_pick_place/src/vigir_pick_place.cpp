@@ -176,7 +176,7 @@ void place(moveit::planning_interface::MoveGroup &group)
 
 int main(int argc, char **argv)
 {
-  ros::init (argc, argv, "right_arm_pick_place");
+  ros::init (argc, argv, "vigir_pick_controller");
   ros::AsyncSpinner spinner(1);
   spinner.start();
 

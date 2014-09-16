@@ -270,10 +270,10 @@ void RobotiqHardwareInterface::write(ros::Time time, ros::Duration period)
     robotiq_output_msg_.rPRC = std::max(float(0.0), std::min(float(joint_position_commands_[ joint_names_[2]]  * RAD_BC_TO_BYTE),float(255.0)));
     robotiq_output_msg_.rPRS = std::max(float(0.0), std::min(float(((joint_position_commands_[joint_names_[3]]) + SPR_ZERO) * SPR_TO_BYTE)   ,float(255.0)));
     //Converting Speed request
-    robotiq_output_msg_.rSPA = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[0]])                  ,float(255.0)));
-    robotiq_output_msg_.rSPB = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[1]])                  ,float(255.0)));
-    robotiq_output_msg_.rSPC = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[2]])                  ,float(255.0)));
-    robotiq_output_msg_.rSPS = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[3]])                  ,float(255.0)));
+//    robotiq_output_msg_.rSPA = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[0]])                  ,float(255.0)));
+//    robotiq_output_msg_.rSPB = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[1]])                  ,float(255.0)));
+//    robotiq_output_msg_.rSPC = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[2]])                  ,float(255.0)));
+//    robotiq_output_msg_.rSPS = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[3]])                  ,float(255.0)));
     //Converting Force Request
     robotiq_output_msg_.rFRA = std::max(float(0.0), std::min(float(joint_effort_commands_[   joint_names_[0]] * PER_TO_BYTE)    ,float(255.0)));
     robotiq_output_msg_.rFRB = std::max(float(0.0), std::min(float(joint_effort_commands_[   joint_names_[1]] * PER_TO_BYTE)    ,float(255.0)));
@@ -315,17 +315,12 @@ int main(int argc, char** argv)
             ros::Duration elapsed_time = current_time - last_time;
             last_time = current_time;
 
-            //if(robotiq_hw.new_data_ready_)
-            {
-                robotiq_hw.read(current_time, elapsed_time);
-                cm.update(current_time, elapsed_time);
-                robotiq_hw.write(current_time, elapsed_time);
-                robotiq_hw.new_data_ready_ = false;
-            }
+            robotiq_hw.read(current_time, elapsed_time);
+            cm.update(current_time, elapsed_time);
+            robotiq_hw.write(current_time, elapsed_time);
+            robotiq_hw.new_data_ready_ = false;
 
-            //ROS_INFO("in main loop");
             rate.sleep();
-            //ros::spinOnce();
         }
 
         robotiq_hw.cleanup();

@@ -17,6 +17,7 @@
   <rosparam file    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_velocity_controller.yaml"
             command = "load"/>
   <rosparam file    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_controllers.yaml"
+            ns      = "move_group"
             command = "load"/>
   <rosparam file    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_joint_limits.yaml"
             command = "load"/>
