@@ -43,33 +43,41 @@ void pick(moveit::planning_interface::MoveGroup &group)
 
   geometry_msgs::PoseStamped p;
   p.header.frame_id    = "world";
-  p.pose.position.x    =  0.24277830431;
-  p.pose.position.y    = -0.745004221203;
-  p.pose.position.z    =  1.26911157683;
-  p.pose.orientation.x = -0.446351722051;
-  p.pose.orientation.y =  0.563471242384;
-  p.pose.orientation.z =  0.449446130412;
-  p.pose.orientation.w =  0.530347504081;
+//  p.pose.position.x    =  0.24277830431;
+//  p.pose.position.y    = -0.745004221203;
+//  p.pose.position.z    =  1.26911157683;
+//  p.pose.orientation.x = -0.446351722051;
+//  p.pose.orientation.y =  0.563471242384;
+//  p.pose.orientation.z =  0.449446130412;
+//  p.pose.orientation.w =  0.530347504081;
+
+  p.pose.position.x    =  0.47417;
+  p.pose.position.y    =  0.21743;
+  p.pose.position.z    =  1.2511;
+  p.pose.orientation.x = -0.68684;
+  p.pose.orientation.y = -0.26322;
+  p.pose.orientation.z =  0.64401;
+  p.pose.orientation.w = -0.21027;
 
   moveit_msgs::Grasp g;
   g.grasp_pose = p;
 
-  g.pre_grasp_approach.direction.vector.y = -1.0;
-  g.pre_grasp_approach.direction.header.frame_id = "r_hand";
-  g.pre_grasp_approach.min_distance = 0.1;
-  g.pre_grasp_approach.desired_distance = 0.2;
+  g.pre_grasp_approach.direction.vector.y = 1.0;
+  g.pre_grasp_approach.direction.header.frame_id = "l_hand";
+  g.pre_grasp_approach.min_distance = 0.05;
+  g.pre_grasp_approach.desired_distance = 0.1;
 
   g.post_grasp_retreat.direction.header.frame_id = "world";
   g.post_grasp_retreat.direction.vector.z = 1.0;
-  g.post_grasp_retreat.min_distance = 0.1;
-  g.post_grasp_retreat.desired_distance = 0.25;
+  g.post_grasp_retreat.min_distance = 0.05;
+  g.post_grasp_retreat.desired_distance = 0.1;
 
   g.pre_grasp_posture.joint_names.resize(5);
-  g.pre_grasp_posture.joint_names[0] = "right_f0_j1";
-  g.pre_grasp_posture.joint_names[1] = "right_f1_j1";
-  g.pre_grasp_posture.joint_names[2] = "right_f2_j1";
-  g.pre_grasp_posture.joint_names[3] = "right_f1_j0";
-  g.pre_grasp_posture.joint_names[4] = "right_f2_j0";
+  g.pre_grasp_posture.joint_names[0] = "left_f0_j1";
+  g.pre_grasp_posture.joint_names[1] = "left_f1_j1";
+  g.pre_grasp_posture.joint_names[2] = "left_f2_j1";
+  g.pre_grasp_posture.joint_names[3] = "left_f1_j0";
+  g.pre_grasp_posture.joint_names[4] = "left_f2_j0";
   g.pre_grasp_posture.points.resize(1);
   g.pre_grasp_posture.points[0].positions.resize(5);
   g.pre_grasp_posture.points[0].positions[0] = 0.0;
@@ -78,14 +86,14 @@ void pick(moveit::planning_interface::MoveGroup &group)
   g.pre_grasp_posture.points[0].positions[3] = 0.0;
   g.pre_grasp_posture.points[0].positions[4] = 0.0;
 
-  g.pre_grasp_posture.points[0].time_from_start = ros::Duration(8.0);
+  g.pre_grasp_posture.points[0].time_from_start = ros::Duration(3.0);
 
   g.grasp_posture.joint_names.resize(5);
-  g.grasp_posture.joint_names[0] = "right_f0_j1";
-  g.grasp_posture.joint_names[1] = "right_f1_j1";
-  g.grasp_posture.joint_names[2] = "right_f2_j1";
-  g.grasp_posture.joint_names[3] = "right_f1_j0";
-  g.grasp_posture.joint_names[4] = "right_f2_j0";
+  g.grasp_posture.joint_names[0] = "left_f0_j1";
+  g.grasp_posture.joint_names[1] = "left_f1_j1";
+  g.grasp_posture.joint_names[2] = "left_f2_j1";
+  g.grasp_posture.joint_names[3] = "left_f1_j0";
+  g.grasp_posture.joint_names[4] = "left_f2_j0";
   g.grasp_posture.points.resize(1);
   g.grasp_posture.points[0].positions.resize(5);
   g.grasp_posture.points[0].positions[0] = 0.2;
@@ -94,7 +102,7 @@ void pick(moveit::planning_interface::MoveGroup &group)
   g.grasp_posture.points[0].positions[3] = 0.0;
   g.grasp_posture.points[0].positions[4] = 0.0;
 
-  g.grasp_posture.points[0].time_from_start = ros::Duration(8.0);
+  g.grasp_posture.points[0].time_from_start = ros::Duration(3.0);
 
   g.allowed_touch_objects.resize(1);
   g.allowed_touch_objects[0] = "part";
@@ -114,7 +122,7 @@ void place(moveit::planning_interface::MoveGroup &group)
   geometry_msgs::PoseStamped p;
   p.header.frame_id    = "world";
   p.pose.position.x    =  0.5;
-  p.pose.position.y    = -0.6;
+  p.pose.position.y    = 0.6;
   p.pose.position.z    =  1.225;
   p.pose.orientation.x =  0.0;
   p.pose.orientation.y =  0.0;
@@ -123,8 +131,8 @@ void place(moveit::planning_interface::MoveGroup &group)
   moveit_msgs::PlaceLocation g;
   g.place_pose = p;
 
-  g.post_place_retreat.direction.vector.y = 1.0;
-  g.post_place_retreat.direction.header.frame_id = "r_hand";
+  g.post_place_retreat.direction.vector.y = -1.0;
+  g.post_place_retreat.direction.header.frame_id = "l_hand";
   g.post_place_retreat.min_distance = 0.1;
   g.post_place_retreat.desired_distance = 0.25;
 
@@ -135,11 +143,11 @@ void place(moveit::planning_interface::MoveGroup &group)
 
 
   g.post_place_posture.joint_names.resize(5);
-  g.post_place_posture.joint_names[0] = "right_f0_j1";
-  g.post_place_posture.joint_names[1] = "right_f1_j1";
-  g.post_place_posture.joint_names[2] = "right_f2_j1";
-  g.post_place_posture.joint_names[3] = "right_f1_j0";
-  g.post_place_posture.joint_names[4] = "right_f2_j0";
+  g.post_place_posture.joint_names[0] = "left_f0_j1";
+  g.post_place_posture.joint_names[1] = "left_f1_j1";
+  g.post_place_posture.joint_names[2] = "left_f2_j1";
+  g.post_place_posture.joint_names[3] = "left_f1_j0";
+  g.post_place_posture.joint_names[4] = "left_f2_j0";
   g.post_place_posture.points.resize(1);
   g.post_place_posture.points[0].positions.resize(5);
   g.post_place_posture.points[0].positions[0] = 0;
@@ -148,7 +156,7 @@ void place(moveit::planning_interface::MoveGroup &group)
   g.post_place_posture.points[0].positions[3] = 0;
   g.post_place_posture.points[0].positions[4] = 0;
 
-  g.post_place_posture.points[0].time_from_start = ros::Duration(8.0);
+  g.post_place_posture.points[0].time_from_start = ros::Duration(3.0);
 
   loc.push_back(g);
   group.setSupportSurfaceName("table");
@@ -158,7 +166,7 @@ void place(moveit::planning_interface::MoveGroup &group)
   moveit_msgs::Constraints constr;
   constr.orientation_constraints.resize(1);
   moveit_msgs::OrientationConstraint &ocm = constr.orientation_constraints[0];
-  ocm.link_name = "r_hand";
+  ocm.link_name = "l_hand";
   ocm.header.frame_id = p.header.frame_id;
   ocm.orientation.x = 0.0;
   ocm.orientation.y = 0.0;
@@ -186,7 +194,7 @@ int main(int argc, char **argv)
 
   ros::WallDuration(1.0).sleep();
 
-  moveit::planning_interface::MoveGroup group("r_arm_group");
+  moveit::planning_interface::MoveGroup group("l_arm_group");
   group.setPlanningTime(15.0);
 
   moveit_msgs::CollisionObject co;
@@ -226,7 +234,7 @@ int main(int argc, char **argv)
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 1.5;
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.35;
   co.primitive_poses[0].position.x = 0.7;
-  co.primitive_poses[0].position.y = -0.2;
+  co.primitive_poses[0].position.y = 0.2;
   co.primitive_poses[0].position.z = 0.9;
   pub_co.publish(co);
 
@@ -245,9 +253,18 @@ int main(int argc, char **argv)
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Y] = 0.1;
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 0.3;
 
-  co.primitive_poses[0].position.x = 0.6;
-  co.primitive_poses[0].position.y = -0.8;
+  co.primitive_poses[0].position.x = 0.69;
+  co.primitive_poses[0].position.y = -0.06;
   co.primitive_poses[0].position.z = 1.225;
+
+  tf::Quaternion part_quat;
+
+  part_quat.setEuler(0.0,0.0,-0.92);
+
+  co.primitive_poses[0].orientation.x = part_quat.x();
+  co.primitive_poses[0].orientation.y = part_quat.y();
+  co.primitive_poses[0].orientation.z = part_quat.z();
+  co.primitive_poses[0].orientation.w = part_quat.w();
   pub_co.publish(co);
 
   // wait a bit for ros things to initialize
