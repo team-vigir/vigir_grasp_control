@@ -96,9 +96,9 @@ void pick(moveit::planning_interface::MoveGroup &group)
   g.grasp_posture.joint_names[4] = "left_f2_j0";
   g.grasp_posture.points.resize(1);
   g.grasp_posture.points[0].positions.resize(5);
-  g.grasp_posture.points[0].positions[0] = 0.2;
-  g.grasp_posture.points[0].positions[1] = 0.2;
-  g.grasp_posture.points[0].positions[2] = 0.2;
+  g.grasp_posture.points[0].positions[0] = 1.0;
+  g.grasp_posture.points[0].positions[1] = 1.0;
+  g.grasp_posture.points[0].positions[2] = 1.0;
   g.grasp_posture.points[0].positions[3] = 0.0;
   g.grasp_posture.points[0].positions[4] = 0.0;
 
