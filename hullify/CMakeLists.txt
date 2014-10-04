@@ -200,5 +200,11 @@ if(TARGET ${PROJECT_NAME}-pose-test)
    target_link_libraries(${PROJECT_NAME}-pose-test ${catkin_LIBRARIES})
 endif()
 
+catkin_add_gtest(${PROJECT_NAME}-3dmath-test test/test_3dmath.cpp src/plane_reps_and_3dmath.cpp)
+if(TARGET ${PROJECT_NAME}-3dmath-test)
+   #target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME}) # original
+   target_link_libraries(${PROJECT_NAME}-3dmath-test ${catkin_LIBRARIES})
+endif()
+
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
