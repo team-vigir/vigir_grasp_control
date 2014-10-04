@@ -81,20 +81,25 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr extract_subcloud(pcl::PointCloud<pcl::PointX
 
 void plane_intersect(pcl::ModelCoefficients::Ptr plane1, pcl::ModelCoefficients::Ptr plane2, Eigen::Vector3d& slope, Eigen::Vector3d& intersect)
 {
-  pcl::ModelCoefficients::Ptr unitNormalPlane1 = get_unit_normal(plane1);
-  pcl::ModelCoefficients::Ptr unitNormalPlane2 = get_unit_normal(plane2);
+  Eigen::Vector3d unitNormalPlane1 = get_unit_normal(plane1);
+  Eigen::Vector3d unitNormalPlane2 = get_unit_normal(plane2);
 
   //double planeCoefficients1[4], planeCoefficients2[4];
   Eigen::MatrixXd A(2, 2), B(2, 1); //assume z = 0 !!may be an issue with planes that dont actually cross the z axis
   
+  cout << "GUYS!!! WE NEED TO VERIFY THAT THE NORMALS ARE NOT PARALLEL! AND DEAL WITH PLANES THAT DONT INTERSECT" << endl;
   slope = unitNormalPlane1.cross(unitNormalPlane2);
 
   A << plane1->values[0], plane1->values[1],
        plane2->values[0], plane2->values[1];
-  B << plane1->values[3],
-       plane2->values[3];
+  B << -plane1->values[3],
+       -plane2->values[3];
 
-  
+  //More general plane method:
+       Eigen::MatrixXd coef(2, 3);
+       coef << plane1->values[0], plane1->values[1], plane1->values[2],
+                plane2->values[0], plane2->values[1], plane2->values[2];
+        Eigen::Vector3d pt_on_line = coef.colPivHouseholderQr().solve(B);
 
   /*
   planeCoefficients1 = {plane1->values[0], plane1->values[1], 0, plane1->values[3]}; //3rd component "z" set to 0 in order to find point on line of intersection
