@@ -110,7 +110,8 @@ include_directories(
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
-# add_dependencies(rave_to_moveit_node rave_to_moveit_generate_messages_cpp)
+#add_dependencies(rave_to_moveit_node osu_grasp_msgs_generate_messages_cpp)
+add_custom_target(rave_to_moveit DEPENDS osu_grasp_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(rave_to_moveit_node

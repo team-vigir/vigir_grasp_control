@@ -19,6 +19,7 @@ find_package(catkin REQUIRED COMPONENTS
   osu_grasp_msgs
 )
 
+find_package(cmake_modules REQUIRED)
 find_package(Eigen REQUIRED)
 find_package(PCL REQUIRED)
 
@@ -104,7 +105,7 @@ catkin_package(
 
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
-include_directories(include)
+include_directories(include ${catkin_INCLUDE_DIRS})
 include_directories(${EIGEN_INCLUDE_DIRS})
 include_directories(${PCL_INCLUDE_DIRS})
 
@@ -122,7 +123,7 @@ target_link_libraries(hull_tests ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 set_target_properties(hull_tests PROPERTIES COMPILE_FLAGS "-Wall -g")
 
 add_executable(convex_hull src/hullify_view.cpp src/convex_hull_qhull_ext.cpp src/qhull_interface.cpp src/mesh_bound.cpp src/plane_reps_and_3dmath.cpp src/pose_transform.cpp src/cluster_segmentation.cpp)
-add_dependencies(convex_hull ${osu_grasp_msgs_EXPORTED_TARGETS})
+add_dependencies(convex_hull osu_grasp_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS}) 
 target_link_libraries(convex_hull ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 set_target_properties(convex_hull PROPERTIES COMPILE_FLAGS "-Wall -g")
 
