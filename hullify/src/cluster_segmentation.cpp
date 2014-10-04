@@ -95,7 +95,7 @@ void plane_intersect(pcl::ModelCoefficients::Ptr plane1, pcl::ModelCoefficients:
   B << -plane1->values[3],
        -plane2->values[3];
 
-  //More general plane method:
+  //More general plane method: If it will run...
        Eigen::MatrixXd coef(2, 3);
        coef << plane1->values[0], plane1->values[1], plane1->values[2],
                 plane2->values[0], plane2->values[1], plane2->values[2];
