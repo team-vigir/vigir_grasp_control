@@ -324,3 +324,15 @@ bool pt_below_plane(pcl::ModelCoefficients::Ptr plane, pcl::PointXYZ& pt)
 	//cout << "Point(below) x:" << pt.x << " y:" << pt.y << " z:" << pt.z << " Dist: " << dist << endl << endl; 
 	return (dist - FLOAT_TOLERANCE <= 0);
 }
+
+//THINGS NOT OF JACKSON
+
+Eigen::Vector3d get_unit_normal(pcl::ModelCoefficients::Ptr plane)
+{
+	cout << "made it" << endl;
+	double magnitude = sqrt(plane->values[0]*plane->values[0] + plane->values[1]*plane->values[1] + plane->values[2]*plane->values[2]);
+	Eigen::Vector3d normal(plane->values[0]/magnitude, plane->values[1]/magnitude, plane->values[2]/magnitude);
+	cout << "x: " << normal[0] << "y: " << normal[1] << "z: " << normal[2] << endl;
+
+	return normal;
+}

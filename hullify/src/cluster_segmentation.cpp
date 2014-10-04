@@ -76,3 +76,29 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr extract_subcloud(pcl::PointCloud<pcl::PointX
 
   return out_cloud;
 }
+
+//FORREST AND JOSH'S STUFFS (jackson too)!
+
+void plane_intersect(pcl::ModelCoefficients::Ptr plane1, pcl::ModelCoefficients::Ptr plane2, Eigen::Vector3d& slope, Eigen::Vector3d& intersect)
+{
+  pcl::ModelCoefficients::Ptr unitNormalPlane1 = get_unit_normal(plane1);
+  pcl::ModelCoefficients::Ptr unitNormalPlane2 = get_unit_normal(plane2);
+
+  //double planeCoefficients1[4], planeCoefficients2[4];
+  Eigen::MatrixXd A(2, 2), B(2, 1); //assume z = 0 !!may be an issue with planes that dont actually cross the z axis
+  
+  slope = unitNormalPlane1.cross(unitNormalPlane2);
+
+  A << plane1->values[0], plane1->values[1],
+       plane2->values[0], plane2->values[1];
+  B << plane1->values[3],
+       plane2->values[3];
+
+  
+
+  /*
+  planeCoefficients1 = {plane1->values[0], plane1->values[1], 0, plane1->values[3]}; //3rd component "z" set to 0 in order to find point on line of intersection
+  planeCoefficients2 = {plane2->values[0], plane2->values[1], 0, plane2->values[3]}; //3rd component "z" set to 0 in order to find point on line of intersection
+  */
+
+}

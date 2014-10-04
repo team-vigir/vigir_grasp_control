@@ -66,4 +66,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr find_pts_between_parallel_planes(pcl::ModelC
 	bool pt_below_plane(pcl::ModelCoefficients::Ptr plane, pcl::PointXYZ& pt);
 	bool pt_above_plane(pcl::ModelCoefficients::Ptr plane, pcl::PointXYZ& pt);
 
+//STUFF NOT JACKSON WRITE
+Eigen::Vector3d get_normal(pcl::ModelCoefficients::Ptr plane);
+
 #endif

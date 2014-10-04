@@ -131,14 +131,10 @@ add_executable(pose_playing src/pose_transform.cpp src/pose_transform_driver.cpp
 target_link_libraries(pose_playing ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 set_target_properties(pose_playing PROPERTIES COMPILE_FLAGS "-Wall -g")
 
-#deprecated
-#add_executable(greedy_proj src/deprecated/greedy_proj.cpp)
-#target_link_libraries(greedy_proj ${PCL_LIBRARIES} ${catkin_LIBRARIES})
-#set_target_properties(greedy_proj PROPERTIES COMPILE_FLAGS "-Wall -g")
+add_executable(plane_norm_test src/plane_reps_and_3dmath.cpp test/test_planes.cpp)
+target_link_libraries(plane_norm_test ${PCL_LIBRARIES} ${catkin_LIBRARIES})
+set_target_properties(plane_norm_test PROPERTIES COMPILE_FLAGS "-Wall -g")
 
-#add_executable(convex_hull_backup src/backup/convex_hull-06_25_2014.cpp)
-#target_link_libraries(convex_hull_backup ${PCL_LIBRARIES} ${catkin_LIBRARIES})
-#set_target_properties(convex_hull_backup PROPERTIES COMPILE_FLAGS "-Wall -g")
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
