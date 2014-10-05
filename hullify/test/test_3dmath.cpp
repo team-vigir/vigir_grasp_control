@@ -1,4 +1,5 @@
 #include "plane_reps_and_3dmath.h"
+#include "cluster_segmentation.h"
 #include "gtest/gtest.h"
 
 pcl::ModelCoefficients::Ptr mk_xy_plane()
@@ -104,6 +105,28 @@ TEST(line_eval, line_in_plane){
 		cout << "Caught Unexpected exception." << endl;
 		EXPECT_TRUE(false);
 	}
+}
+
+TEST(plane_intersection, first_times_the_charm){
+	pcl::ModelCoefficients::Ptr xy_plane = mk_xy_plane();
+	pcl::ModelCoefficients::Ptr yz_plane = init_plane(1, 0, 0, 0);
+
+	Line intersection = plane_intersect(xy_plane, yz_plane);
+	cout << "Slope: " << intersection.slope << endl 
+		 << "Point: " << intersection.intercept << endl;
+
+	EXPECT_TRUE(true);
+}
+
+TEST(plane_intersection, first_times_the_charm_strikes_again){
+	pcl::ModelCoefficients::Ptr xy_plane = init_plane(65, 5, -8, 72);
+	pcl::ModelCoefficients::Ptr yz_plane = init_plane(5, 5, 5, -100);
+
+	Line intersection = plane_intersect(xy_plane, yz_plane);
+	cout << "Slope: " << intersection.slope << endl 
+		 << "Point: " << intersection.intercept << endl;
+
+	EXPECT_TRUE(true);
 }
 
 int main(int argc, char** argv){

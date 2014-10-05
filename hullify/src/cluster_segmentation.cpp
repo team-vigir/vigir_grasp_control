@@ -79,31 +79,29 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr extract_subcloud(pcl::PointCloud<pcl::PointX
 
 //FORREST AND JOSH'S STUFFS (jackson too)!
 
-void plane_intersect(pcl::ModelCoefficients::Ptr plane1, pcl::ModelCoefficients::Ptr plane2, Eigen::Vector3d& slope, Eigen::Vector3d& intersect)
+Line plane_intersect(pcl::ModelCoefficients::Ptr plane1, pcl::ModelCoefficients::Ptr plane2)
 {
-  Eigen::Vector3d unitNormalPlane1 = get_unit_normal(plane1);
-  Eigen::Vector3d unitNormalPlane2 = get_unit_normal(plane2);
+  Eigen::Vector3d normalPlane1 = get_normal(plane1);
+  Eigen::Vector3d normalPlane2 = get_normal(plane2);
+  double dist;
+  pcl::PointXYZ point = init_pt(0, 0, 0);
 
-  //double planeCoefficients1[4], planeCoefficients2[4];
-  Eigen::MatrixXd A(2, 2), B(2, 1); //assume z = 0 !!may be an issue with planes that dont actually cross the z axis
+  Eigen::Vector3d slope = normalPlane1.cross(normalPlane2);
+
+  normalize_plane(plane1);
+  dist = pt_to_plane_dist(plane1, point);
+
+  normalPlane1.normalize();
+  Eigen::Vector3d point_on_plane = init_vec(point) - normalPlane1*dist;
+  cout << "Point on Plane: " << point_on_plane << endl;
+  Eigen::Vector3d projecting_slope = slope.cross(normalPlane1);
+  cout << "Projecting Slope: " << projecting_slope << endl;
+
+  Line projecting_line(projecting_slope, point_on_plane);
+  Eigen::Vector3d pt_on_intersecting_line = projecting_line.find_plane_intersection(plane2);
+
+  Line intersection_line(slope, pt_on_intersecting_line);
   
   cout << "GUYS!!! WE NEED TO VERIFY THAT THE NORMALS ARE NOT PARALLEL! AND DEAL WITH PLANES THAT DONT INTERSECT" << endl;
-  slope = unitNormalPlane1.cross(unitNormalPlane2);
-
-  A << plane1->values[0], plane1->values[1],
-       plane2->values[0], plane2->values[1];
-  B << -plane1->values[3],
-       -plane2->values[3];
-
-  //More general plane method: If it will run...
-       Eigen::MatrixXd coef(2, 3);
-       coef << plane1->values[0], plane1->values[1], plane1->values[2],
-                plane2->values[0], plane2->values[1], plane2->values[2];
-        Eigen::Vector3d pt_on_line = coef.colPivHouseholderQr().solve(B);
-
-  /*
-  planeCoefficients1 = {plane1->values[0], plane1->values[1], 0, plane1->values[3]}; //3rd component "z" set to 0 in order to find point on line of intersection
-  planeCoefficients2 = {plane2->values[0], plane2->values[1], 0, plane2->values[3]}; //3rd component "z" set to 0 in order to find point on line of intersection
-  */
-
+  return intersection_line;  
 }

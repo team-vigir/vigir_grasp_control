@@ -24,6 +24,4 @@ void planar_segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud);
 
 pcl::PointCloud<pcl::PointXYZ>::Ptr extract_subcloud(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, const pcl::PointIndices& indices);
 
-//JOSH AND FORREST'S STUFF (jackson too)!
-
-void plane_intersect(pcl::ModelCoefficients::Ptr plane1, pcl::ModelCoefficients::Ptr plane2, Eigen::Vector3d& slope, Eigen::Vector3d& intersect);
+Line plane_intersect(pcl::ModelCoefficients::Ptr plane1, pcl::ModelCoefficients::Ptr plane2);
