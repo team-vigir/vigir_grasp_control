@@ -1,0 +1,4 @@
+geometry_msgs/PoseStamped hand_pose
+float64 acceptable_dist
+---
+bool within_acceptable_dist

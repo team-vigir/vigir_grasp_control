@@ -30,11 +30,21 @@ def set_openrave_environment_vars():
 	rospack = rospkg.RosPack()
 	rave_to_moveit_path = rospack.get_path('rave_to_moveit')
 	if os.environ.get("OPENRAVE_DATA", "") != "":
-		os.environ["OPENRAVE_DATA"] = rave_to_moveit_path + os.environ["OPENRAVE_DATA"]
+		os.environ["OPENRAVE_DATA"] = rave_to_moveit_path + ":" + os.environ["OPENRAVE_DATA"]
 	else:
 		os.environ["OPENRAVE_DATA"] = rave_to_moveit_path
 
 	#print "set env vars"
+
+	if os.environ.get("OPENRAVE_PLUGINS", "") != "":
+		os.environ["OPENRAVE_PLUGINS"] = rave_to_moveit_path + "/plugins" + ":" + os.environ["OPENRAVE_PLUGINS"]
+	else:
+		os.environ["OPENRAVE_PLUGINS"] = rave_to_moveit_path + "/plugins"
+
+def load_modified_grasper_plugin():
+	plugin  = RaveLoadPlugin('grasper_mod')
+	if !plugin:
+		print "Could not load modified plugin for Grasper. Will default to standard."
 
 def build_environment():
 	global gt	
@@ -235,6 +245,7 @@ if __name__ == '__main__':
 	rospy.init_node('SimEnvLoading', anonymous=True)
 	
 	set_openrave_environment_vars()
+	load_modified_grasper_plugin()
 	env, robot, target = build_environment()
 	#collision_test.check_collisions(env, robot)
 	grasper = VigirGrasper(env, robot, target)

@@ -19,11 +19,9 @@
 
 //From Tutorial
 #include <pcl/ModelCoefficients.h>
-#include <pcl/point_types.h>
 #include <pcl/sample_consensus/method_types.h>
 #include <pcl/sample_consensus/model_types.h>
 #include <pcl/filters/passthrough.h>
-#include <pcl/filters/project_inliers.h>
 #include <pcl/segmentation/sac_segmentation.h>
 #include <pcl/surface/concave_hull.h>
 //End tutorial
@@ -35,6 +33,7 @@
 #include "hullify_view.h"
 #include "pose_transform.h"
 #include "cluster_segmentation.h"
+#include "mesh_storage.h"
 
 #include <ctime>
 #include <cstdlib>
