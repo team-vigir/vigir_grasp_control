@@ -16,15 +16,17 @@
             command = "load"/>            
   <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_velocity_controller.yaml"
             command = "load"/>
-  <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_controllers.yaml"
-            ns      = "move_group"
-            command = "load"/>
   <rosparam file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_joint_limits.yaml"
             command = "load"/>
-
+            
   <rosparam ns      = "left_robotiq"
             file    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_position_trajectory_controller.yaml"
             command = "load"/>
+            
+  <node name    = "rosparam_append_node" 
+        pkg     = "flor_atlas_moveit_config"
+        type    = "rosparam_append"
+        args    = "$(find vigir_robotiq_ros_control)/config/l_robotiq_controllers.yaml /move_group/controller_list"/>
 
   <node name    = "left_robotiq_position_trajectory_controller"
         pkg     = "controller_manager"
