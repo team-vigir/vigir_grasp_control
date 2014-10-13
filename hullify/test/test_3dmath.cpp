@@ -14,6 +14,35 @@ pcl::ModelCoefficients::Ptr mk_xy_plane()
 	return xy_plane;
 }
 
+pcl::PointCloud<pcl::PointXYZ>::Ptr mk_cloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{
+
+  // Fill in the cloud data
+  cloud->width  = 15;
+  cloud->height = 1;
+  cloud->points.resize (cloud->width * cloud->height);
+
+  // Generate the data
+  for (size_t i = 0; i < cloud->points.size (); ++i)
+  {
+    cloud->points[i].x = 1024 * rand () / (RAND_MAX + 1.0f);
+    cloud->points[i].y = 1024 * rand () / (RAND_MAX + 1.0f);
+    cloud->points[i].z = 1.0;
+  }
+
+  // Set a few outliers
+  cloud->points[0].z = 2.0;
+  cloud->points[3].z = -2.0;
+  cloud->points[6].z = 4.0;
+
+  std::cerr << "Point cloud data: " << cloud->points.size () << " points" << std::endl;
+  for (size_t i = 0; i < cloud->points.size (); ++i)
+    std::cerr << "    " << cloud->points[i].x << " "
+                        << cloud->points[i].y << " "
+                        << cloud->points[i].z << std::endl;
+  return cloud;
+}
+
 TEST(get_normal, simple_test){
 	pcl::ModelCoefficients::Ptr plane = init_plane(1, 2, 3, 4);
 
@@ -127,6 +156,119 @@ TEST(plane_intersection, first_times_the_charm_strikes_again){
 		 << "Point: " << intersection.intercept << endl;
 
 	EXPECT_TRUE(true);
+}
+
+TEST(plane_segmentation, hope_it_works){
+	
+	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	cloud = mk_cloud(cloud);
+*/  
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+ 	Plane plane;
+    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_1.pcd", *cloud) == -1) //* load the file
+    {
+      cout << "Couldn't read file test_pcd.pcd \n";
+      EXPECT_TRUE(false);
+    }
+
+	planar_segmentation(cloud, plane);
+
+	EXPECT_TRUE(true);
+}
+
+/*TEST(plane_segmentation, it_will_work){
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+ 	
+    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_2.pcd", *cloud) == -1) //* load the file
+    {
+      cout << "Couldn't read file test_pcd.pcd \n";
+      EXPECT_TRUE(false);
+    }
+    stat_outlier_remove(cloud);
+    vector<Plane> all_planes = find_all_planes(cloud);
+
+    save_planes(all_planes);
+    save_cloud(cloud, "remaining_cloud");
+
+    EXPECT_TRUE(true);
+}*/
+
+/*TEST(remove_plane, woo){
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+ 	
+    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_2.pcd", *cloud) == -1) //* load the file
+    {
+      cout << "Couldn't read file test_pcd.pcd \n";
+      EXPECT_TRUE(false);
+    }
+    stat_outlier_remove(cloud);
+    vector<Plane> all_planes = find_all_planes(cloud);
+    remove_largest_plane(all_planes);
+    save_planes(all_planes);
+    save_cloud(cloud, "remaining_cloud");
+
+    EXPECT_TRUE(true);
+}*/
+
+TEST(combine_pcs, anything){
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud;
+ 	
+    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_2.pcd", *cloud) == -1) //* load the file
+    {
+      cout << "Couldn't read file test_pcd.pcd \n";
+      EXPECT_TRUE(false);
+    }
+    stat_outlier_remove(cloud);
+    vector<Plane> all_planes = find_all_planes(cloud);
+    remove_largest_plane(all_planes);
+   	combined_cloud = combine_cloud_and_planes(all_planes, cloud);
+   	save_cloud(combined_cloud, "combined_cloud");
+
+    EXPECT_TRUE(true);
+}
+
+TEST(clusterify, easy){
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud; 
+
+	if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_2.pcd", *cloud) == -1) //* load the file
+    {
+      cout << "Couldn't read file test_pcd.pcd \n";
+      EXPECT_TRUE(false);
+    }
+    stat_outlier_remove(cloud);
+    vector<Plane> all_planes = find_all_planes(cloud);
+    remove_largest_plane(all_planes);
+   	combined_cloud = combine_cloud_and_planes(all_planes, cloud);
+
+   	pcl::PointXYZ point;
+   	get_clusters(combined_cloud, point);
+
+   	EXPECT_TRUE(true);
+}
+
+TEST(nearest_cluster, ninety_nine_percent_completion_mark) {
+	pcl::PointXYZ rand_point = init_pt(-0.33621544, -0.7632941, 0.85465014);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud; 
+
+	if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_2.pcd", *cloud) == -1) //* load the file
+    {
+      cout << "Couldn't read file test_pcd.pcd \n";
+      EXPECT_TRUE(false);
+    }
+    stat_outlier_remove(cloud);
+    vector<Plane> all_planes = find_all_planes(cloud);
+    remove_largest_plane(all_planes);
+   	combined_cloud = combine_cloud_and_planes(all_planes, cloud);
+
+   	pcl::PointXYZ point;
+   	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > clusters = get_clusters(combined_cloud, point);
+   	pcl::PointCloud<pcl::PointXYZ>::Ptr cluster = return_nearest_cluster(rand_point, clusters);
+   	save_cloud(cluster, "isolated_cloud");
+
+   	EXPECT_TRUE(true);
 }
 
 int main(int argc, char** argv){
