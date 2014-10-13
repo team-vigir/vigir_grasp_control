@@ -268,7 +268,7 @@ pcl::PointCloud<pcl:PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::Poi
   all_planes = find_all_planes(full_cloud);
   remove_largest_plane(all_planes);
 
-  pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud; 
+  pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud;
   combined_cloud = combine_cloud_and_planes(all_planes, remaining_cloud);
 
   vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> separated_clusters;

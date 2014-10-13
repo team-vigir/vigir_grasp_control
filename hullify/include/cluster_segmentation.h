@@ -45,4 +45,4 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr return_nearest_cluster(pcl::PointXYZ selecte
 double return_distance_nearest_point(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointXYZ selected_point);
 
 //DUN DUN DUNNNNNNNNNNNNNN
-pcl::PointCloud<pcl:PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, pcl::PointXYZ selected_point);
+pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, pcl::PointXYZ selected_point);
