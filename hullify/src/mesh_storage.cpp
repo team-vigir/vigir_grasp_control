@@ -46,7 +46,7 @@ bool MeshStorage::check_grasp_distance(osu_grasp_msgs::CheckGraspDistance::Reque
 		return false;
 	}
 
-	cout << "nearest_dist: " << nearest_distance << " projected dist: " << projected_dist << "acceptable dist: " << req.acceptable_dist << endl;
+/*	cout << "nearest_dist: " << nearest_distance << " projected dist: " << projected_dist << "acceptable dist: " << req.acceptable_dist << endl;
 
 	if (nearest_distance <= req.acceptable_dist){
 		cout << "\tGrasp good!" << endl;
@@ -55,7 +55,7 @@ bool MeshStorage::check_grasp_distance(osu_grasp_msgs::CheckGraspDistance::Reque
 		cout << "\tGrasp rejected" << endl;
 		resp.within_acceptable_dist = false;
 	}
-
+*/
 	return true;
 }
 
