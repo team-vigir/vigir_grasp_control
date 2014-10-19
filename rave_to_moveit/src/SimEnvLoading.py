@@ -15,9 +15,11 @@ import grasping
 import plane_filters
 import atlas_and_ik
 import openraveIO
-import check_initial_collisions as collision_test
+#import check_initial_collisions as collision_test
+#import plugin_mods_verification
 
 gt = None
+distance_pub = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 
@@ -25,6 +27,32 @@ arm_type = "L"
 FILE_PATH = 0
 ENV_NAME = 1
 loaded_hands = {"l_robotiq":['robots/robotiq.dae', '']}
+
+from osu_grasp_msgs.msg import *
+def check_grasp_distance_callback(req):
+	#rospy.logerr("Got the service request!!")
+	global distance_pub
+	global gt
+	quat = req.hand_pose.pose.orientation
+	trans = req.hand_pose.pose.position
+	rave_pose = [quat.w, quat.x, quat.y, quat.z]
+	rave_pose.extend([trans.x, trans.y, trans.z])
+	print rave_pose
+
+	rave_transform = matrixFromPose(rave_pose)
+	drawing = gt.drawTransform(rave_transform, length=1)
+	raw_input("Does that look kind of like a grasp?")
+
+	distance_pub.publish(CheckGraspDistanceResponse(True))
+
+def init_distance_subscriber_publisher():
+	#distance_service = rospy.Service('CheckGraspDistance_test', CheckGraspDistance, check_grasp_distance_callback)
+	distance_pub = rospy.Publisher('osu_grasp_plugin/dist_resp', CheckGraspDistanceResponse, queue_size=2)
+	distance_sub = rospy.Subscriber('osu_grasp_plugin/check_grasp_distance', CheckGraspDistanceRequest, check_grasp_distance_callback)
+
+	print "Server online."
+	return distance_sub, distance_pub
+
 
 def set_openrave_environment_vars():
 	rospack = rospkg.RosPack()
@@ -40,10 +68,12 @@ def set_openrave_environment_vars():
 		os.environ["OPENRAVE_PLUGINS"] = rave_to_moveit_path + "/plugins" + ":" + os.environ["OPENRAVE_PLUGINS"]
 	else:
 		os.environ["OPENRAVE_PLUGINS"] = rave_to_moveit_path + "/plugins"
+	print os.environ["OPENRAVE_PLUGINS"]
 
-def load_modified_grasper_plugin():
-	plugin  = RaveLoadPlugin('grasper_mod')
-	if !plugin:
+def load_modified_grasper_plugin(env):
+	#plugin  = RaveLoadPlugin('grasper_mod')
+	plugin = RaveCreateModule(env,'Grasper')
+	if not plugin:
 		print "Could not load modified plugin for Grasper. Will default to standard."
 
 def build_environment():
@@ -137,6 +167,10 @@ class VigirGrasper:
 		self.totalgrasps = []
 
 		params = plane_filters.generate_grasp_params(self.gmodel, mesh_and_bounds_msg)
+		
+		params['rolls'] = [0];
+
+		
 		self.totalgrasps = self.get_grasps(mesh_and_bounds_msg, params, gt, returnnum=8)
 		
 		if len(self.totalgrasps) == 0:
@@ -176,6 +210,13 @@ class VigirGrasper:
 			params['approachrays'] = rays
 			params['remaininggrasps'] = returnnum - len(grasps)
 			#atlas_and_ik.visualize_approaches(gt, params)
+			
+			#params['approachrays'] = [params['approachrays'][0]]
+			ray = params['approachrays'][0]
+			drawing = gt.drawTransform(atlas_and_ik.get_transform_for_approach(ray[0:3], -ray[3:6], 0))
+			transform = atlas_and_ik.get_transform_for_approach(ray[0:3], -ray[3:6], params['rolls'][0])
+			print "Approach direction: ", -ray[3:6]
+			self.raveio.publish_preplugin_grasp(transform)
 			
 			self.gmodel.generate(**params)
 			grasps.extend(self.gmodel.grasps)
@@ -242,11 +283,14 @@ def set_hand_callback(msg):
 
 
 if __name__ == '__main__':
-	rospy.init_node('SimEnvLoading', anonymous=True)
+	global distance_pub
+	rospy.init_node('SimEnvLoading', anonymous=False)
 	
+	distance_sub, distance_pub = init_distance_subscriber_publisher();
+
 	set_openrave_environment_vars()
-	load_modified_grasper_plugin()
 	env, robot, target = build_environment()
+	#load_modified_grasper_plugin(env)
 	#collision_test.check_collisions(env, robot)
 	grasper = VigirGrasper(env, robot, target)
 	final_pose_frame = query_final_pose_frame()

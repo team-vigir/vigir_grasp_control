@@ -87,6 +87,7 @@ class MeshMaker{
 		Qhull_int qhull;
 		MeshBound* bounds;
 		Hullify_View* view;
+		MeshStorage* storage;
 
 };
 
@@ -143,6 +144,7 @@ MeshMaker::MeshMaker()
 	init_reference_frame();
 	view = new Hullify_View("convex_hull/", &visualization_ref_frame);
 	bounds = new MeshBound(mesh_ref_frame, view);
+	storage = new MeshStorage();
 
 	init_input_topic();
 	init_mesh_name();
@@ -354,6 +356,8 @@ void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 
 	geometry_msgs::PoseStamped wrist_pose = get_wrist_orientation(intermediate_cloud);
 	//view->publish("openrave_grasps", wrist_pose);
+
+	storage->set_mesh(convex_hull);
 
 	string mesh_full_abs_path = view->publish_mesh(mesh_base_name, convex_hull);
 	send_hull_and_planes_to_openrave(mesh_full_abs_path, convex_hull);

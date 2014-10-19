@@ -131,10 +131,6 @@ add_executable(pose_playing src/pose_transform.cpp src/pose_transform_driver.cpp
 target_link_libraries(pose_playing ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 set_target_properties(pose_playing PROPERTIES COMPILE_FLAGS "-Wall -g")
 
-add_executable(plane_norm_test src/plane_reps_and_3dmath.cpp test/test_planes.cpp)
-target_link_libraries(plane_norm_test ${PCL_LIBRARIES} ${catkin_LIBRARIES})
-set_target_properties(plane_norm_test PROPERTIES COMPILE_FLAGS "-Wall -g")
-
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
@@ -198,6 +194,12 @@ catkin_add_gtest(${PROJECT_NAME}-pose-test test/test_pose.cpp src/pose_transform
 if(TARGET ${PROJECT_NAME}-pose-test)
    #target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME}) # original
    target_link_libraries(${PROJECT_NAME}-pose-test ${catkin_LIBRARIES})
+endif()
+
+catkin_add_gtest(${PROJECT_NAME}-storage-test test/test_storage.cpp src/mesh_storage.cpp src/plane_reps_and_3dmath.cpp)
+if(TARGET ${PROJECT_NAME}-pose-test)
+	target_link_libraries(${PROJECT_NAME}-storage-test ${catkin_LIBRARIES})
+	set_target_properties(${PROJECT_NAME}-storage-test PROPERTIES COMPILE_FLAGS "-Wall -g")
 endif()
 
 ## Add folders to be run by python nosetests

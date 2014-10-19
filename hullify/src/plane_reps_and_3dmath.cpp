@@ -32,6 +32,12 @@ Eigen::Vector3d init_vec(const pcl::PointXYZ& in)
 	return out;
 }
 
+Eigen::Vector3d init_vec(const pcl::PointXYZ& final, const pcl::PointXYZ& initial)
+{
+	Eigen::Vector3d out((final.x - initial.x), (final.y - initial.y), (final.z - initial.z));
+	return out;
+}
+
 pcl::PointXYZ init_pt(double x, double y, double z)
 {
 	pcl::PointXYZ pt;

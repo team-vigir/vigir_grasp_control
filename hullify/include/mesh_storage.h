@@ -2,6 +2,8 @@
 #include "ros/ros.h"
 #include <osu_grasp_msgs/Mesh_and_bounds.h>
 #include "osu_grasp_msgs/CheckGraspDistance.h"
+#include <geometry_msgs/PoseArray.h>
+#include <geometry_msgs/PoseStamped.h>
 
 #include "pcl/ros/conversions.h"
 #include <pcl_ros/transforms.h>
@@ -18,6 +20,9 @@
 #include <pcl/segmentation/sac_segmentation.h>
 
 #include <Eigen/Dense>
+#include <Eigen/Geometry>
+
+#include "plane_reps_and_3dmath.h"
 
 #include <exception>
 #include <ctime>
@@ -40,13 +45,20 @@ public:
 
 	pcl::PointXYZ get_nearest_neighbor(pcl::PointXYZ point, double& distance);
 
-
+	void get_preplugin_hand_pose(const geometry_msgs::PoseStamped::ConstPtr& orig_pose);
 private:
+	void publish_poses(geometry_msgs::PoseStamped& final_pose);
+	void add_visualization(geometry_msgs::PoseStamped& hand_pose);
+		
 	pcl::PolygonMesh::Ptr mesh;
 	pcl::KdTreeFLANN<pcl::PointXYZ> mesh_tree;
 	ros::NodeHandle nh;
 	ros::ServiceServer dist_service;
+	geometry_msgs::PoseStamped orig_pose;
+	ros::Subscriber preplugin_pose_listener;
+	ros::Publisher pose_array_pub;
 };
+
 
 class no_search_results : public exception{
 	virtual const char* what(){

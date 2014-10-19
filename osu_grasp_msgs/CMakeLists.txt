@@ -50,6 +50,8 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    Mesh_and_bounds.msg
+   CheckGraspDistanceRequest.msg
+   CheckGraspDistanceResponse.msg
 )
 
 ## Generate services in the 'srv' folder

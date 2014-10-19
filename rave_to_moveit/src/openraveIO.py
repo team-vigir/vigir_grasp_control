@@ -28,6 +28,7 @@ class openraveIO:
 		self.final_pose_ref_frame = final_pose_ref_frame
 		self.mesh_ref_frame = mesh_ref_frame
 		#self.tROS = tf.()
+		self.preplugin_pose_publisher = rospy.Publisher("openrave_preplugin_grasp", PoseStamped)
 
 	def full_info_callback(self, msg):
 		print "Got a Mesh_and_bounds_msg!"
@@ -99,6 +100,10 @@ class openraveIO:
 		spose = PoseStamped(header, pose)
 		
 		return spose
+
+	def publish_preplugin_grasp(self, transform):
+		pose = self.TransformToPoseStamped(transform)
+		self.preplugin_pose_publisher.publish(pose)
 
 def testpublisher(raveio):
 	print "Running pose publishing test..."	
