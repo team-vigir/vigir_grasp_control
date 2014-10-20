@@ -50,3 +50,8 @@ src/vigir_robotiq_ros_controller.cpp
 add_executable(vigir_robotiq_ros_controller_node ${SOURCE} ${HEADERS})
 target_link_libraries(vigir_robotiq_ros_controller_node ${catkin_LIBRARIES} )
 add_dependencies(vigir_robotiq_ros_controller_node ${catkin_EXPORTED_TARGETS})
+
+install( TARGETS
+    vigir_robotiq_ros_controller_node
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

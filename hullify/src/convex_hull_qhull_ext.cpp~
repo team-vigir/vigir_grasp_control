@@ -1,0 +1,500 @@
+//ros includes
+#include "ros/ros.h"
+#include "visualization_msgs/Marker.h"
+#include <sensor_msgs/PointCloud2.h>
+#include <geometry_msgs/Point.h>
+
+#include "pcl/ros/conversions.h"
+#include <pcl_conversions/pcl_conversions.h>
+#include <pcl/point_types.h>
+#include <pcl/io/pcd_io.h>
+#include <pcl/kdtree/kdtree_flann.h>
+#include <pcl/features/normal_3d.h>
+#include <pcl/surface/gp3.h>
+#include <pcl/io/vtk_lib_io.h>
+#include <pcl/filters/project_inliers.h>
+//#include <pcl/surface/convex_hull.h>
+
+//From Tutorial
+/*#include <pcl/ModelCoefficients.h>
+#include <pcl/point_types.h>
+#include <pcl/sample_consensus/method_types.h>
+#include <pcl/sample_consensus/model_types.h>
+#include <pcl/filters/passthrough.h>
+#include <pcl/filters/project_inliers.h>
+#include <pcl/segmentation/sac_segmentation.h>
+#include <pcl/surface/concave_hull.h>*/
+//End tutorial
+
+#include <Eigen/Dense>
+
+#include "qhull_interface.h"
+
+#include <ctime>
+#include <cstdlib>
+#include <string>
+#include <vector>
+using std::string;
+using std::vector;
+using std::cout;
+using std::cin;
+using std::endl;
+
+
+Eigen::Vector3d init_vec(const tf::Vector3& in)
+{
+	Eigen::Vector3d out(in.m_floats[0], in.m_floats[1], in.m_floats[2]);
+	//out.x = in.m_floats[0];
+	//out.y = in.m_floats[1];
+	//out.z = in.m_floats[2];
+
+	return out;
+}
+
+class MeshMaker{
+	public:
+		MeshMaker();
+		~MeshMaker();
+		void listen();
+
+	private:
+		void init_input_topic();
+		void init_template_marker();
+		void convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg);
+        	bool get_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg, pcl::PointCloud<pcl::PointXYZ>::Ptr intermediate_cloud);
+        	bool is_valid_cloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+		Eigen::Vector3d find_centroid(const pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+		void publish_centroid(Eigen::Vector3d centroid);
+		pcl::ModelCoefficients::Ptr find_plane(Eigen::Vector3d& centroid, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+		Eigen::Vector3d get_camera_position();
+		void publish_plane(pcl::ModelCoefficients::Ptr plane, Eigen::Vector3d centroid, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud); 	
+		void publish_normal(Eigen::Vector3d normal);
+		
+		ros::NodeHandle n;
+		ros::Subscriber cloud_input;
+		ros::Publisher mesh_output;
+		ros::Publisher centroid_output;
+		ros::Publisher plane_output;
+		ros::Publisher normal_output;
+		ros::Publisher proj_output;
+		string fixed_frame;
+		string in_topic_name;
+		string out_topic_name;
+		string f_toggle;	//rviz wants different mesh files for every publish. So toggle.
+		string base_name;   //Default, test_mesh
+		string prev_name;  //The name of the last saved mesh file (for deletion purposes)
+		string f_path;  //Path to the hullify package on Eva
+		visualization_msgs::Marker template_marker;
+		vector<visualization_msgs::Marker> markers;
+		Qhull_int qhull;
+
+};
+
+//pcl::PolygonMesh::Ptr mk_mesh(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
+void writeBinarySTL(const char* f_name, const pcl::PolygonMesh& mesh);
+double pt_dist(pcl::PointXYZ pt1, pcl::PointXYZ pt2);
+
+int main (int argc, char** argv){	
+	//initalize the node
+	ros::init(argc, argv, "greedy_proj");
+
+	MeshMaker converter;
+	converter.listen();
+
+	return 0;
+}
+/*
+//Ought to work. Untested because qhull libraries were insufficient.
+//  Requires precisely Qhulllib5 (2011.1)
+pcl::PolygonMesh::Ptr mk_mesh(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{
+
+//See PCL Concave Hull tutorial for filters
+cout << "No filters for pointcloud. Is it filtered?" << endl;
+
+pcl::PolygonMesh::Ptr output (new pcl::PolygonMesh);
+vector<pcl::Vertices> polygons;
+pcl::PointCloud<pcl::PointXYZ> points;
+
+pcl::ConvexHull<pcl::PointXYZ> hull;
+hull.setInputCloud(cloud);
+hull.reconstruct(output);
+
+output->header.seq = 0;
+output->header.stamp = 1;
+output->header.frame_id = "/world";
+
+// Finish
+return output;
+}
+*/
+
+
+MeshMaker::MeshMaker()
+{
+	f_toggle = "0";
+	prev_name = "";
+	fixed_frame = "/world";
+
+	cout << "Currently, this program has minimal validation. Please input"
+		<< "\n\tvalid filenames and locations when prompted." << endl;
+	string input;
+	init_input_topic();
+
+	cout << "Please input an output topic name (1 for /mesh_marker): ";
+	cin >> input;
+	if (input == "1"){
+		out_topic_name = "/mesh_marker";
+	} else {
+		out_topic_name = input;
+	}
+
+	cout << "Please input the base output filename of the mesh (1 - test_mesh): ";
+	cin >> base_name;
+	if (input == "1"){
+		base_name = "test_mesh";
+	}
+
+	//Set the saving location of the mesh (hullify package)
+	f_path = string(getenv("HOME")) + "/ros/local_cat_ws/src/hullify/meshes/";
+
+	//Initialize template
+	init_template_marker();
+
+	//Initialize publisher and subscriber and begin waiting
+	cloud_input = n.subscribe(in_topic_name, 10, &MeshMaker::convert_cloud, this);
+	mesh_output = n.advertise<visualization_msgs::Marker>(out_topic_name.c_str(), 5);
+	centroid_output = n.advertise<visualization_msgs::Marker>("/convex_hull/centroid", 5);
+	normal_output = n.advertise<visualization_msgs::Marker>("/convex_hull/normal", 5);
+	plane_output = n.advertise<geometry_msgs::PolygonStamped>("/convex_hull/plane", 5);
+	proj_output = n.advertise<sensor_msgs::PointCloud2>("/convex_hull/proj", 5);
+
+	cout << "Publisher and Subscriber Created." << endl;
+	cout << "in_topic: " << in_topic_name << " out_topic: " 
+		<< out_topic_name << endl;
+}
+
+void MeshMaker::init_input_topic()
+{
+	string input;
+	while(1){
+		cout << "What is the pointcloud input topic for this meshing node?"
+			<< "\n\t0 - new\n\t1 - /testing/default"
+			<< "\n\t2 - /flor/worldmodel/ocs/dist_query_pointcloud_result: ";
+		cin >> input;
+
+		if (input == "0"){
+			cout << "Please input the topic name: ";
+			cin >> in_topic_name;
+
+		} else if (input == "1"){
+			in_topic_name = "/testing/default";
+
+		} else if (input == "2"){
+			in_topic_name = "/flor/worldmodel/ocs/dist_query_pointcloud_result";
+
+		} else {
+			cout << "Invalid entry (must be 0, 1, or 2)" << endl;
+			continue;
+		}
+
+		break;
+	}
+}
+
+MeshMaker::~MeshMaker()
+{
+	//If there is any mesh file left, delete it
+	if (prev_name != ""){
+		cout << "Deleting: " << prev_name << endl;
+		string command = "rm " + f_path + prev_name;
+		system(command.c_str());
+	}
+}
+
+//Preconditions: f_name (the filename for the mesh), must be
+//  set prior to this call.
+void MeshMaker::init_template_marker()
+{
+	cout << "Warning: template_marker.header.frame_id hardcoded to '/world'" << endl;
+	template_marker.header.frame_id = fixed_frame;
+	template_marker.header.stamp = ros::Time::now();
+	template_marker.header.seq = 1;
+	template_marker.action = visualization_msgs::Marker::ADD;
+	template_marker.type = visualization_msgs::Marker::MESH_RESOURCE;
+	template_marker.ns = "temp_namespace";
+	template_marker.id = 0;
+
+	template_marker.pose.position.x = 0;    //Where it goes
+	template_marker.pose.position.y = 0;
+	template_marker.pose.position.z = 0;
+
+	template_marker.pose.orientation.x = 0.0;   //What's its pose.
+	template_marker.pose.orientation.y = 0.0;
+	template_marker.pose.orientation.z = 0.0;
+	template_marker.pose.orientation.w = 1.0;
+
+	template_marker.scale.x = 1;    //Resizing required?
+	template_marker.scale.y = 1;
+	template_marker.scale.z = 1;
+
+	template_marker.color.a = 1.0;
+	template_marker.color.r = 0.5;
+	template_marker.color.g = 1.0;
+	template_marker.color.b = 0.0;
+
+	template_marker.lifetime = ros::Duration(0);
+	template_marker.mesh_use_embedded_materials = false;
+}
+
+//Simply spin and wait for callback requests
+void MeshMaker::listen()
+{
+	cout << "Spinning!" << endl;
+	ros::spin();
+
+}
+
+void writeBinarySTL(const char* f_name, const pcl::PolygonMesh& mesh)
+{
+	vtkSmartPointer<vtkPolyData> poly_data = vtkSmartPointer<vtkPolyData>::New();
+	pcl::io::mesh2vtk(mesh, poly_data);
+
+	vtkSmartPointer<vtkSTLWriter> poly_writer = vtkSmartPointer<vtkSTLWriter>::New();
+	poly_writer->SetInput(poly_data);
+	poly_writer->SetFileName(f_name);
+	poly_writer->SetFileTypeToBinary();
+	int ret = poly_writer->Write();
+	if (ret != 1){
+		cout << "Could not write to STL file in writeBinarySTL()" << endl;
+	}
+
+	return;
+}
+
+
+//Function: convert_cloud
+//Description: The workhorse; this function receives pointcloud
+//	requests, calls qhull, updates the the mesh markers and 
+//	publishes the result.
+//Parameters: A pointcloud obtained from in_topic_name (set in constructor)
+//Postconditions: A convex hull has been generated and published.
+//	goes back to listen()
+void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
+{
+	std::cout << "Pointcloud received" << std::endl;
+
+	//Convert PointCloud2 message to PCL's PointCloud<XYZ>
+    	pcl::PointCloud<pcl::PointXYZ>::Ptr intermediate_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+	if (!get_cloud(msg, intermediate_cloud)){
+        	//Invalid cloud, return nothing.
+        	return;
+    	}
+
+	//Run qhull (or see comments just below)
+	pcl::PolygonMesh::Ptr out_poly = qhull.mk_mesh(intermediate_cloud);
+
+	//In a system where qHull (libqhull5) is v2011.1, the below should work (untested).
+	//pcl::PolygonMesh::Ptr out_poly = mk_mesh(intermediate_cloud);
+	
+	Eigen::Vector3d centroid = find_centroid(intermediate_cloud);
+	pcl::ModelCoefficients::Ptr plane = find_plane(centroid, intermediate_cloud);
+	publish_plane(plane, centroid, intermediate_cloud);
+
+	//Delete previous mesh
+	if (prev_name != ""){
+		string command = "rm " + f_path + prev_name;
+		/*int ret =  */system(command.c_str());
+		//cout << "Return code of delete call: " << ret << endl;
+		prev_name = "";
+	}/* else {
+		cout << "Did not run rm on stl mesh file." << endl;
+		cout << "Prev_name: '" << prev_name << "'" << endl;
+	}*/
+
+	//Save the mesh
+	prev_name = base_name + boost::lexical_cast<std::string>(time(NULL)) + ".stl";
+	string temp = f_path + prev_name;
+	writeBinarySTL(temp.c_str(), *out_poly);
+
+	//Update the mesh marker array
+	if (markers.size() < 1){
+		markers.push_back(template_marker);
+	} else {
+		markers[0] = template_marker;
+	}
+
+	template_marker.mesh_resource = "package://hullify/meshes/" + prev_name;
+	template_marker.header.stamp = ros::Time::now();
+	template_marker.header.seq++;
+	mesh_output.publish(template_marker);   
+
+	publish_centroid(centroid);	
+}
+
+bool MeshMaker::get_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg, pcl::PointCloud<pcl::PointXYZ>::Ptr intermediate_cloud)
+{
+	cout << "MeshMaker::convert_cloud - Why does callback need const message?\n\t"
+		<< "Will it change what's in the topic if we non-const it?" << endl;
+	sensor_msgs::PointCloud2 temp_cloud = *msg;
+	pcl::moveFromROSMsg(temp_cloud, *intermediate_cloud);
+
+    if (!is_valid_cloud(intermediate_cloud)){       
+        return false;
+    }
+    return true;
+}
+
+//Determines if the cloud has enough non-coplanar points to describe
+//  a convex hull.
+bool MeshMaker::is_valid_cloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{
+    if (cloud->points.size() < 4){
+		cout << "Insufficient information in pointcloud request to generate a convex hull.\n\tInput requires at least 4 points." << endl;
+        return false;
+	}
+
+    long num_pts = cloud->points.size();    
+    pcl::PointXYZ test_pts[4];
+    test_pts[0] = cloud->points[0];
+    test_pts[1] = cloud->points[1];
+    geometry_msgs::Point slope;
+    slope.x = test_pts[1].x - test_pts[0].x;
+    slope.y = test_pts[1].y - test_pts[0].y;
+    slope.z = test_pts[1].z - test_pts[0].z;
+    
+    long i;
+    bool success = false;
+    double dx, dt;    
+    for (i = 2; i < num_pts; i++){
+        dx = cloud->points[i].x - test_pts[1].x;
+        dt = dx / slope.x;
+        if ((test_pts[1].y + slope.y * dt != cloud->points[i].y) ||
+            (test_pts[1].z + slope.z * dt != cloud->points[i].z)){
+            success = true;
+            break;
+        }
+    }
+
+    if (!success){
+        cout << "No non-collinear points exist in input cloud." << endl;        
+        return false;
+    } else {
+        test_pts[2] = cloud->points[i];
+    }
+    
+    //Find non-coplanar points:
+    /*success = false;
+    for (i++; i < num_pts; ++i){
+        
+    }*/
+
+    
+
+    return true;
+}
+
+//This function is for debugging purposes,
+//	it makes a disposable marker for showing
+//	the centroid. It is inefficient.
+void MeshMaker::publish_centroid(Eigen::Vector3d centroid)
+{
+	//Make a new marker
+	visualization_msgs::Marker center_marker = template_marker;
+	center_marker.type = visualization_msgs::Marker::SPHERE;
+	center_marker.pose.position.x = centroid[0];
+	center_marker.pose.position.y = centroid[1];
+	center_marker.pose.position.z = centroid[2];
+	center_marker.color.b = 1;
+	center_marker.color.g = 0;
+	center_marker.id = 1;
+	
+	//Set the size of the marker.
+	center_marker.scale.x = .1;
+	center_marker.scale.y = .1;
+	center_marker.scale.z = .1;
+
+	centroid_output.publish(center_marker);
+}
+
+double pt_dist(pcl::PointXYZ pt1, pcl::PointXYZ pt2)
+{
+	double dx = pt1.x - pt2.x;
+	double dy = pt1.y - pt2.y;
+	double dz = pt1.z - pt2.z;
+
+	return sqrt((dx * dx) + (dy * dy) + (dz * dz));
+}
+
+void MeshMaker::publish_plane(pcl::ModelCoefficients::Ptr plane, Eigen::Vector3d centroid, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{
+	//Project all points
+	pcl::PointCloud<pcl::PointXYZ>::Ptr proj_pts (new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::ProjectInliers<pcl::PointXYZ> proj;
+	proj.setModelType(pcl::SACMODEL_PLANE);
+	proj.setInputCloud(cloud);
+	proj.setModelCoefficients(plane);
+	proj.filter(*proj_pts);
+
+	cout << "Publishing projected points:" << endl;
+	sensor_msgs::PointCloud2 temp2;
+	pcl::toROSMsg(*proj_pts, temp2);
+	proj_output.publish(temp2);
+	//cout << "One projected point: " << proj_pts->points[0].x << "  " << proj_pts->points[0].y << "  " << proj_pts->points[0].z << endl;
+
+	//Find farthest point from centroid
+	//cout << "Centroid in publish_plane(): " << endl << centroid << endl;
+	pcl::PointXYZ center(centroid[0], centroid[1], centroid[2]);
+	long num_pts = proj_pts->points.size();
+	pcl::PointXYZ* cur_max = NULL;
+	double max_dist = 0;
+	double cur_dist;
+	for (long i = 0; i < num_pts; ++i){
+		cur_dist = pt_dist(center, proj_pts->points[i]);
+		if (cur_dist > max_dist){
+			cur_max = &(proj_pts->points[i]);
+		}
+	}
+
+	//Add 20% to distance and make polygon
+	Eigen::Vector3d max((cur_max->x - center.x), (cur_max->y - center.y), (cur_max->z - center.z));
+	max = max * 1.5;
+	//cout << "Max Projected Vector:(scaled) " << max;
+	Eigen::Vector3d orth = max.cross(Eigen::Vector3d(plane->values[0], plane->values[1], plane->values[2]));//The normal
+	orth = (orth / orth.norm()) * max.norm();
+	geometry_msgs::PolygonStamped out_poly;
+	out_poly.header.stamp = ros::Time::now();
+	out_poly.header.frame_id = "/world";
+	geometry_msgs::Point32 temp;
+	temp.x = center.x + max[0]; temp.y = center.y + max[1]; temp.z = center.z + max[2];
+	out_poly.polygon.points.push_back(temp);
+	temp.x = center.x + orth[0]; temp.y = center.y + orth[1]; temp.z = center.z + orth[2];
+	out_poly.polygon.points.push_back(temp);
+	temp.x = center.x - max[0]; temp.y = center.y - max[1]; temp.z = center.z - max[2];
+	out_poly.polygon.points.push_back(temp);
+	temp.x = center.x - orth[0]; temp.y = center.y - orth[1]; temp.z = center.z - orth[2];
+	out_poly.polygon.points.push_back(temp);
+
+	plane_output.publish(out_poly);
+}
+
+void MeshMaker::publish_normal(Eigen::Vector3d normal)
+{
+	visualization_msgs::Marker normal_marker = template_marker;
+	normal_marker.type = visualization_msgs::Marker::ARROW;
+	normal_marker.id = 2;
+	normal_marker.color.r = 1.0;
+	normal_marker.color.g = .25;
+	
+	normal_marker.scale.x = .1;
+	normal_marker.scale.y = .15;
+	normal_marker.scale.z = .1;
+
+	geometry_msgs::Point temp;
+	temp.x = temp.y = temp.z = 0;
+	normal_marker.points.push_back(temp);
+	temp.x = normal[0]; temp.y = normal[1]; temp.z = normal[2];
+	normal_marker.points.push_back(temp);
+
+	normal_output.publish(normal_marker);
+}
