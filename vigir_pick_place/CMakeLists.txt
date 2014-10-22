@@ -59,3 +59,8 @@ src/vigir_pick_place.cpp
 add_executable(vigir_pick_place_node ${SOURCE} ${HEADERS})
 target_link_libraries(vigir_pick_place_node ${catkin_LIBRARIES} )
 add_dependencies(vigir_pick_place_node ${catkin_EXPORTED_TARGETS})
+
+install( TARGETS
+    vigir_pick_place_node
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
