@@ -587,6 +587,41 @@ void VigirPickController::controllerLoop()
 /////////////////////////////////////////////////////////////////////////
 // Helper functions
 
+
+
+//// will return a vector with rows, each row containing a QStringList with all columns
+//std::vector< std::vector<QString> > VigirPickController::readTextDBFile(QString path)
+//{
+//    std::vector< std::vector<QString> > ret;
+//    QFile file(path);
+//    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+//    {
+//        QTextStream in(&file);
+//        while (!in.atEnd())
+//        {
+//            QString line = in.readLine();
+//            if(line[0] != '#')
+//            {
+//                std::vector<QString> row;
+//                QStringList strings;
+//                strings = line.split(",");
+//                // remove whitespaces
+//                for(int i = 0; i < strings.size(); i++)
+//                {
+//                    QString str = strings.at(i);
+//                    str.replace(" ","");
+//                    row.push_back(str);
+//                }
+//                ret.push_back(row);
+//            }
+//        }
+//    }
+//    return ret;
+//}
+
+
+
+
 } // end of vigir_pick_controllers namespace
 
 

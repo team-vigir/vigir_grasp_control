@@ -84,7 +84,7 @@ namespace vigir_pick_controller{
 
         //void tactileCallback(const sandia_hand_msgs::RawTactile::ConstPtr &tac_msg);
 
-        std::vector< VigirObjectTemplate>  template_list_;
+        std::map<unsigned int,VigirObjectTemplate>  template_map_;
 
 
 
@@ -92,6 +92,7 @@ namespace vigir_pick_controller{
     private:
 
         void loadRobotiqPickDatabase(std::string& file_name);
+        void initTemplateIdMap(std::string& file_name);
         int staticTransform(geometry_msgs::Pose& palm_pose);
 
         ros::Subscriber hand_tactile_sub_;

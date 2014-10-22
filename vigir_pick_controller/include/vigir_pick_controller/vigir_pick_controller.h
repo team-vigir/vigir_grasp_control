@@ -57,6 +57,7 @@
 
 #include <moveit_msgs/Grasp.h>
 #include <shape_msgs/SolidPrimitive.h>
+#include <shape_msgs/Mesh.h>
 #include <urdf/model.h>
 
 #include <boost/thread.hpp>
@@ -122,21 +123,18 @@ struct VigirObjectTemplate
 {
     uint16_t                                id;
     std::string                             name;
-    std::vector<moveit_msgs::Grasp>         grasps;
     float                                   mass;
-    tf::Vector3                             com;
-    shape_msgs::SolidPrimitive              bounding_box;
+    geometry_msgs::Point                    com;
+    geometry_msgs::Point                    b_max;
+    geometry_msgs::Point                    b_min;
+    shape_msgs::Mesh                        mesh;
+    std::vector<moveit_msgs::Grasp>         grasps;
     std::vector<geometry_msgs::PoseStamped> stand_poses;
 
     VigirObjectTemplate() : id(0),
                             mass(0.0)
     {
-        com = tf::Vector3(0.0,0.0,0.0);
-        bounding_box.type = bounding_box.BOX;
-        bounding_box.dimensions.resize(3);
-        bounding_box.dimensions[0] = 0.1;//Initializing to 10cm
-        bounding_box.dimensions[1] = 0.1;
-        bounding_box.dimensions[2] = 0.1;
+        //com   = geometry_msgs::Point(0.0,0.0,0.0);
     }
 };
 
@@ -201,6 +199,8 @@ struct VigirObjectTemplate
      *  This requires a new grasp selection to restart.
      */
      void  releaseGraspCallback(const flor_grasp_msgs::GraspSelection& grasp);
+
+     //std::vector< std::vector<QString> > readTextDBFile(QString path);
 
 
      void updateGraspStatus(); // call to publish latest grasp data

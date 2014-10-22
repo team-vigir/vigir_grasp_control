@@ -143,228 +143,253 @@ namespace vigir_pick_controller{
 
         // Read the files to load all template and grasping data
 
-        urdf::Model model;
-        if (model.initFile(file_name.c_str())){
-            ROS_INFO("Successfully parsed urdf file");
-        }
-        ROS_ERROR("Failed to parse urdf file");
 
-        // TODO - need to make this a paramter that we can set by calling from plugin
-        //        std::ifstream file ( file_name.c_str() );
-        //        std::string grasp_line;
-        //        moveit_msgs::Grasp grasp;
-        //        std::string tmp_hand_name;
-        //        int8_t      tmp_hand_id;
+//        std::ifstream file ( file_name.c_str() );
+//        std::string grasp_line;
+//        moveit_msgs::Grasp grasp_spec;
+//        std::string tmp_hand_name;
+//        int8_t      tmp_hand_id;
 
-        //        template_list_.clear();
+//        template_list_.clear();
 
-        //        if (file.is_open())
-        //        {
-        //          while ( file.good() )
-        //          {
-        //            getline ( file, grasp_line);
-        //            if(grasp_line.find('#')==0 || grasp_line.size() <= 0){
-        //                continue;
-        //            }
-        //            std::stringstream values(grasp_line);
-        //            std::string value;
-        //            std::stringstream trimmer;
-        //            std::getline( values, value, ',' );
-        //            grasp_spec.grasp_id = atoi(value.c_str()); //grasp id
-        //            if (0 == grasp_spec.grasp_id)
-        //            {
-        //                ROS_INFO(" Skipping grasp specification 0 for %s given %s controller", tmp_hand_name.c_str(), hand_name_.c_str());
-        //                continue;
-        //            }
+//        if (file.is_open())
+//        {
+//          while ( file.good() )
+//          {
+//            getline ( file, grasp_line);
+//            if(grasp_line.find('#')==0 || grasp_line.size() <= 0){
+//                continue;
+//            }
+//            std::stringstream values(grasp_line);
+//            std::string value;
+//            std::stringstream trimmer;
+//            std::getline( values, value, ',' );
+//            grasp_spec.grasp_id = atoi(value.c_str()); //grasp id
+//            if (0 == grasp_spec.grasp_id)
+//            {
+//                ROS_INFO(" Skipping grasp specification 0 for %s given %s controller", tmp_hand_name.c_str(), hand_name_.c_str());
+//                continue;
+//            }
 
-        //            getline( values, value, ',' ); //template type
-        //            grasp_spec.template_type = atoi(value.c_str());
+//            getline( values, value, ',' ); //template type
+//            grasp_spec.template_type = atoi(value.c_str());
 
-        //            getline( values, value, ',' );  //hand
-        //            trimmer << value;
-        //            value.clear();
-        //            trimmer >> value; //removes white spaces
-        //            if(value.compare("left") == 0)
-        //            {
-        //                tmp_hand_name = "l_hand";
-        //                tmp_hand_id = -1;
-        //            }
-        //            else
-        //            {
-        //              tmp_hand_name = "r_hand";
-        //              tmp_hand_id = 1;
-        //            }
+//            getline( values, value, ',' );  //hand
+//            trimmer << value;
+//            value.clear();
+//            trimmer >> value; //removes white spaces
+//            if(value.compare("left") == 0)
+//            {
+//                tmp_hand_name = "l_hand";
+//                tmp_hand_id = -1;
+//            }
+//            else
+//            {
+//              tmp_hand_name = "r_hand";
+//              tmp_hand_id = 1;
+//            }
 
-        //            if (tmp_hand_id != hand_id_)
-        //            {
-        //                ROS_INFO(" Skipping grasp specification for %s given %s controller", tmp_hand_name.c_str(), hand_name_.c_str());
-        //                continue;
-        //            }
+//            if (tmp_hand_id != hand_id_)
+//            {
+//                ROS_INFO(" Skipping grasp specification for %s given %s controller", tmp_hand_name.c_str(), hand_name_.c_str());
+//                continue;
+//            }
 
-        //            std::string tmp_grasp_type;
-        //            getline( values, tmp_grasp_type, ',' ); //grasp_type
-        //            trimmer.clear();
-        //            trimmer << tmp_grasp_type;
-        //            tmp_grasp_type.clear();
-        //            trimmer >> tmp_grasp_type; //removes white spaces
-        //            grasp_spec.grasp_type = GRASP_CYLINDRICAL;
-        //            if ("spherical" == tmp_grasp_type)
-        //            {
-        //                grasp_spec.grasp_type = GRASP_SPHERICAL;
-        //            } else if ("prismatic" == tmp_grasp_type) {
-        //                grasp_spec.grasp_type = GRASP_PRISMATIC;
-        //            } else if ("cylindrical" == tmp_grasp_type) {
-        //                grasp_spec.grasp_type = GRASP_CYLINDRICAL;
-        //            } else {
-        //                ROS_WARN(" Unknown grasp type <%s> assuming cylindrical", tmp_grasp_type.c_str());
-        //            }
+//            std::string tmp_grasp_type;
+//            getline( values, tmp_grasp_type, ',' ); //grasp_type
+//            trimmer.clear();
+//            trimmer << tmp_grasp_type;
+//            tmp_grasp_type.clear();
+//            trimmer >> tmp_grasp_type; //removes white spaces
+//            grasp_spec.grasp_type = GRASP_CYLINDRICAL;
+//            if ("spherical" == tmp_grasp_type)
+//            {
+//                grasp_spec.grasp_type = GRASP_SPHERICAL;
+//            } else if ("prismatic" == tmp_grasp_type) {
+//                grasp_spec.grasp_type = GRASP_PRISMATIC;
+//            } else if ("cylindrical" == tmp_grasp_type) {
+//                grasp_spec.grasp_type = GRASP_CYLINDRICAL;
+//            } else {
+//                ROS_WARN(" Unknown grasp type <%s> assuming cylindrical", tmp_grasp_type.c_str());
+//            }
 
-        //            getline( values, value, ',' ); // "finger poses:,"
-        //            assert(NUM_ROBOTIQ_PALM_JOINTS == this->joint_names_.size());
-        //            for(unsigned int i = 0; i < NUM_ROBOTIQ_PALM_JOINTS; ++i)
-        //            {
-        //              getline( values, value, ',' );
+//            getline( values, value, ',' ); // "finger poses:,"
+//            assert(NUM_ROBOTIQ_PALM_JOINTS == this->joint_names_.size());
+//            for(unsigned int i = 0; i < NUM_ROBOTIQ_PALM_JOINTS; ++i)
+//            {
+//              getline( values, value, ',' );
 
-        //              // Graspit outputs the fingers in different order, and these were copied into .grasp library
-        //              // We need to swap f0 and f2, which this code does
-        //              //grasp_spec.finger_poses.f0[i]= atof(value.c_str()); //joints from the index
-        //            }
-        //            float ftmp;
+//              // Graspit outputs the fingers in different order, and these were copied into .grasp library
+//              // We need to swap f0 and f2, which this code does
+//              //grasp_spec.finger_poses.f0[i]= atof(value.c_str()); //joints from the index
+//            }
+//            float ftmp;
 
-        //            getline( values, value, ',' ); // "final pose:,"
-        //            for(unsigned int i = 0; i < 7; ++i)
-        //            {
-        //              getline( values, value, ',' );
-        //              ftmp = atof(value.c_str()); //final pose values
-        //              if (ftmp > 2.0)
-        //              {
-        //                  ROS_ERROR("Found pose value > 2.0 in final wrist - Is this file using millimeters again - should be meters!");
-        //              }
-        //              switch(i)
-        //              {
-        //                  case 0: grasp_spec.final_wrist_pose.position.x    = ftmp; break;
-        //                  case 1: grasp_spec.final_wrist_pose.position.y    = ftmp; break;
-        //                  case 2: grasp_spec.final_wrist_pose.position.z    = ftmp; break;
-        //                  case 3: grasp_spec.final_wrist_pose.orientation.w = ftmp; break;
-        //                  case 4: grasp_spec.final_wrist_pose.orientation.x = ftmp; break;
-        //                  case 5: grasp_spec.final_wrist_pose.orientation.y = ftmp; break;
-        //                  case 6: grasp_spec.final_wrist_pose.orientation.z = ftmp; break;
-        //              }
-        //            }
-        //            //Static transformation to /r_hand
-        //            staticTransform(grasp_spec.final_wrist_pose);
+//            getline( values, value, ',' ); // "final pose:,"
+//            for(unsigned int i = 0; i < 7; ++i)
+//            {
+//              getline( values, value, ',' );
+//              ftmp = atof(value.c_str()); //final pose values
+//              if (ftmp > 2.0)
+//              {
+//                  ROS_ERROR("Found pose value > 2.0 in final wrist - Is this file using millimeters again - should be meters!");
+//              }
+//              switch(i)
+//              {
+//                  case 0: grasp_spec.final_wrist_pose.position.x    = ftmp; break;
+//                  case 1: grasp_spec.final_wrist_pose.position.y    = ftmp; break;
+//                  case 2: grasp_spec.final_wrist_pose.position.z    = ftmp; break;
+//                  case 3: grasp_spec.final_wrist_pose.orientation.w = ftmp; break;
+//                  case 4: grasp_spec.final_wrist_pose.orientation.x = ftmp; break;
+//                  case 5: grasp_spec.final_wrist_pose.orientation.y = ftmp; break;
+//                  case 6: grasp_spec.final_wrist_pose.orientation.z = ftmp; break;
+//              }
+//            }
+//            //Static transformation to /r_hand
+//            staticTransform(grasp_spec.final_wrist_pose);
 
-        //            getline( values, value, ',' ); // "pre-grasp pose:,"
-        //            for(unsigned int i = 0; i < 7; ++i)
-        //            {
-        //              getline( values, value, ',' );
-        //              ftmp = atof(value.c_str()); //pre-grasp values
-        //              if (ftmp > 2.0)
-        //              {
-        //                  ROS_ERROR("Found pose value > 2.0 in pre-grasp wrist - Is this file using millimeters again - should be meters!");
-        //              }
-        //              switch(i)
-        //              {
-        //                  case 0: grasp_spec.pregrasp_wrist_pose.position.x    = ftmp; break;
-        //                  case 1: grasp_spec.pregrasp_wrist_pose.position.y    = ftmp; break;
-        //                  case 2: grasp_spec.pregrasp_wrist_pose.position.z    = ftmp; break;
-        //                  case 3: grasp_spec.pregrasp_wrist_pose.orientation.w = ftmp; break;
-        //                  case 4: grasp_spec.pregrasp_wrist_pose.orientation.x = ftmp; break;
-        //                  case 5: grasp_spec.pregrasp_wrist_pose.orientation.y = ftmp; break;
-        //                  case 6: grasp_spec.pregrasp_wrist_pose.orientation.z = ftmp; break;
-        //              }
-        //            }
-        //            //Static transformation to /r_hand
-        //            staticTransform(grasp_spec.pregrasp_wrist_pose);
+//            getline( values, value, ',' ); // "pre-grasp pose:,"
+//            for(unsigned int i = 0; i < 7; ++i)
+//            {
+//              getline( values, value, ',' );
+//              ftmp = atof(value.c_str()); //pre-grasp values
+//              if (ftmp > 2.0)
+//              {
+//                  ROS_ERROR("Found pose value > 2.0 in pre-grasp wrist - Is this file using millimeters again - should be meters!");
+//              }
+//              switch(i)
+//              {
+//                  case 0: grasp_spec.pregrasp_wrist_pose.position.x    = ftmp; break;
+//                  case 1: grasp_spec.pregrasp_wrist_pose.position.y    = ftmp; break;
+//                  case 2: grasp_spec.pregrasp_wrist_pose.position.z    = ftmp; break;
+//                  case 3: grasp_spec.pregrasp_wrist_pose.orientation.w = ftmp; break;
+//                  case 4: grasp_spec.pregrasp_wrist_pose.orientation.x = ftmp; break;
+//                  case 5: grasp_spec.pregrasp_wrist_pose.orientation.y = ftmp; break;
+//                  case 6: grasp_spec.pregrasp_wrist_pose.orientation.z = ftmp; break;
+//              }
+//            }
+//            //Static transformation to /r_hand
+//            staticTransform(grasp_spec.pregrasp_wrist_pose);
 
-        //            ROS_INFO("Loading Grasp from file: Id: %d, Template type: %d, Hand name: %s, Hand id: %d, Grasp type: %s",
-        //                     grasp_spec.grasp_id,grasp_spec.template_type,tmp_hand_name.c_str(),
-        //                     tmp_hand_id,tmp_grasp_type.c_str());
-        //            ROS_INFO("      pre-grasp   target p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-        //                     grasp_spec.pregrasp_wrist_pose.position.x,    grasp_spec.pregrasp_wrist_pose.position.z,grasp_spec.pregrasp_wrist_pose.position.z,
-        //                     grasp_spec.pregrasp_wrist_pose.orientation.w, grasp_spec.pregrasp_wrist_pose.orientation.x, grasp_spec.pregrasp_wrist_pose.orientation.y, grasp_spec.pregrasp_wrist_pose.orientation.z);
-        //            ROS_INFO("      final grasp target p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-        //                     grasp_spec.final_wrist_pose.position.x,    grasp_spec.final_wrist_pose.position.z,grasp_spec.final_wrist_pose.position.z,
-        //                     grasp_spec.final_wrist_pose.orientation.w, grasp_spec.final_wrist_pose.orientation.x, grasp_spec.final_wrist_pose.orientation.y, grasp_spec.final_wrist_pose.orientation.z);
-        //            template_list_.push_back(grasp_spec);
-        //          }
-        //          file.close();
-        //        }else
-        //        {
-        //          ROS_ERROR("Error loading grasp library from : %s",file_name.c_str());
-        //        }
+//            ROS_INFO("Loading Grasp from file: Id: %d, Template type: %d, Hand name: %s, Hand id: %d, Grasp type: %s",
+//                     grasp_spec.grasp_id,grasp_spec.template_type,tmp_hand_name.c_str(),
+//                     tmp_hand_id,tmp_grasp_type.c_str());
+//            ROS_INFO("      pre-grasp   target p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//                     grasp_spec.pregrasp_wrist_pose.position.x,    grasp_spec.pregrasp_wrist_pose.position.z,grasp_spec.pregrasp_wrist_pose.position.z,
+//                     grasp_spec.pregrasp_wrist_pose.orientation.w, grasp_spec.pregrasp_wrist_pose.orientation.x, grasp_spec.pregrasp_wrist_pose.orientation.y, grasp_spec.pregrasp_wrist_pose.orientation.z);
+//            ROS_INFO("      final grasp target p=(%f, %f, %f) q=(%f, %f, %f, %f)",
+//                     grasp_spec.final_wrist_pose.position.x,    grasp_spec.final_wrist_pose.position.z,grasp_spec.final_wrist_pose.position.z,
+//                     grasp_spec.final_wrist_pose.orientation.w, grasp_spec.final_wrist_pose.orientation.x, grasp_spec.final_wrist_pose.orientation.y, grasp_spec.final_wrist_pose.orientation.z);
+//            template_list_[/*Object_ID*/].grasps.push_back(grasp_spec);
+//          }
+//          file.close();
+//        }else
+//        {
+//          ROS_ERROR("Error loading grasp library from : %s",file_name.c_str());
+//        }
 
-        //        // Let's sort the grasp id's into numerical order to allow fast location
-        //        ROS_INFO(" Sort grasp identifiers ...");
+//        // Let's sort the grasp id's into numerical order to allow fast location
+//        ROS_INFO(" Sort grasp identifiers ...");
 
-        //        //std::sort(potential_grasps_.begin(), potential_grasps_.end(), VigirPickSpecificationSorter);
+//        //std::sort(potential_grasps_.begin(), potential_grasps_.end(), VigirPickSpecificationSorter);
 
-        //        // probably should dump to screen to verify that data is still correct.
-        //        ROS_INFO(" Resizing finger poses vectors for grasp types ...");
+//        // probably should dump to screen to verify that data is still correct.
+//        ROS_INFO(" Resizing finger poses vectors for grasp types ...");
 
-        ////        initial_finger_poses_.resize(NUM_GRASP_TYPES);
-        ////        final_finger_poses_.resize(NUM_GRASP_TYPES);
+//        initial_finger_poses_.resize(NUM_GRASP_TYPES);
+//        final_finger_poses_.resize(NUM_GRASP_TYPES);
 
-        ////        ROS_INFO(" Setup initial finger poses for grasp types ...");
+//        ROS_INFO(" Setup initial finger poses for grasp types ...");
 
-        ////        initial_finger_poses_.at(GRASP_CYLINDRICAL).f0[0] =0.0;
-        ////        initial_finger_poses_.at(GRASP_CYLINDRICAL).f0[1] =0.0;
-        ////        initial_finger_poses_.at(GRASP_CYLINDRICAL).f0[2] =0.0;
-        ////        initial_finger_poses_.at(GRASP_CYLINDRICAL).f0[3] =0.0;
+//        initial_finger_poses_.at(GRASP_CYLINDRICAL).f0[0] =0.0;
+//        initial_finger_poses_.at(GRASP_CYLINDRICAL).f0[1] =0.0;
+//        initial_finger_poses_.at(GRASP_CYLINDRICAL).f0[2] =0.0;
+//        initial_finger_poses_.at(GRASP_CYLINDRICAL).f0[3] =0.0;
 
-        ////        initial_finger_poses_.at(GRASP_PRISMATIC).f0[0] =0.0;
-        ////        initial_finger_poses_.at(GRASP_PRISMATIC).f0[1] =0.0;
-        ////        initial_finger_poses_.at(GRASP_PRISMATIC).f0[2] =0.0;
-        ////        initial_finger_poses_.at(GRASP_PRISMATIC).f0[3] =SPR_CLOSE;
+//        initial_finger_poses_.at(GRASP_PRISMATIC).f0[0] =0.0;
+//        initial_finger_poses_.at(GRASP_PRISMATIC).f0[1] =0.0;
+//        initial_finger_poses_.at(GRASP_PRISMATIC).f0[2] =0.0;
+//        initial_finger_poses_.at(GRASP_PRISMATIC).f0[3] =SPR_CLOSE;
 
-        ////        initial_finger_poses_.at(GRASP_SPHERICAL).f0[0] =0.0;
-        ////        initial_finger_poses_.at(GRASP_SPHERICAL).f0[1] =0.0;
-        ////        initial_finger_poses_.at(GRASP_SPHERICAL).f0[2] =0.0;
-        ////        initial_finger_poses_.at(GRASP_SPHERICAL).f0[3] =SPR_OPEN;
+//        initial_finger_poses_.at(GRASP_SPHERICAL).f0[0] =0.0;
+//        initial_finger_poses_.at(GRASP_SPHERICAL).f0[1] =0.0;
+//        initial_finger_poses_.at(GRASP_SPHERICAL).f0[2] =0.0;
+//        initial_finger_poses_.at(GRASP_SPHERICAL).f0[3] =SPR_OPEN;
 
-        ////        initial_finger_poses_.at(GRASP_NONE).f0[0] =0.0;
-        ////        initial_finger_poses_.at(GRASP_NONE).f0[1] =0.0;
-        ////        initial_finger_poses_.at(GRASP_NONE).f0[2] =0.0;
-        ////        initial_finger_poses_.at(GRASP_NONE).f0[3] =0.0;
+//        initial_finger_poses_.at(GRASP_NONE).f0[0] =0.0;
+//        initial_finger_poses_.at(GRASP_NONE).f0[1] =0.0;
+//        initial_finger_poses_.at(GRASP_NONE).f0[2] =0.0;
+//        initial_finger_poses_.at(GRASP_NONE).f0[3] =0.0;
 
-        ////        ROS_INFO(" Setup final finger poses for grasp types ...");
+//        ROS_INFO(" Setup final finger poses for grasp types ...");
 
-        ////        // TODO - define terminal finger positions with fully closed manual grasp
-        ////        final_finger_poses_.at(GRASP_CYLINDRICAL).f0[0] =1.22;
-        ////        final_finger_poses_.at(GRASP_CYLINDRICAL).f0[1] =1.13;
-        ////        final_finger_poses_.at(GRASP_CYLINDRICAL).f0[2] =1.13;
-        ////        final_finger_poses_.at(GRASP_CYLINDRICAL).f0[3] =0.0;
+//        // TODO - define terminal finger positions with fully closed manual grasp
+//        final_finger_poses_.at(GRASP_CYLINDRICAL).f0[0] =1.22;
+//        final_finger_poses_.at(GRASP_CYLINDRICAL).f0[1] =1.13;
+//        final_finger_poses_.at(GRASP_CYLINDRICAL).f0[2] =1.13;
+//        final_finger_poses_.at(GRASP_CYLINDRICAL).f0[3] =0.0;
 
-        ////        final_finger_poses_.at(GRASP_PRISMATIC).f0[0] =0.53;
-        ////        final_finger_poses_.at(GRASP_PRISMATIC).f0[1] =0.49;
-        ////        final_finger_poses_.at(GRASP_PRISMATIC).f0[2] =0.49;
-        ////        final_finger_poses_.at(GRASP_PRISMATIC).f0[3] =SPR_CLOSE;
+//        final_finger_poses_.at(GRASP_PRISMATIC).f0[0] =0.53;
+//        final_finger_poses_.at(GRASP_PRISMATIC).f0[1] =0.49;
+//        final_finger_poses_.at(GRASP_PRISMATIC).f0[2] =0.49;
+//        final_finger_poses_.at(GRASP_PRISMATIC).f0[3] =SPR_CLOSE;
 
-        ////        final_finger_poses_.at(GRASP_SPHERICAL).f0[0] =1.22;
-        ////        final_finger_poses_.at(GRASP_SPHERICAL).f0[1] =0.58;
-        ////        final_finger_poses_.at(GRASP_SPHERICAL).f0[2] =0.58;
-        ////        final_finger_poses_.at(GRASP_SPHERICAL).f0[3] =SPR_OPEN;
+//        final_finger_poses_.at(GRASP_SPHERICAL).f0[0] =1.22;
+//        final_finger_poses_.at(GRASP_SPHERICAL).f0[1] =0.58;
+//        final_finger_poses_.at(GRASP_SPHERICAL).f0[2] =0.58;
+//        final_finger_poses_.at(GRASP_SPHERICAL).f0[3] =SPR_OPEN;
 
-        ////        final_finger_poses_.at(GRASP_NONE).f0[0] =1.22;
-        ////        final_finger_poses_.at(GRASP_NONE).f0[1] =1.13;
-        ////        final_finger_poses_.at(GRASP_NONE).f0[2] =1.13;
-        ////        final_finger_poses_.at(GRASP_NONE).f0[3] =0.0;
+//        final_finger_poses_.at(GRASP_NONE).f0[0] =1.22;
+//        final_finger_poses_.at(GRASP_NONE).f0[1] =1.13;
+//        final_finger_poses_.at(GRASP_NONE).f0[2] =1.13;
+//        final_finger_poses_.at(GRASP_NONE).f0[3] =0.0;
 
-        //        ROS_INFO(" Done setting intital and final poses");
+//        ROS_INFO(" Done setting intital and final poses");
 
-        //        // Initialize states and control values
-        //        grasp_id_       = -1 ;
-        //        template_id_    = -1 ;
-        //        template_type_  = -1 ;
-        //        grasp_type_     = GRASP_CYLINDRICAL;
-        //        grasp_status_.status  = RobotStatusCodes::GRASP_CONTROLLER_OK;
-        //        grasp_status_code_    = RobotStatusCodes::GRASP_CONTROLLER_OK;
-        //        grasp_status_severity_= RobotStatusCodes::OK;
-        //        ROS_INFO(" Done initializing grasp library! ");
+//        // Initialize states and control values
+//        grasp_id_       = -1 ;
+//        template_id_    = -1 ;
+//        template_type_  = -1 ;
+//        grasp_type_     = GRASP_CYLINDRICAL;
+//        grasp_status_.status  = RobotStatusCodes::GRASP_CONTROLLER_OK;
+//        grasp_status_code_    = RobotStatusCodes::GRASP_CONTROLLER_OK;
+//        grasp_status_severity_= RobotStatusCodes::OK;
+//        ROS_INFO(" Done initializing grasp library! ");
 
     }
 
+//    void VigirRobotiqPickController::initTemplateIdMap(std::string& file_name)
+//    {
+//        std::vector< std::vector<QString> > db = readTextDBFile(file_name);
 
+//        for(int i = 0; i < db.size(); i++)
+//        {
+//            VigirObjectTemplate object_template;
+//            bool ok;
+//            unsigned int id = db[i][0].toUInt(&ok);
+//            std::string templatePath(db[i][1].toUtf8().constData());
+//            ROS_INFO("Adding template %s to id: %d)", templatePath, id);
+//            geometry_msgs::Point b_max;
+//            geometry_msgs::Point b_min;
+//            b_min.x = db[i][2].toFloat(&ok);
+//            b_min.y = db[i][3].toFloat(&ok);
+//            b_min.z = db[i][4].toFloat(&ok);
+//            b_max.x = db[i][5].toFloat(&ok);
+//            b_max.y = db[i][6].toFloat(&ok);
+//            b_max.z = db[i][7].toFloat(&ok);
+//            geometry_msgs::Point com ;
+//            com.x = db[i][8].toFloat(&ok);
+//            com.y = db[i][9].toFloat(&ok);
+//            com.z = db[i][10].toFloat(&ok);
+//            double mass = db[i][11].toFloat(&ok);
+//            object_template.b_max = b_max;
+//            object_template.b_min = b_min;
+//            object_template.com   = com;
+//            object_template.mass  = mass;
+//            object_template.id    = id;
+//            template_map_.insert(std::pair<unsigned int,VigirObjectTemplate>(id,object_template));
+//        }
+//    }
 
     GraspQuality VigirRobotiqPickController::processHandTactileData()
     {
