@@ -12,7 +12,7 @@ pcl::PolygonMesh::Ptr MeshMaker::mk_mesh(pcl::PointCloud<pcl::PointXYZ>::Ptr clo
 
 	pcl::ConvexHull<pcl::PointXYZ> hull;
 	hull.setInputCloud(cloud);
-	hull.reconstruct(*output);
+	//hull.reconstruct(*output);
 
 	output->header.stamp = 1;
 	output->header.frame_id = visualization_ref_frame;
