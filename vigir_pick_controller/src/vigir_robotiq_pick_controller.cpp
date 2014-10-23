@@ -221,11 +221,11 @@ namespace vigir_pick_controller{
         for(int i=0;i<object_template_map_[3].grasps.size(); i++)
             ROS_INFO("Grasp id inside ot: %s",object_template_map_[3].grasps[i].id.c_str());
 
-//        // Initialize states and control values
-//        grasp_status_.status  = RobotStatusCodes::GRASP_CONTROLLER_OK;
-//        grasp_status_code_    = RobotStatusCodes::GRASP_CONTROLLER_OK;
-//        grasp_status_severity_= RobotStatusCodes::OK;
-//        ROS_INFO(" Done initializing grasp library! ");
+        // Initialize states and control values
+        grasp_status_.status  = RobotStatusCodes::GRASP_CONTROLLER_OK;
+        grasp_status_code_    = RobotStatusCodes::GRASP_CONTROLLER_OK;
+        grasp_status_severity_= RobotStatusCodes::OK;
+        ROS_INFO(" Done initializing grasp library! ");
 
     }
 
