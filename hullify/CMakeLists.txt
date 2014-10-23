@@ -125,7 +125,7 @@ add_executable(hull_tests src/hull_tests.cpp)
 target_link_libraries(hull_tests ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 set_target_properties(hull_tests PROPERTIES COMPILE_FLAGS "-Wall -g")
 
-add_executable(convex_hull src/hullify_view.cpp src/convex_hull_qhull_ext.cpp src/qhull_interface.cpp src/mesh_bound.cpp src/plane_reps_and_3dmath.cpp src/pose_transform.cpp src/cluster_segmentation.cpp src/mesh_storage.cpp)
+add_executable(convex_hull src/mesh_maker.cpp src/hullify_view.cpp src/convex_hull_qhull_ext.cpp src/qhull_interface.cpp src/mesh_bound.cpp src/plane_reps_and_3dmath.cpp src/pose_transform.cpp src/cluster_segmentation.cpp src/mesh_storage.cpp)
 add_dependencies(convex_hull osu_grasp_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS}) 
 target_link_libraries(convex_hull ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 set_target_properties(convex_hull PROPERTIES COMPILE_FLAGS "-Wall -g")
@@ -210,6 +210,12 @@ set_target_properties(${PROJECT_NAME}-3dmath-test PROPERTIES COMPILE_FLAGS "-g")
 if(TARGET ${PROJECT_NAME}-3dmath-test)
    #target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME}) # original
    target_link_libraries(${PROJECT_NAME}-3dmath-test ${catkin_LIBRARIES})
+endif()
+
+catkin_add_gtest(${PROJECT_NAME}-pclconvex-test test/test_pcl_convex_hull.cpp src/mesh_maker.cpp src/hullify_view.cpp src/mesh_maker.cpp src/qhull_interface.cpp src/mesh_bound.cpp src/plane_reps_and_3dmath.cpp src/pose_transform.cpp src/cluster_segmentation.cpp src/mesh_storage.cpp)
+if(TARGET ${PROJECT_NAME}-pclconvex-test)
+	target_link_libraries(${PROJECT_NAME}-pclconvex-test ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+	set_target_properties(${PROJECT_NAME}-pclconvex-test PROPERTIES COMPILE_FLAGS "-Wall -g")
 endif()
 
 ## Add folders to be run by python nosetests
