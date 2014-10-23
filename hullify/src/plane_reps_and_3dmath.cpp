@@ -48,6 +48,16 @@ pcl::PointXYZ init_pt(double x, double y, double z)
 	return pt;
 }
 
+pcl::PointXYZ init_pt(Eigen::Vector3d vec)
+{
+	pcl::PointXYZ out_pt;
+	out_pt.x = vec[0];
+	out_pt.y = vec[1];
+	out_pt.z = vec[2];
+
+	return out_pt;
+}
+
 double get_angle_mag_between(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2)
 {
 	double cos_angle = v1.dot(v2) / (v2.norm() * v1.norm());

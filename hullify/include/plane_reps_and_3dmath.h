@@ -48,6 +48,7 @@ bool vecs_are_equal(Eigen::Vector3d v1, Eigen::Vector3d v2, double custom_tolera
 double get_angle_mag_between(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2);
 
 pcl::PointXYZ init_pt(double x, double y, double z);
+pcl::PointXYZ init_pt(Eigen::Vector3d vec);
 double pt_dist(pcl::PointXYZ pt1, pcl::PointXYZ pt2);
 pcl::PointXYZ find_farthest_pt(pcl::PointXYZ location, pcl::PointCloud<pcl::PointXYZ>::Ptr other_points);
 

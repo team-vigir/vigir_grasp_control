@@ -118,6 +118,9 @@ include_directories(${PCL_INCLUDE_DIRS})
 add_executable(aggregate_laser_scans src/deprecated/aggregate_laser_scans.cpp)
 target_link_libraries(aggregate_laser_scans ${catkin_LIBRARIES})#Need ros library..
 
+add_executable(ocs_request_testing src/ocs_listener.cpp src/plane_reps_and_3dmath.cpp)
+target_link_libraries(ocs_request_testing ${catkin_LIBRARIES})
+
 add_executable(hull_tests src/hull_tests.cpp)
 target_link_libraries(hull_tests ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 set_target_properties(hull_tests PROPERTIES COMPILE_FLAGS "-Wall -g")
