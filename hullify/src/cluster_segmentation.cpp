@@ -1,6 +1,6 @@
 #include "cluster_segmentation.h"
 
-vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, pcl::PointXYZ& target_point)
+vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud)
 {
   vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > cluster_vector;
   pcl::PCDWriter writer;
@@ -207,7 +207,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr combine_cloud_and_planes(vector<Plane>& plan
   return combined_cloud;
 }
 
-pcl::PointCloud<pcl::PointXYZ>::Ptr return_nearest_cluster(pcl::PointXYZ selected_point, vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> cluster_vector) 
+pcl::PointCloud<pcl::PointXYZ>::Ptr return_nearest_cluster(pcl::PointXYZ selected_point, vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>& cluster_vector) 
 {
   double nearest_distance = 99999999999999999;
   double cur_distance;
@@ -255,12 +255,33 @@ double return_distance_nearest_point(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
       plane, then do not remove the plane
     */
 //NEED TO FINISH THIS FUNCTION!!!
-pcl::PointCloud<pcl:PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, pcl::PointXYZ selected_point) {
-  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_2.pcd", *cloud) == -1) //* load the file
-    {
-      cout << "Couldn't read file test_pcd.pcd \n";
-      EXPECT_TRUE(false);
-    }
+pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointXYZ selected_point) {
+	pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+	string filename;
+	string selection;
+
+	// cout << "Select 1 to isolate point cloud data from hullify, 2 to isolate other point cloud data, or \"exit\" to exit..." << endl;
+	// cin >> selection;
+	// if(selection != "1" || selection != "2" || selection != "exit") {
+	// 	cout << "Unrecognized input. Exiting... ";
+	// 	exit;
+	// }
+	// if(selection == "exit") {
+	// 	cout << "Exiting..." << endl;
+	// 	exit;
+	// }
+	// if(selection == "1") {
+	// 	cout << "Hullify pipeline hasn't been implented yet. We'll fix that soon! Exiting..." << endl;
+	// 	exit;
+	// }
+	// if(selection == "2") {
+	// 	cout << "Please provide the path and filename for the point cloud: " << endl;
+	// 	cin >> filename;
+  if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/sample_full_cloud_1.pcd", *full_cloud) == -1) //* load the file. was previously 
+ 	{
+   	cout << "Couldn't read file test_pcd.pcd \n";
+   	exit;
+  }
 
   stat_outlier_remove(full_cloud);
 
@@ -269,11 +290,13 @@ pcl::PointCloud<pcl:PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::Poi
   remove_largest_plane(all_planes);
 
   pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud;
-  combined_cloud = combine_cloud_and_planes(all_planes, remaining_cloud);
+  combined_cloud = combine_cloud_and_planes(all_planes, full_cloud);
 
   vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> separated_clusters;
   separated_clusters = get_clusters(combined_cloud);
  
   pcl::PointCloud<pcl::PointXYZ>::Ptr isolated_cluster;
   isolated_cluster = return_nearest_cluster(selected_point, separated_clusters);
+
+  return isolated_cluster;
 }

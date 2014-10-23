@@ -158,14 +158,12 @@ TEST(plane_intersection, first_times_the_charm_strikes_again){
 	EXPECT_TRUE(true);
 }
 
+/*
 TEST(plane_segmentation, hope_it_works){
-	
-	/*pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-	cloud = mk_cloud(cloud);
-*/  
+	  
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
  	Plane plane;
-    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_1.pcd", *cloud) == -1) //* load the file
+    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/sample_full_cloud_1.pcd", *cloud) == -1) //* load the file
     {
       cout << "Couldn't read file test_pcd.pcd \n";
       EXPECT_TRUE(false);
@@ -175,7 +173,7 @@ TEST(plane_segmentation, hope_it_works){
 
 	EXPECT_TRUE(true);
 }
-
+*/
 /*TEST(plane_segmentation, it_will_work){
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
  	
@@ -208,13 +206,13 @@ TEST(plane_segmentation, hope_it_works){
     save_cloud(cloud, "remaining_cloud");
 
     EXPECT_TRUE(true);
-}*/
+}
 
 TEST(combine_pcs, anything){
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud;
  	
-    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_2.pcd", *cloud) == -1) //* load the file
+    if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/sample_full_cloud_1.pcd", *cloud) == -1) //* load the file
     {
       cout << "Couldn't read file test_pcd.pcd \n";
       EXPECT_TRUE(false);
@@ -232,7 +230,7 @@ TEST(clusterify, easy){
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud; 
 
-	if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_2.pcd", *cloud) == -1) //* load the file
+	if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/sample_full_cloud_1.pcd", *cloud) == -1) //* load the file
     {
       cout << "Couldn't read file test_pcd.pcd \n";
       EXPECT_TRUE(false);
@@ -242,8 +240,7 @@ TEST(clusterify, easy){
     remove_largest_plane(all_planes);
    	combined_cloud = combine_cloud_and_planes(all_planes, cloud);
 
-   	pcl::PointXYZ point;
-   	get_clusters(combined_cloud, point);
+   	get_clusters(combined_cloud);
 
    	EXPECT_TRUE(true);
 }
@@ -253,7 +250,7 @@ TEST(nearest_cluster, ninety_nine_percent_completion_mark) {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud; 
 
-	if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/plane_seg_cloud_2.pcd", *cloud) == -1) //* load the file
+	if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/sample_full_cloud_1.pcd", *cloud) == -1) //* load the file
     {
       cout << "Couldn't read file test_pcd.pcd \n";
       EXPECT_TRUE(false);
@@ -263,12 +260,20 @@ TEST(nearest_cluster, ninety_nine_percent_completion_mark) {
     remove_largest_plane(all_planes);
    	combined_cloud = combine_cloud_and_planes(all_planes, cloud);
 
-   	pcl::PointXYZ point;
-   	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > clusters = get_clusters(combined_cloud, point);
+   	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > clusters = get_clusters(combined_cloud);
    	pcl::PointCloud<pcl::PointXYZ>::Ptr cluster = return_nearest_cluster(rand_point, clusters);
    	save_cloud(cluster, "isolated_cloud");
 
    	EXPECT_TRUE(true);
+}*/
+
+TEST(master_function, anything_in_the_world) {
+	pcl::PointXYZ rand_point = init_pt(-0.33621544, -0.7632941, 0.85465014);
+
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cluster = isolate_hull_cluster(rand_point);
+	save_cloud(cluster, "isolated_cloud");
+
+	EXPECT_TRUE(true);
 }
 
 int main(int argc, char** argv){

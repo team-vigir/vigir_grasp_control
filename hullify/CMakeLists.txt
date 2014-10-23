@@ -197,6 +197,7 @@ if(TARGET ${PROJECT_NAME}-pose-test)
 endif()
 
 catkin_add_gtest(${PROJECT_NAME}-3dmath-test test/test_3dmath.cpp src/plane_reps_and_3dmath.cpp src/cluster_segmentation.cpp)
+set_target_properties(${PROJECT_NAME}-3dmath-test PROPERTIES COMPILE_FLAGS "-g")
 if(TARGET ${PROJECT_NAME}-3dmath-test)
    #target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME}) # original
    target_link_libraries(${PROJECT_NAME}-3dmath-test ${catkin_LIBRARIES})
