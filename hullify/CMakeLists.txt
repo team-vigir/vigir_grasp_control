@@ -199,10 +199,17 @@ if(TARGET ${PROJECT_NAME}-pose-test)
    target_link_libraries(${PROJECT_NAME}-pose-test ${catkin_LIBRARIES})
 endif()
 
+
 catkin_add_gtest(${PROJECT_NAME}-storage-test test/test_storage.cpp src/mesh_storage.cpp src/plane_reps_and_3dmath.cpp)
 if(TARGET ${PROJECT_NAME}-pose-test)
 	target_link_libraries(${PROJECT_NAME}-storage-test ${catkin_LIBRARIES})
 	set_target_properties(${PROJECT_NAME}-storage-test PROPERTIES COMPILE_FLAGS "-Wall -g")
+
+catkin_add_gtest(${PROJECT_NAME}-3dmath-test test/test_3dmath.cpp src/plane_reps_and_3dmath.cpp src/cluster_segmentation.cpp)
+set_target_properties(${PROJECT_NAME}-3dmath-test PROPERTIES COMPILE_FLAGS "-g")
+if(TARGET ${PROJECT_NAME}-3dmath-test)
+   #target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME}) # original
+   target_link_libraries(${PROJECT_NAME}-3dmath-test ${catkin_LIBRARIES})
 endif()
 
 ## Add folders to be run by python nosetests

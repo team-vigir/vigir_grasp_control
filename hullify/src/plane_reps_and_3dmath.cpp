@@ -17,6 +17,9 @@ bool vecs_are_equal(Eigen::Vector3d v1, Eigen::Vector3d v2, double custom_tolera
 	v1 /= v1.norm();
 	v2 /= v2.norm();
 
+	if (is_null_vec(v1))
+		return false;
+
 	if (difference(v1[0], v2[0]) <= custom_tolerance
 		&& difference(v1[1], v2[1]) <= custom_tolerance
 		&& difference(v1[2], v2[2]) <= custom_tolerance){
@@ -24,6 +27,13 @@ bool vecs_are_equal(Eigen::Vector3d v1, Eigen::Vector3d v2, double custom_tolera
 	}
 
 	return false;
+}
+
+bool is_null_vec(const Eigen::Vector3d& vec, double custom_tolerance)
+{
+	return (difference(vec[0], 0) < custom_tolerance &&
+			difference(vec[1], 0) < custom_tolerance &&
+			difference(vec[2], 0) < custom_tolerance);
 }
 
 Eigen::Vector3d init_vec(const pcl::PointXYZ& in)
@@ -345,10 +355,60 @@ bool pt_below_plane(pcl::ModelCoefficients::Ptr plane, pcl::PointXYZ& pt)
 
 Eigen::Vector3d get_unit_normal(pcl::ModelCoefficients::Ptr plane)
 {
-	cout << "made it" << endl;
+	//cout << "made it" << endl;
 	double magnitude = sqrt(plane->values[0]*plane->values[0] + plane->values[1]*plane->values[1] + plane->values[2]*plane->values[2]);
 	Eigen::Vector3d normal(plane->values[0]/magnitude, plane->values[1]/magnitude, plane->values[2]/magnitude);
 	cout << "x: " << normal[0] << "y: " << normal[1] << "z: " << normal[2] << endl;
 
 	return normal;
+}
+
+Eigen::Vector3d get_normal(pcl::ModelCoefficients::Ptr plane)
+{
+	return Eigen::Vector3d(plane->values[0], plane->values[1], plane->values[2]);
+}
+
+
+
+Line::Line()
+:slope(0,0,0), intercept(0,0,0)
+{
+}
+
+Line::Line(Eigen::Vector3d slope, Eigen::Vector3d intercept)
+{
+	if (vecs_are_equal(Eigen::Vector3d(0,0,0), slope, 0.001)){
+		cout << "Trying to create a line with zero vector as slope." << endl;
+		slope = Eigen::Vector3d(0, 0, 0);
+		return;
+	}
+
+	this->slope = slope;
+	this->intercept = intercept;
+}
+
+Eigen::Vector3d Line::get_pt(double t)
+{
+	//cout << "Slope: " << endl << slope << endl;
+	if (is_null_vec(slope)){
+		throw null_slope();
+	}
+
+	return ((t * slope) + intercept);
+}
+
+//Simply substituting the result of the line equation into the plane equation
+// 	yields: t = (-d - n dot b) / (n dot m), where n is plane normal, b is line intercept, and m is slope
+Eigen::Vector3d Line::find_plane_intersection(pcl::ModelCoefficients::Ptr plane)
+{
+	Eigen::Vector3d plane_normal = get_normal(plane);
+
+	double denom = plane_normal.dot(slope);
+	//cout << "Denom: " << denom << endl;
+	if (difference(denom, 0) < 0.01){
+		throw plane_line_exc();
+	}
+
+	double t = (-plane->values[3] - plane_normal.dot(intercept)) / denom;
+	return get_pt(t);
 }

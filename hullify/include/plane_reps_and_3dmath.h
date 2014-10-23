@@ -22,6 +22,7 @@
 
 #include <Eigen/Dense>
 
+#include <exception>
 #include <cstdlib>
 #include <string>
 #include <vector>
@@ -30,12 +31,25 @@ using std::vector;
 using std::cout;
 using std::cin;
 using std::endl;
+using std::exception;
 
 #define FLOAT_TOLERANCE 0.001
 
 struct Pt_Dist {
 	double dist;
 	long idx;
+};
+
+class Line {
+public:
+	Line();
+	Line(Eigen::Vector3d slope, Eigen::Vector3d intercept);
+
+	Eigen::Vector3d get_pt(double t);
+	Eigen::Vector3d find_plane_intersection(pcl::ModelCoefficients::Ptr plane);
+
+	Eigen::Vector3d slope;
+	Eigen::Vector3d intercept;
 };
 
 //Function Declarations
@@ -45,6 +59,7 @@ int dist_compare(const void* a, const void* b);
 Eigen::Vector3d init_vec(const pcl::PointXYZ& in);
 Eigen::Vector3d init_vec(const pcl::PointXYZ& final, const pcl::PointXYZ& initial);
 bool vecs_are_equal(Eigen::Vector3d v1, Eigen::Vector3d v2, double custom_tolerance=FLOAT_TOLERANCE);
+bool is_null_vec(const Eigen::Vector3d& vec, double custom_tolerance=FLOAT_TOLERANCE);
 double get_angle_mag_between(const Eigen::Vector3d& v1, const Eigen::Vector3d& v2);
 
 pcl::PointXYZ init_pt(double x, double y, double z);
@@ -70,5 +85,22 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr find_pts_between_parallel_planes(pcl::ModelC
 
 //STUFF NOT JACKSON WRITE
 Eigen::Vector3d get_unit_normal(pcl::ModelCoefficients::Ptr plane);
+Eigen::Vector3d get_normal(pcl::ModelCoefficients::Ptr plane);
+
+class plane_line_exc : public exception
+{
+  virtual const char* what() const throw()
+  {
+    return "The line never touches the plane, or it runs on the plane.";
+  }
+};
+
+class null_slope : public exception
+{
+  virtual const char* what() const throw()
+  {
+    return "The line has a null slope. It was improperly initialized.";
+  }
+};
 
 #endif
