@@ -36,6 +36,7 @@
 #include "pose_transform.h"
 #include "cluster_segmentation.h"
 #include "mesh_storage.h"
+#include "ocs_listener.h"
 
 #include <ctime>
 #include <cstdlib>
@@ -90,7 +91,7 @@ class MeshMaker{
 		MeshBound* bounds;
 		Hullify_View* view;
 		MeshStorage* storage;
-
+		Ocs_listener* ocs_contact;
 };
 
 //pcl::PolygonMesh::Ptr mk_mesh(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);

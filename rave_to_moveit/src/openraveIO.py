@@ -22,13 +22,12 @@ class openraveIO:
 			self.instances = 1		
 		
 		self.grasper = grasper
-		self.pub = rospy.Publisher('convex_hull/openrave_grasps', PoseArray)
+		self.pub = rospy.Publisher('convex_hull/openrave_grasps', PoseArray, queue_size=2)
 		self.meshtopic = rospy.Subscriber("convex_hull/openrave_params", Mesh_and_bounds, self.full_info_callback)		
 		self.pelvis_listener = tf.TransformListener()
 		self.final_pose_ref_frame = final_pose_ref_frame
 		self.mesh_ref_frame = mesh_ref_frame
-		#self.tROS = tf.()
-		self.preplugin_pose_publisher = rospy.Publisher("openrave_preplugin_grasp", PoseStamped)
+		#self.preplugin_pose_publisher = rospy.Publisher("openrave_preplugin_grasp", PoseStamped)
 
 	def full_info_callback(self, msg):
 		print "Got a Mesh_and_bounds_msg!"

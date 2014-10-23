@@ -118,14 +118,14 @@ include_directories(${PCL_INCLUDE_DIRS})
 add_executable(aggregate_laser_scans src/deprecated/aggregate_laser_scans.cpp)
 target_link_libraries(aggregate_laser_scans ${catkin_LIBRARIES})#Need ros library..
 
-add_executable(ocs_request_testing src/ocs_listener.cpp src/plane_reps_and_3dmath.cpp)
-target_link_libraries(ocs_request_testing ${catkin_LIBRARIES})
+#add_executable(ocs_request_testing src/ocs_listener.cpp src/plane_reps_and_3dmath.cpp)
+#target_link_libraries(ocs_request_testing ${catkin_LIBRARIES})
 
 add_executable(hull_tests src/hull_tests.cpp)
 target_link_libraries(hull_tests ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 set_target_properties(hull_tests PROPERTIES COMPILE_FLAGS "-Wall -g")
 
-add_executable(convex_hull src/mesh_maker.cpp src/hullify_view.cpp src/convex_hull_qhull_ext.cpp src/qhull_interface.cpp src/mesh_bound.cpp src/plane_reps_and_3dmath.cpp src/pose_transform.cpp src/cluster_segmentation.cpp src/mesh_storage.cpp)
+add_executable(convex_hull src/mesh_maker.cpp src/ocs_listener.cpp src/hullify_view.cpp src/convex_hull_qhull_ext.cpp src/qhull_interface.cpp src/mesh_bound.cpp src/plane_reps_and_3dmath.cpp src/pose_transform.cpp src/cluster_segmentation.cpp src/mesh_storage.cpp)
 add_dependencies(convex_hull osu_grasp_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS}) 
 target_link_libraries(convex_hull ${PCL_LIBRARIES} ${catkin_LIBRARIES})
 set_target_properties(convex_hull PROPERTIES COMPILE_FLAGS "-Wall -g")
@@ -204,6 +204,8 @@ catkin_add_gtest(${PROJECT_NAME}-storage-test test/test_storage.cpp src/mesh_sto
 if(TARGET ${PROJECT_NAME}-pose-test)
 	target_link_libraries(${PROJECT_NAME}-storage-test ${catkin_LIBRARIES})
 	set_target_properties(${PROJECT_NAME}-storage-test PROPERTIES COMPILE_FLAGS "-Wall -g")
+
+endif()
 
 catkin_add_gtest(${PROJECT_NAME}-3dmath-test test/test_3dmath.cpp src/plane_reps_and_3dmath.cpp src/cluster_segmentation.cpp)
 set_target_properties(${PROJECT_NAME}-3dmath-test PROPERTIES COMPILE_FLAGS "-g")

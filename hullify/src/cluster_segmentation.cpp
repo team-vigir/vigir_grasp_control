@@ -156,7 +156,7 @@ void save_planes(vector<Plane> all_planes)
   std::stringstream ss;
   string filename = "segmented_plane";
   string num;
-  for(int i = 0; i < all_planes.size(); ++i) {
+  for(unsigned int i = 0; i < all_planes.size(); ++i) {
     ss << i;
     num = ss.str();
     string temp = filename + num;
@@ -181,7 +181,7 @@ void remove_largest_plane(vector<Plane>& plane_vector)
   int index_tracker = -1;
   int point_tracker = -1;
   int num_pts;
-  for(int i = 0; i < plane_vector.size(); ++i) {
+  for(unsigned int i = 0; i < plane_vector.size(); ++i) {
     num_pts = plane_vector[i].pts->points.size();
     if(num_pts > point_tracker){
       index_tracker = i;
@@ -200,7 +200,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr combine_cloud_and_planes(vector<Plane>& plan
 {
   pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud (new pcl::PointCloud<pcl::PointXYZ>);
   *combined_cloud = *remaining_cloud;
-  for(int i = 0; i < plane_vector.size(); ++i) {
+  for(unsigned int i = 0; i < plane_vector.size(); ++i) {
     pcl::PointCloud<pcl::PointXYZ>::Ptr cur_plane = plane_vector[i].pts;
     *combined_cloud += *cur_plane;
   }
@@ -212,7 +212,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr return_nearest_cluster(pcl::PointXYZ selecte
   double nearest_distance = 99999999999999999;
   double cur_distance;
   int idx;
-  for(int i = 0; i < cluster_vector.size(); ++i) {
+  for(unsigned int i = 0; i < cluster_vector.size(); ++i) {
     if((cur_distance = return_distance_nearest_point(cluster_vector[i], selected_point)) < nearest_distance) {
       nearest_distance = cur_distance;
       idx = i;
@@ -239,7 +239,7 @@ double return_distance_nearest_point(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
 
   if ( kdtree.nearestKSearch (selected_point, numNeighbors, pointIdxNKNSearch, pointNKNSquaredDistance) > 0 )
   {
-    for (int k = 0; k < pointIdxNKNSearch.size (); ++k)
+    for (unsigned int k = 0; k < pointIdxNKNSearch.size (); ++k)
       std::cout << "    "  <<   cloud->points[pointIdxNKNSearch[k]].x 
                 << " " << cloud->points[pointIdxNKNSearch[k]].y 
                 << " " << cloud->points[pointIdxNKNSearch[k]].z 
@@ -280,7 +280,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointXYZ selected_
   if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/sample_full_cloud_1.pcd", *full_cloud) == -1) //* load the file. was previously 
  	{
    	cout << "Couldn't read file test_pcd.pcd \n";
-   	exit;
+   	exit(1);
   }
 
   stat_outlier_remove(full_cloud);

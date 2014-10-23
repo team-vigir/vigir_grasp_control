@@ -37,6 +37,7 @@ MeshMaker::MeshMaker()
 	view = new Hullify_View("convex_hull/", &visualization_ref_frame);
 	bounds = new MeshBound(mesh_ref_frame, view);
 	storage = new MeshStorage();
+	ocs_contact = new Ocs_listener();
 
 	init_input_topic();
 	init_mesh_name();
@@ -221,7 +222,14 @@ void MeshMaker::accept_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 {
 	std::cout << "Pointcloud received" << std::endl;
-
+	pcl::PointXYZ target_point;
+	/*try{
+		target_point = ocs_contact->get_recent_request_pt();
+	} catch (int e){
+		cout << "No point on object recognized, cannot segment properly." << endl;
+		return;
+	}*/
+	
 	//Convert PointCloud2 message to PCL's PointCloud<PointXYZ>
 	pcl::PointCloud<pcl::PointXYZ>::Ptr intermediate_cloud (new pcl::PointCloud<pcl::PointXYZ>);
 	if (!get_cloud(msg, intermediate_cloud)){
@@ -229,7 +237,7 @@ void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 	    	return;
 	}
 
-	pcl::PointXYZ target_point;
+	
 	//get_cluster(intermediate_cloud, target_point);
 
 	//Run qhull externally (or see comments just below)

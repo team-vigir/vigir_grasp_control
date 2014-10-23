@@ -19,7 +19,6 @@ import openraveIO
 #import plugin_mods_verification
 
 gt = None
-distance_pub = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 
@@ -43,13 +42,13 @@ def set_openrave_environment_vars():
 		os.environ["OPENRAVE_PLUGINS"] = rave_to_moveit_path + "/plugins" + ":" + os.environ["OPENRAVE_PLUGINS"]
 	else:
 		os.environ["OPENRAVE_PLUGINS"] = rave_to_moveit_path + "/plugins"
-	print os.environ["OPENRAVE_PLUGINS"]
+	#print "Plugin path: ", os.environ["OPENRAVE_PLUGINS"]
 
-def load_modified_grasper_plugin(env):
+#def load_modified_grasper_plugin(env):
 	#plugin  = RaveLoadPlugin('grasper_mod')
-	plugin = RaveCreateModule(env,'Grasper')
-	if not plugin:
-		print "Could not load modified plugin for Grasper. Will default to standard."
+#	plugin = RaveCreateModule(env,'Grasper')
+#	if not plugin:
+#		print "Could not load modified plugin for Grasper. Will default to standard."
 
 def build_environment():
 	global gt	
@@ -75,18 +74,18 @@ def view_robot_ref_frames(robot):
 	#atlas_and_ik.test_transforms(gt)
 	
 
-def load_hands():
-	global env
-	global loaded_hands
-
-	for hand_name in loaded_hands:
-		robot = env.ReadRobotXMLFile(loaded_hands[hand_name][FILE_PATH])
-		if robot is None:
-			print "Cannot load robot: ", loaded_hands[hand_name][FILE_PATH]
-		else:
-			env.AddRobot(robot)
-			loaded_hands[hand_name][ENV_NAME] = robot.GetName()
-			print "Loaded ", loaded_hands[hand_name][ENV_NAME]
+#def load_hands():
+#	global env
+#	global loaded_hands
+#
+#	for hand_name in loaded_hands:
+#		robot = env.ReadRobotXMLFile(loaded_hands[hand_name][FILE_PATH])
+#		if robot is None:
+#			print "Cannot load robot: ", loaded_hands[hand_name][FILE_PATH]
+#		else:
+#			env.AddRobot(robot)
+#			loaded_hands[hand_name][ENV_NAME] = robot.GetName()
+#			print "Loaded ", loaded_hands[hand_name][ENV_NAME]
 
 def query_final_pose_frame():
 	while True:
@@ -250,7 +249,6 @@ def set_hand_callback(msg):
 
 
 if __name__ == '__main__':
-	global distance_pub
 	rospy.init_node('SimEnvLoading', anonymous=False)
 
 	set_openrave_environment_vars()
