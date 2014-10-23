@@ -202,5 +202,11 @@ if(TARGET ${PROJECT_NAME}-pose-test)
 	set_target_properties(${PROJECT_NAME}-storage-test PROPERTIES COMPILE_FLAGS "-Wall -g")
 endif()
 
+catkin_add_gtest(${PROJECT_NAME}-pclconvex-test test/test_pcl_convex_hull.cpp src/mesh_maker.cpp src/hullify_view.cpp src/mesh_maker.cpp src/qhull_interface.cpp src/mesh_bound.cpp src/plane_reps_and_3dmath.cpp src/pose_transform.cpp src/cluster_segmentation.cpp src/mesh_storage.cpp)
+if(TARGET ${PROJECT_NAME}-pclconvex-test)
+	target_link_libraries(${PROJECT_NAME}-pclconvex-test ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+	set_target_properties(${PROJECT_NAME}-pclconvex-test PROPERTIES COMPILE_FLAGS "-Wall -g")
+endif()
+
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
