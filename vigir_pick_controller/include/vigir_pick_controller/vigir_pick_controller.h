@@ -122,6 +122,7 @@ typedef enum
 struct VigirObjectTemplate
 {
     uint16_t                                id;
+    uint16_t                                type;
     std::string                             name;
     float                                   mass;
     geometry_msgs::Point                    com;
@@ -235,10 +236,15 @@ struct VigirObjectTemplate
 
    inline int16_t  getGraspStatus() { return RobotStatusCodes::status(grasp_status_code_, grasp_status_severity_);}
    void            setGraspStatus(const RobotStatusCodes::StatusCode& status, const RobotStatusCodes::StatusLevel& severity);
+   void            loadObjectTemplateDatabase(std::string& file_name);
+   std::vector< std::vector <std::string> > readCSVFile(std::string& file_name);
 
 
    // Filename of the grasping library
-   std::string filename;
+   std::string filename_;
+   // Filename of the object template library
+   std::string ot_filename_;
+   std::map<unsigned int,VigirObjectTemplate>  object_template_map_;
 
 
 
@@ -265,6 +271,7 @@ struct VigirObjectTemplate
 
     // Internal data set by the controller (specifies right or left hand)
     std::string                             hand_name_;       // l_hand or r_hand
+    std::string                             hand_side_;       // left or right
     int                                     hand_id_;         // -1=left, 1=right
     std::string                             planning_group_;
 

@@ -110,14 +110,18 @@ void VigirPickController::initializeGraspController(ros::NodeHandle &nh, ros::No
         ROS_WARN(" Did not find FILENAME parameter - using \"/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/grasp_library.grasp\" as default");
     }
 
-    nhp.param<std::string>("filename", this->filename,  "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/grasp_library.grasp");
+    nhp.param<std::string>("filename", this->filename_,  "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/grasp_library.grasp");
+    nhp.param<std::string>("ot_filename", this->ot_filename_,  "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/grasp_templates.txt");
     nhp.param<std::string>("hand", this->hand_name_,"r_hand");
 
     ROS_INFO("Hand parameterrs received");
 
-    this->hand_id_ = 1;
-    if ("l_hand" == this->hand_name_)
-        this->hand_id_ = -1;
+    this->hand_id_   = 1;
+    this->hand_side_ = "right";
+    if ("l_hand" == this->hand_name_){
+        this->hand_id_   = -1;
+        this->hand_side_ = "left";
+    }
 
     XmlRpc::XmlRpcValue   gp_T_hand;
     XmlRpc::XmlRpcValue   hand_T_palm;
@@ -192,7 +196,7 @@ void VigirPickController::initializeGraspController(ros::NodeHandle &nh, ros::No
      this->hand_offset_pose_.setIdentity();
 
      ROS_WARN("Create worker thread for controls calculations ...");
-     this->worker_thread_ = new boost::thread(boost::bind(&VigirPickController::controllerLoop, this));
+     //this->worker_thread_ = new boost::thread(boost::bind(&VigirPickController::controllerLoop, this));
 
   }
 
@@ -587,38 +591,67 @@ void VigirPickController::controllerLoop()
 /////////////////////////////////////////////////////////////////////////
 // Helper functions
 
+std::vector< std::vector <std::string> > VigirPickController::readCSVFile(std::string& file_name){
+    std::ifstream file ( file_name.c_str() );
+    std::vector< std::vector <std::string> > db;
+    for (std::string line; std::getline(file, line); )
+    {
+        std::istringstream in(line);
+        std::vector<std::string> tmp;
+        std::string value;
 
-
-//// will return a vector with rows, each row containing a QStringList with all columns
-//std::vector< std::vector<QString> > VigirPickController::readTextDBFile(QString path)
-//{
-//    std::vector< std::vector<QString> > ret;
-//    QFile file(path);
-//    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
-//    {
-//        QTextStream in(&file);
-//        while (!in.atEnd())
-//        {
-//            QString line = in.readLine();
-//            if(line[0] != '#')
-//            {
-//                std::vector<QString> row;
-//                QStringList strings;
-//                strings = line.split(",");
-//                // remove whitespaces
-//                for(int i = 0; i < strings.size(); i++)
-//                {
-//                    QString str = strings.at(i);
-//                    str.replace(" ","");
-//                    row.push_back(str);
-//                }
-//                ret.push_back(row);
-//            }
-//        }
+        while(std::getline(in, value, ',')) {
+            std::stringstream trimmer;
+            trimmer << value;
+            value.clear();
+            trimmer >> value; //removes white spaces
+            tmp.push_back(value);
+        }
+        db.push_back(tmp);
+    }
+//    for(int i=0; i<db.size();i++){
+//        for(int j=0; j<db[i].size();j++)
+//            std::cout << db[i][j] << ",";
+//        std::cout << "\n";
 //    }
-//    return ret;
-//}
+    return db;
+}
 
+
+void VigirPickController::loadObjectTemplateDatabase(std::string& file_name)
+{
+    std::vector< std::vector <std::string> > db = readCSVFile(file_name);
+
+    for(int i = 1; i < db.size(); i++) //STARTING FROM 1 SINCE FIRST LINE IS HEADER BEGINING WITH "#"
+    {
+        VigirObjectTemplate object_template;
+        unsigned int type = std::atoi(db[i][0].c_str());
+
+        geometry_msgs::Point b_max;
+        geometry_msgs::Point b_min;
+        b_min.x = std::atof(db[i][2].c_str());
+        b_min.y = std::atof(db[i][3].c_str());
+        b_min.z = std::atof(db[i][4].c_str());
+        b_max.x = std::atof(db[i][5].c_str());
+        b_max.y = std::atof(db[i][6].c_str());
+        b_max.z = std::atof(db[i][7].c_str());
+
+        geometry_msgs::Point com ;
+        com.x = std::atof(db[i][8].c_str());
+        com.y = std::atof(db[i][9].c_str());
+        com.z = std::atof(db[i][10].c_str());
+
+        double mass = std::atof(db[i][11].c_str());
+
+        object_template.b_max = b_max;
+        object_template.b_min = b_min;
+        object_template.com   = com;
+        object_template.mass  = mass;
+        object_template.id    = i-1;
+        object_template.type  = type;
+        object_template_map_.insert(std::pair<unsigned int,VigirObjectTemplate>(type,object_template));
+    }
+}
 
 
 

@@ -6,7 +6,8 @@
 <node name="left_grasp_controller" pkg="vigir_pick_controller" type="vigir_robotiq_pick_controller_node" output="screen" respawn="true">
 
     <param name="hand" value="l_hand" />
-    <param name="filename" value="$(find vigir_template_library)/debris/box.urdf" />
+    <param name="filename" value="$(find vigir_template_library)/grasp_library_robotiq.grasp" />
+    <param name="ot_filename" value="$(find vigir_template_library)/grasp_templates.txt" />
 
     <remap from="template_selection" to="/template/l_hand_template_match_request" />
     <remap from="hand_offset"        to="/template/l_hand_template_offset" />
