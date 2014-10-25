@@ -223,12 +223,12 @@ void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 {
 	std::cout << "Pointcloud received" << std::endl;
 	pcl::PointXYZ target_point;
-	/*try{
+	try{
 		target_point = ocs_contact->get_recent_request_pt();
 	} catch (int e){
 		cout << "No point on object recognized, cannot segment properly." << endl;
 		return;
-	}*/
+	}
 	
 	//Convert PointCloud2 message to PCL's PointCloud<PointXYZ>
 	pcl::PointCloud<pcl::PointXYZ>::Ptr intermediate_cloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -237,8 +237,7 @@ void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 	    	return;
 	}
 
-	
-	//get_cluster(intermediate_cloud, target_point);
+	intermediate_cloud = isolate_hull_cluster(intermediate_cloud, target_point);
 
 	//Run qhull externally (or see comments just below)
 	pcl::PolygonMesh::Ptr convex_hull = qhull.mk_mesh(intermediate_cloud);

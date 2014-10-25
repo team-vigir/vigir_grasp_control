@@ -1,3 +1,6 @@
+#include <ros/ros.h>
+#include <ros/package.h>
+
 #include <pcl/ModelCoefficients.h>
 #include <pcl/point_types.h>
 #include <pcl/io/pcd_io.h>
@@ -39,10 +42,10 @@ Line plane_intersect(pcl::ModelCoefficients::Ptr plane1, pcl::ModelCoefficients:
 void save_cloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, string filename);
 void save_planes(vector<Plane> all_planes);
 
-void remove_largest_plane(vector<Plane>& plane_vector);
+pcl::PointCloud<pcl::PointXYZ>::Ptr emove_largest_plane(vector<Plane>& plane_vector);
 pcl::PointCloud<pcl::PointXYZ>::Ptr combine_cloud_and_planes(vector<Plane>& plane_vector, pcl::PointCloud<pcl::PointXYZ>::Ptr remaining_cloud);
 pcl::PointCloud<pcl::PointXYZ>::Ptr return_nearest_cluster(pcl::PointXYZ selected_point, vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>& cluster_vector);
 double return_distance_nearest_point(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, pcl::PointXYZ selected_point);
 
 //DUN DUN DUNNNNNNNNNNNNNN
-pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointXYZ selected_point);
+pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, pcl::PointXYZ selected_point);
