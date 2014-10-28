@@ -1,20 +1,8 @@
 <?xml version="1.0"?>
 
 <launch>
-  <!-- send urdf to param server
-  <param name="robot_description" command="$(find xacro)/xacro.py '$(find schunk_lwa4p_control)/urdf/lwa4p.urdf.xacro'" /> -->
-        
-  <!-- robot state publisher
-  <node pkg="robot_state_publisher" type="state_publisher" name="robot_state_publisher"/> -->
-
   <!-- Load joint controller configurations from YAML file to parameter server -->
   <rosparam file    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_states_controller.yaml"
-            command = "load"/>
-  <rosparam file    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_position_controller.yaml"
-            command = "load"/>            
-  <rosparam file    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_effort_controller.yaml"
-            command = "load"/>            
-  <rosparam file    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_velocity_controller.yaml"
             command = "load"/>
   <rosparam file    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_joint_limits.yaml"
             command = "load"/>
@@ -23,7 +11,7 @@
             file    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_position_trajectory_controller.yaml"
             command = "load"/>
             
-  <node name    = "rosparam_append_node" 
+  <node name    = "right_rosparam_append_node" 
         pkg     = "flor_atlas_moveit_config"
         type    = "rosparam_append"
         args    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_controllers.yaml /move_group/controller_list"/>
@@ -44,65 +32,6 @@
         ns      = "right_robotiq" 
         output  = "screen"  
         args    = "joint_state_controller"/>  
-        
-  <node name    = "right_robotiq_postition_controller_spawner"
-        pkg     = "controller_manager" 
-        type    = "spawner" 
-        respawn = "false" 
-        ns      = "right_robotiq"
-        output  = "screen" 
-        args    = "--stopped
-                   right_f0_j1_position_controller
-                   right_f1_j1_position_controller
-                   right_f2_j1_position_controller
-                   right_f1_j0_position_controller
-                   right_f2_j0_position_controller
-                   right_f0_j2_position_controller
-                   right_f1_j2_position_controller
-                   right_f2_j2_position_controller
-                   right_f0_j3_position_controller
-                   right_f1_j3_position_controller
-                   right_f2_j3_position_controller "/>
-                   
-  <node name    = "right_robotiq_effort_controller_spawner"
-        pkg     = "controller_manager" 
-        type    = "spawner" 
-        respawn = "false" 
-        ns      = "right_robotiq"
-        output  = "screen" 
-        args    = "--stopped
-                   right_f0_j1_effort_controller
-                   right_f1_j1_effort_controller
-                   right_f2_j1_effort_controller
-                   right_f1_j0_effort_controller
-                   right_f2_j0_effort_controller
-                   right_f0_j2_effort_controller
-                   right_f1_j2_effort_controller
-                   right_f2_j2_effort_controller
-                   right_f0_j3_effort_controller
-                   right_f1_j3_effort_controller
-                   right_f2_j3_effort_controller "/>
-                   
-  <node name    = "right_robotiq_velocity_controller_spawner"
-        pkg     = "controller_manager" 
-        type    = "spawner" 
-        respawn = "false" 
-        ns      = "right_robotiq"
-        output  = "screen" 
-        args    = "--stopped
-                   right_f0_j1_velocity_controller
-                   right_f1_j1_velocity_controller
-                   right_f2_j1_velocity_controller
-                   right_f1_j0_velocity_controller
-                   right_f2_j0_velocity_controller
-                   right_f0_j2_velocity_controller
-                   right_f1_j2_velocity_controller
-                   right_f2_j2_velocity_controller
-                   right_f0_j3_velocity_controller
-                   right_f1_j3_velocity_controller
-                   right_f2_j3_velocity_controller "/>
-        
-
   <node name    = "right_robotiq_ros_controller"
         pkg     = "vigir_robotiq_ros_control" 
         type    = "vigir_robotiq_ros_controller_node" 
@@ -114,7 +43,7 @@
                   command = "load" />
   </node>
   
-  <arg name="input_joints"  default="/right_robotiq/joint_states" />
+  <arg name="input_joints"  default="/right_robotiq/joint_states" />  <!-- Relaying to /joint_states since namespace contained hand side: /right_robotiq/-->
   <arg name="output_joints" default="/joint_states" />
   
   <node name    = "right_robotiq_republisher" 
@@ -123,5 +52,15 @@
         ns      = "right_robotiq"
         args    = "$(arg input_joints)
                    $(arg output_joints)">
+  </node>
+
+  <arg name="output_joints2" default="/grasp_control/r_hand/joint_states" /><!-- Relaying to /grasp_control for OCS and Pick controllers-->
+  
+  <node name    = "right_grasp_control_republisher" 
+        pkg     = "topic_tools" 
+        type    = "relay" 
+        ns      = "right_robotiq"
+        args    = "$(arg input_joints)
+                   $(arg output_joints2)">
   </node>
 </launch>

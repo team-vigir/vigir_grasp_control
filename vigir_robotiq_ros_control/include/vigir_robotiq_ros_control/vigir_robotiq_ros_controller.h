@@ -54,6 +54,7 @@ public:
   RobotiqHardwareInterface();
 
   bool checkForConflict(const std::list<hardware_interface::ControllerInfo>& info) const;
+  void InitializeRobotiq();
 
    // Ros Control
 
@@ -70,16 +71,12 @@ private:
   //Robotiq specific communication code
 
   void robotiq_Callback(const robotiq_s_model_control::SModel_robot_input::ConstPtr &msg);
-  void InitializeRobotiq();
+
 
   hardware_interface::JointStateInterface    joint_state_interface_;
   hardware_interface::PositionJointInterface position_joint_interface_;
-  hardware_interface::VelocityJointInterface velocity_joint_interface_;
-  hardware_interface::EffortJointInterface   effort_joint_interface_;
 
   std::map<std::string, double> joint_position_commands_;
-  std::map<std::string, double> joint_velocity_commands_;
-  std::map<std::string, double> joint_effort_commands_;
 
   std::map<std::string, double> joint_positions_states_;
   std::map<std::string, double> last_joint_positions_states_;

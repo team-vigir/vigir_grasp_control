@@ -43,21 +43,23 @@ namespace RobotiqHardwareInterface
 
 void RobotiqHardwareInterface::robotiq_Callback(const robotiq_s_model_control::SModel_robot_input::ConstPtr &msg)
 {
-    if(first_time_){
-        last_robotiq_input_msg_ = *msg;
-        first_time_ = false;
-    }else
-        last_robotiq_input_msg_ = robotiq_input_msg_;
-    robotiq_input_msg_ = *msg;
-    new_data_ready_    = true;
+    if(msg){
+        if(first_time_){
+            last_robotiq_input_msg_ = *msg;
+            first_time_     = false;
+            new_data_ready_ = true;
+        }else
+            last_robotiq_input_msg_ = robotiq_input_msg_;
+        robotiq_input_msg_ = *msg;
+    }
 }
 
 RobotiqHardwareInterface::RobotiqHardwareInterface()
 {
     ros::NodeHandle private_nh("~");
-    ros::NodeHandle* rosnode = new ros::NodeHandle();
+    ros::NodeHandle nh;
 
-    rosnode->setCallbackQueue(&subscriber_queue_);
+    nh.setCallbackQueue(&subscriber_queue_);
 
     private_nh.param<std::string>("hand_side", hand_side_, std::string("left"));
     private_nh.param<std::string>("hand_name", hand_name_, std::string("l_hand"));
@@ -85,13 +87,11 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
 
     for(unsigned int i=0; i<joint_names_.size(); i++)
     {
-        joint_velocity_commands_[joint_names_[i]] = 0.0;
-        joint_position_commands_[joint_names_[i]] = 0.0;
-        joint_effort_commands_[  joint_names_[i]] = 0.0;
-
-        joint_positions_states_[ joint_names_[i]] = 0.0;
-        joint_velocitys_states_[ joint_names_[i]] = 0.0;
-        joint_efforts_states_[   joint_names_[i]] = 0.0;
+        joint_position_commands_[    joint_names_[i]] = 0.0;
+        last_joint_positions_states_[joint_names_[i]] = 0.0;
+        joint_positions_states_[     joint_names_[i]] = 0.0;
+        joint_velocitys_states_[     joint_names_[i]] = 0.0;
+        joint_efforts_states_[       joint_names_[i]] = 0.0;
 
         // connect and register the joint state interface
         hardware_interface::JointStateHandle state_handle(joint_names_[i],
@@ -105,49 +105,20 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
                                                                 &joint_position_commands_[joint_names_[i]]);
         position_joint_interface_.registerHandle(position_command_handle);
 
-        //connect and register the velocity command interface
-        hardware_interface::JointHandle velocity_command_handle(joint_state_interface_.getHandle(joint_names_[i]),
-                                                                &joint_velocity_commands_[joint_names_[i]]);
-        velocity_joint_interface_.registerHandle(velocity_command_handle);
-
-        //connect and register the effort command interface
-        hardware_interface::JointHandle effort_command_handle(joint_state_interface_.getHandle(joint_names_[i]),
-                                                              &joint_effort_commands_[joint_names_[i]]);
-        effort_joint_interface_.registerHandle(effort_command_handle);
-
     }
 
     registerInterface(&joint_state_interface_   );
     registerInterface(&position_joint_interface_);
-    registerInterface(&velocity_joint_interface_);
-    registerInterface(&effort_joint_interface_  );
 
     new_data_ready_ = false;
     first_time_     = true;
 
-    // ROS topic subscribtions for Robotiq Input
-    ros::SubscribeOptions robotiqSo =
-    ros::SubscribeOptions::create<robotiq_s_model_control::SModel_robot_input>(
-        "/robotiq_hands/"+hand_name_+"/SModelRobotInput", 1,boost::bind(&RobotiqHardwareInterface::robotiq_Callback, this, _1),
-        ros::VoidPtr(), rosnode->getCallbackQueue());
-
-    // Because TCP causes bursty communication with high jitter,
-    // declare a preference on UDP connections for receiving
-    // joint states, which we want to get at a high rate.
-    // Note that we'll still accept TCP connections for this topic
-    // (e.g., from rospy nodes, which don't support UDP);
-    // we just prefer UDP.
-    robotiqSo.transport_hints = ros::TransportHints().reliable();
-
-    robotiq_input_sub_ = rosnode->subscribe(robotiqSo);
-
+    // ROS topic subscriber for Robotiq Input
+    robotiq_input_sub_ = nh.subscribe("/robotiq_hands/"+hand_name_+"/SModelRobotInput",   1, &RobotiqHardwareInterface::robotiq_Callback,  this);
 
     // ROS topic advertisers for Robotiq Output
-    robotiq_output_pub_ = rosnode->advertise<robotiq_s_model_control::SModel_robot_output>("/robotiq_hands/"+hand_name_+"/SModelRobotOutput", 1, true);
+    robotiq_output_pub_ = nh.advertise<robotiq_s_model_control::SModel_robot_output>("/robotiq_hands/"+hand_name_+"/SModelRobotOutput", 1, true);
 
-
-    //Activate Robotiq hand
-    InitializeRobotiq();
 
     subscriber_spinner_.reset(new ros::AsyncSpinner(1, &subscriber_queue_));
     subscriber_spinner_->start();
@@ -165,7 +136,7 @@ void RobotiqHardwareInterface::InitializeRobotiq(){
     robotiq_output_msg_.rPRA = 0; //FINGER OPEN
     robotiq_output_msg_.rPRB = 0; //FINGER OPEN
     robotiq_output_msg_.rPRC = 0; //FINGER OPEN
-    robotiq_output_msg_.rPRS = 0; //FINGER OPEN
+    robotiq_output_msg_.rPRS = 137; //FINGER CYLINDRICAL
     //Speed Request
     robotiq_output_msg_.rSPA = 0; //FINGER SPEED
     robotiq_output_msg_.rSPB = 0; //FINGER SPEED
@@ -208,10 +179,10 @@ void RobotiqHardwareInterface::InitializeRobotiq(){
     robotiq_output_msg_.rSPC = 255;
     robotiq_output_msg_.rSPS = 255;
     //Force Request
-    robotiq_output_msg_.rFRA = 0;
-    robotiq_output_msg_.rFRB = 0;
-    robotiq_output_msg_.rFRC = 0;
-    robotiq_output_msg_.rFRS = 0;
+    robotiq_output_msg_.rFRA = 255;
+    robotiq_output_msg_.rFRB = 255;
+    robotiq_output_msg_.rFRC = 255;
+    robotiq_output_msg_.rFRS = 255;
 
     robotiq_output_pub_.publish(robotiq_output_msg_);
 
@@ -233,9 +204,6 @@ bool RobotiqHardwareInterface::checkForConflict(const std::list<hardware_interfa
 
 void RobotiqHardwareInterface::read(ros::Time time, ros::Duration period)
 {
-
-
-//    ROS_INFO("Reading from %s Robotiq...", hand_side_.c_str());
     joint_positions_states_[joint_names_[0]] = robotiq_input_msg_.gPOA *  0.004784314;         //position of finger A. Do math stuff to figure out joint 1 value
     joint_positions_states_[joint_names_[1]] = robotiq_input_msg_.gPOB *  0.004431373;         //position of finger B. Do math stuff to figure out joint 1 value
     joint_positions_states_[joint_names_[2]] = robotiq_input_msg_.gPOC *  0.004431373;         //position of finger C. Do math stuff to figure out joint 1 value
@@ -248,11 +216,13 @@ void RobotiqHardwareInterface::read(ros::Time time, ros::Duration period)
     last_joint_positions_states_[joint_names_[3]] = last_robotiq_input_msg_.gPOS *  BYTE_TO_SPR - SPR_ZERO; //position of scissors finger B.
     last_joint_positions_states_[joint_names_[4]] = last_robotiq_input_msg_.gPOS * -BYTE_TO_SPR + SPR_ZERO; //position of scissors finger C.
 
-    joint_velocitys_states_[joint_names_[0]] = (joint_positions_states_[joint_names_[0]] - last_joint_positions_states_[joint_names_[0]])/period.toSec();
-    joint_velocitys_states_[joint_names_[1]] = (joint_positions_states_[joint_names_[1]] - last_joint_positions_states_[joint_names_[1]])/period.toSec();
-    joint_velocitys_states_[joint_names_[2]] = (joint_positions_states_[joint_names_[2]] - last_joint_positions_states_[joint_names_[2]])/period.toSec();
-    joint_velocitys_states_[joint_names_[3]] = (joint_positions_states_[joint_names_[3]] - last_joint_positions_states_[joint_names_[3]])/period.toSec();
-    joint_velocitys_states_[joint_names_[4]] = (joint_positions_states_[joint_names_[4]] - last_joint_positions_states_[joint_names_[4]])/period.toSec();
+    if(period.toSec() != 0.0){
+        joint_velocitys_states_[joint_names_[0]] = (joint_positions_states_[joint_names_[0]] - last_joint_positions_states_[joint_names_[0]])/period.toSec();
+        joint_velocitys_states_[joint_names_[1]] = (joint_positions_states_[joint_names_[1]] - last_joint_positions_states_[joint_names_[1]])/period.toSec();
+        joint_velocitys_states_[joint_names_[2]] = (joint_positions_states_[joint_names_[2]] - last_joint_positions_states_[joint_names_[2]])/period.toSec();
+        joint_velocitys_states_[joint_names_[3]] = (joint_positions_states_[joint_names_[3]] - last_joint_positions_states_[joint_names_[3]])/period.toSec();
+        joint_velocitys_states_[joint_names_[4]] = (joint_positions_states_[joint_names_[4]] - last_joint_positions_states_[joint_names_[4]])/period.toSec();
+    }
 
     joint_efforts_states_[  joint_names_[0]] = robotiq_input_msg_.gCUA; //Current of finger A.
     joint_efforts_states_[  joint_names_[1]] = robotiq_input_msg_.gCUB; //Current of finger B.
@@ -263,22 +233,20 @@ void RobotiqHardwareInterface::read(ros::Time time, ros::Duration period)
 
 void RobotiqHardwareInterface::write(ros::Time time, ros::Duration period)
 {
-//    ROS_INFO("Writing to %s Robotiq...", hand_side_.c_str());
-    //Converting Position Request
+    for(int i=0;i<joint_names_.size();i++)
+    {
+        if(joint_position_commands_[joint_names_[i]] != joint_position_commands_[joint_names_[i]] )
+        {
+            ROS_ERROR("Position command for joint %d \"%s\", is a NAN-> %f!!!!! setting to 0.0",i,joint_names_[i].c_str(), joint_position_commands_[joint_names_[i]]);
+            joint_position_commands_[joint_names_[i]] = 0.0;
+        }
+    }
+
     robotiq_output_msg_.rPRA = std::max(float(0.0), std::min(float(joint_position_commands_[ joint_names_[0]]  * RAD_TO_BYTE)   ,float(255.0)));
     robotiq_output_msg_.rPRB = std::max(float(0.0), std::min(float(joint_position_commands_[ joint_names_[1]]  * RAD_BC_TO_BYTE),float(255.0)));
     robotiq_output_msg_.rPRC = std::max(float(0.0), std::min(float(joint_position_commands_[ joint_names_[2]]  * RAD_BC_TO_BYTE),float(255.0)));
     robotiq_output_msg_.rPRS = std::max(float(0.0), std::min(float(((joint_position_commands_[joint_names_[3]]) + SPR_ZERO) * SPR_TO_BYTE)   ,float(255.0)));
-    //Converting Speed request
-//    robotiq_output_msg_.rSPA = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[0]])                  ,float(255.0)));
-//    robotiq_output_msg_.rSPB = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[1]])                  ,float(255.0)));
-//    robotiq_output_msg_.rSPC = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[2]])                  ,float(255.0)));
-//    robotiq_output_msg_.rSPS = std::max(float(0.0), std::min(float(joint_velocity_commands_[ joint_names_[3]])                  ,float(255.0)));
-    //Converting Force Request
-    robotiq_output_msg_.rFRA = std::max(float(0.0), std::min(float(joint_effort_commands_[   joint_names_[0]] * PER_TO_BYTE)    ,float(255.0)));
-    robotiq_output_msg_.rFRB = std::max(float(0.0), std::min(float(joint_effort_commands_[   joint_names_[1]] * PER_TO_BYTE)    ,float(255.0)));
-    robotiq_output_msg_.rFRC = std::max(float(0.0), std::min(float(joint_effort_commands_[   joint_names_[2]] * PER_TO_BYTE)    ,float(255.0)));
-    robotiq_output_msg_.rFRS = std::max(float(0.0), std::min(float(joint_effort_commands_[   joint_names_[3]] * PER_TO_BYTE)    ,float(255.0)));
+//    ROS_INFO("Robotiq %s ROS Control is writing command: %f  to output: %d",hand_side_.c_str() ,joint_position_commands_[joint_names_[3]],robotiq_output_msg_.rPRS);
 
     robotiq_output_pub_.publish(robotiq_output_msg_);
 }
@@ -303,24 +271,33 @@ int main(int argc, char** argv)
         ros::AsyncSpinner spinner(4);
         spinner.start();
 
+        //Activate Robotiq hand
+        robotiq_hw.InitializeRobotiq();
+
         ros::Rate rate(control_rate);
 
         ros::Time last_time = ros::Time::now();
 
+        while(!robotiq_hw.new_data_ready_);
+
+        ROS_INFO("New data ready, starting robotiq ros controller loop");
+
         while (ros::ok())
         {
+                ros::Time current_time = ros::Time::now();
+                ros::Duration elapsed_time = current_time - last_time;
+                while (ros::Duration(0.0) == elapsed_time)
+                {   // Should only be an issue in simulation
+                    current_time = ros::Time::now();
+                    elapsed_time = current_time - last_time;
+                }
+                last_time = current_time;
 
+                robotiq_hw.read(current_time, elapsed_time);
+                cm.update(current_time, elapsed_time);
+                robotiq_hw.write(current_time, elapsed_time);
 
-            ros::Time current_time = ros::Time::now();
-            ros::Duration elapsed_time = current_time - last_time;
-            last_time = current_time;
-
-            robotiq_hw.read(current_time, elapsed_time);
-            cm.update(current_time, elapsed_time);
-            robotiq_hw.write(current_time, elapsed_time);
-            robotiq_hw.new_data_ready_ = false;
-
-            rate.sleep();
+                rate.sleep();
         }
 
         robotiq_hw.cleanup();
