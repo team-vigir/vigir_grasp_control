@@ -63,6 +63,7 @@ class MeshMaker{
 		void init_mesh_ref_frame();
 		void convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg);
 		sensor_msgs::PointCloud2 transform_ptcloud(const sensor_msgs::PointCloud2& in_cloud, const string& target_frame);
+		void set_arm_param(char arm);
 		bool get_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg, pcl::PointCloud<pcl::PointXYZ>::Ptr intermediate_cloud);
 		bool is_valid_cloud(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud);
 		geometry_msgs::PoseStamped get_wrist_orientation(pcl::PointCloud<pcl::PointXYZ>::Ptr pts_in_question);

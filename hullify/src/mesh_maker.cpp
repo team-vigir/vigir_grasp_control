@@ -209,6 +209,14 @@ void MeshMaker::accept_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 
 }*/
 
+void MeshMaker::set_arm_param(char arm)
+{
+	if (arm == 'L'){
+		ros::param::set("/convex_hull/lr_grasping_arm", "L");
+	} else {
+		ros::param::set("/convex_hull/lr_grasping_arm", "R");
+	}
+}
 
 //Function: convert_cloud
 //Description: The workhorse; this function receives pointcloud
@@ -222,6 +230,8 @@ void MeshMaker::accept_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 {
 	std::cout << "Pointcloud received" << std::endl;
+	set_arm_param('L');
+	ROS_WARN("Setting Left arm as manipulation arm permanently, for now");
 	pcl::PointXYZ target_point;
 	try{
 		target_point = ocs_contact->get_recent_request_pt();

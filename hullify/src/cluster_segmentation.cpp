@@ -9,8 +9,8 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::P
 
 	std::vector<pcl::PointIndices> cluster_indices;
 	pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-	ec.setClusterTolerance (0.02); // 2cm
-	ec.setMinClusterSize (50);
+	ec.setClusterTolerance (0.03); // 2cm
+	ec.setMinClusterSize (20);
 	ec.setMaxClusterSize (2500000);
 	ec.setSearchMethod (tree);
 	ec.setInputCloud (tree->getInputCloud());
@@ -305,6 +305,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::Po
 	pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud;
 	combined_cloud = combine_cloud_and_planes(all_planes, remainder);
 
+	cout << "Combined cloud has " << combined_cloud->points.size() << " points." << endl;
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> separated_clusters;
 	separated_clusters = get_clusters(combined_cloud);
 
