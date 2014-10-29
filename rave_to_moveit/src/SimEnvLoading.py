@@ -207,7 +207,7 @@ class VigirGrasper:
 			#transform = self.gmodel.getGlobalGraspTransform(self.totalgrasps[int(res)],collisionfree=True)
 			#atlas_and_ik.visualize_ik_solution(self.env, transform)
 
-		atlas_and_ik.display_moveitik_results(self.raveio.ikresults, self.robot)
+		#atlas_and_ik.display_moveitik_results(self.raveio.ikresults, self.robot)
 		self.raveio.ikresults = []
 	
 
