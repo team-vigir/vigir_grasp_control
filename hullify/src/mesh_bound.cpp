@@ -432,10 +432,31 @@ void MeshBound::get_camera_normal()
 	cout << "Normal vector from camera to centroid: " << endl << camera_normal << endl;
 }
 
+Eigen::Vector3d MeshBound::get_clav_normal_vec(string arm)
+{
+	tf::StampedTransform transform;
+	string frame = arm + "_clav";
+	while (1){
+		try {
+			listener.lookupTransform(fixed_frame.c_str(), frame,
+						ros::Time(0), transform);
+		} catch (tf::TransformException ex){
+			ROS_ERROR("%s", ex.what());
+			sleep(1);
+			continue;
+		}
+
+		break;
+	}
+
+	tf::Vector3 pos = transform.getOrigin();
+	Eigen::Vector3d clav_pos = init_vec(pos);
+
+	return *centroid - clav_pos;
+}
+
 Eigen::Vector3d MeshBound::get_camera_position()
 {
-	tf::TransformListener listener;
-
 	tf::StampedTransform transform;
 	while (1){
 		try {

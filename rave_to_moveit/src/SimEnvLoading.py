@@ -7,6 +7,7 @@ import os
 import numpy, time
 from std_msgs.msg import String
 
+import numpy
 from numpy import pi, eye, dot, cross, linalg, sqrt, ceil, size
 from numpy import hstack, vstack, mat, array, arange, fabs, zeros
 import math
@@ -224,14 +225,16 @@ def partition_rays(mesh_and_bounds_msg, rays):
 	#print "sweet_shape: ", partitioned_rays[0].shape, " wider_shape: ", partitioned_rays[1].shape
 	#raw_input("How does that partition look?")
 	print "In partitioned rays: Picking out a certain number of approach rays"
+	#print partitioned_rays[0]
+	#print numpy.random.shuffle(partitioned_rays[0])
 	num_sweet_idxs = 25
 	num_ok_idxs = 8
-	if len(partitioned_rays[0] < 25):
+	if len(partitioned_rays[0]) < 25:
 		num_sweet_idxs = len(partitioned_rays[0])
-	if len(partitioned_rays[1] < 8):
+	if len(partitioned_rays[1]) < 8:
 		num_ok_idxs = len(partitioned_rays[1])
-	partitioned_rays[0] = random.sample(partitioned_rays, num_sweet_idxs)
-	partitioned_rays[1] = random.sample(partitioned_rays, num_ok_idxs)
+	partitioned_rays[0] = partitioned_rays[0][:num_sweet_idxs]
+	partitioned_rays[1] = partitioned_rays[1][:num_ok_idxs]
 	return partitioned_rays
 
 def listen_for_LR_hand():

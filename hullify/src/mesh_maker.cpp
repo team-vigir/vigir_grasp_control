@@ -406,13 +406,18 @@ void MeshMaker::set_bounding_planes(osu_grasp_msgs::Mesh_and_bounds& openrave_ms
 {
 	Eigen::Vector3d p1_normal = bounds->get_plane1_normal();
 	Eigen::Vector3d p2_normal = bounds->get_plane2_normal();
-	Eigen::Vector3d camera_to_centroid = bounds->get_camera_normal_vec();
+	Eigen::Vector3d clav_to_centroid;
+	if (using_left_hand){
+		clav_to_centroid = bounds->get_clav_normal_vec("l");
+	} else {
+		clav_to_centroid = bounds->get_clav_normal_vec("r");
+	}
 	Eigen::Vector3d centroid = bounds->get_centroid();
 	Eigen::Vector3d horiz_normal = bounds->get_horiz_normal();
 
-	Eigen::Vector3d zero_degree_plane_normal = get_zero_degree_normal(horiz_normal, camera_to_centroid);
+	Eigen::Vector3d zero_degree_plane_normal = get_zero_degree_normal(horiz_normal, clav_to_centroid);
 
-	Eigen::Vector3d ninety_degree_plane_normal = -camera_to_centroid;
+	Eigen::Vector3d ninety_degree_plane_normal = -clav_to_centroid;
 
 	/*if (get_angle_mag_between(-camera_to_centroid, p1_normal) > (M_PI / 2)){
 		//p2 is in the proper side
