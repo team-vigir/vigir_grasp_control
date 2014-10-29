@@ -311,8 +311,8 @@ Pt_pos* MeshBound::find_all_pt_angles(Eigen::Vector3d& ref_line_slope, Eigen::Ve
 			pt_angles[i].angle = 2 * M_PI - pt_angles[i].angle;
 		}
 
-		cout << "\tCloud_idx " << pt_angles[i].idx << "(" << proj_pts->points[i].x << " , " << proj_pts->points[i].y << " , " << proj_pts->points[i].z << ") has angle " 
-			<< pt_angles[i].angle << endl;
+		ROS_DEBUG_STREAM("\tCloud_idx " << pt_angles[i].idx << "(" << proj_pts->points[i].x << " , " << proj_pts->points[i].y << " , " << proj_pts->points[i].z << ") has angle " 
+			<< pt_angles[i].angle << endl);
 	}
 	cout << "In MeshBound::find_all_pt_angles(), the number of skipped points was: " << num_skipped_pts
 		<< "\nWith " << num_pts << " total." << endl;
@@ -329,7 +329,7 @@ Pt_pos* MeshBound::find_all_pt_angles(Eigen::Vector3d& ref_line_slope, Eigen::Ve
 bool MeshBound::pt_too_near_centroid(Pt_pos* pt_angles, long& pt_idx, Eigen::Vector3d& pt_to_centroid, long& num_pts)
 {
 	if (pt_to_centroid.norm() < .005){
-		cout << "Skipping angle, too close to centroid. idx = " << pt_idx << endl;
+		ROS_DEBUG_STREAM("Skipping angle, too close to centroid. idx = " << pt_idx << endl);
 		num_pts--;
 		pt_idx--;
 
@@ -361,8 +361,8 @@ void MeshBound::print_pt_angles(Pt_pos* pt_angles, long num_pts)
 {
 	cout << endl << "Aftering Sorting:" << endl;
 	for (int i = 0; i < num_pts; ++i){
-		cout << "Pt_angles " << i << " cloud_idx: " << pt_angles[i].idx 
-			<< " ang: " << pt_angles[i].angle << endl;
+		ROS_DEBUG_STREAM("Pt_angles " << i << " cloud_idx: " << pt_angles[i].idx 
+			<< " ang: " << pt_angles[i].angle << endl);
 	}
 }
 
@@ -389,9 +389,9 @@ int* MeshBound::find_max_consecutive_angular_diff(Pt_pos* pt_angles, long num_pt
 			prev_max = cur_angle;
 			cur_max_pts[0] = pt_angles[idx].idx;
 			cur_max_pts[1] = pt_angles[prev_idx].idx;
-			cout << endl << "\tNew largest angle: pt_idx1 - " << idx << " pt_idx2 - " 
+			ROS_DEBUG_STREAM( endl << "\tNew largest angle: pt_idx1 - " << idx << " pt_idx2 - " 
 				<< prev_idx << " d_theta = "
-				<<(pt_angles[idx].angle - pt_angles[prev_idx].angle) << endl;
+				<<(pt_angles[idx].angle - pt_angles[prev_idx].angle) << endl);
 		}
 
 		prev_idx = idx;

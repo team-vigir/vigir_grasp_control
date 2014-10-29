@@ -192,6 +192,7 @@ import logging
 log = logging.getLogger('openravepy.'+__name__.split('.',2)[-1])
 
 import atlas_and_ik
+#import Grasper
 
 class GraspingModel(DatabaseGenerator):
     """Holds all functions/data related to a grasp between a robot hand and a target"""
@@ -487,7 +488,7 @@ class GraspingModel(DatabaseGenerator):
 
                 return ()
 	    except:
-	    	print "Caught unexpected error while grasping!"
+	    	print "Grasp Failed analysis!"
 		return ()
             
             Tlocalgrasp = eye(4)
@@ -511,7 +512,11 @@ class GraspingModel(DatabaseGenerator):
                 grasp[self.graspindices.get('forceclosure')] = mindist if mindist is not None else 0
                 self.robot.SetTransform(Trobotorig) # transform back to original position for checkgraspfn
                 if not forceclosure or mindist >= forceclosurethreshold:
-                    grasp[self.graspindices.get('performance')] = self._ComputeGraspPerformance(grasp, graspingnoise=graspingnoise,translate=True,forceclosure=False)
+		    try:
+                    	grasp[self.graspindices.get('performance')] = self._ComputeGraspPerformance(grasp, graspingnoise=graspingnoise,translate=True,forceclosure=False)
+		    except:
+			print "Handled an unexpected error while computing grasp performance!!"
+			return ()
                     if checkgraspfn is None or checkgraspfn(contacts,finalconfig,grasp,{'mindist':mindist,'volume':volume}):
                         print 'found good grasp'
                         return grasp,

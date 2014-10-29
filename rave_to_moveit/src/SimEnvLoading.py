@@ -10,6 +10,7 @@ from std_msgs.msg import String
 from numpy import pi, eye, dot, cross, linalg, sqrt, ceil, size
 from numpy import hstack, vstack, mat, array, arange, fabs, zeros
 import math
+import random
 
 import grasping
 import plane_filters
@@ -177,7 +178,7 @@ class VigirGrasper:
 			return []
 
 		for rays in partitioned_rays:
-			raw_input("Starting a new set of approach rays... Press a key to continue...")
+			#raw_input("Starting a new set of approach rays... Press a key to continue...")
 			params['approachrays'] = rays
 			params['remaininggrasps'] = returnnum - len(grasps)
 			#atlas_and_ik.visualize_approaches(gt, params)
@@ -198,12 +199,15 @@ class VigirGrasper:
 			self.gmodel.showgrasp(grasp)
 
 	def show_ik_on_request(self):
-		while True:
-			res = raw_input("Input the index of the grasp you would like IK for (q to quit): ")
-			if res == "q" or res == "Q":
-				break
-			transform = self.gmodel.getGlobalGraspTransform(self.totalgrasps[int(res)],collisionfree=True)
-			atlas_and_ik.visualize_ik_solution(self.env, transform)
+		#while True:
+			#res = raw_input("Input the index of the grasp you would like IK for (q to quit): ")
+			#if res == "q" or res == "Q":
+			#	break
+			#transform = self.gmodel.getGlobalGraspTransform(self.totalgrasps[int(res)],collisionfree=True)
+			#atlas_and_ik.visualize_ik_solution(self.env, transform)
+
+		atlas_and_ik.display_moveitik_results(self.raveio.ikresults, self.robot)
+		self.raveio.ikresults = []
 	
 
 def partition_rays(mesh_and_bounds_msg, rays):
@@ -219,6 +223,15 @@ def partition_rays(mesh_and_bounds_msg, rays):
 	#print partitioned_rays
 	#print "sweet_shape: ", partitioned_rays[0].shape, " wider_shape: ", partitioned_rays[1].shape
 	#raw_input("How does that partition look?")
+	print "In partitioned rays: Picking out a certain number of approach rays"
+	num_sweet_idxs = 25
+	num_ok_idxs = 8
+	if len(partitioned_rays[0] < 25):
+		num_sweet_idxs = len(partitioned_rays[0])
+	if len(partitioned_rays[1] < 8):
+		num_ok_idxs = len(partitioned_rays[1])
+	partitioned_rays[0] = random.sample(partitioned_rays, num_sweet_idxs)
+	partitioned_rays[1] = random.sample(partitioned_rays, num_ok_idxs)
 	return partitioned_rays
 
 def listen_for_LR_hand():

@@ -2,6 +2,8 @@ from openravepy import *
 from openravepy import ikfast
 import openravepy
 
+from moveit_msgs.msg import RobotState
+
 from numpy import pi, eye, dot, cross, linalg, sqrt, ceil, size
 from numpy import hstack, vstack, mat, array, arange, fabs, zeros
 
@@ -63,6 +65,21 @@ def load_arm_ik(atlas, manip):
 	#chaintree = solver.generateIkSolver(**req_info)
 	#code = solver.writeIkSolver(chaintree)
 	#open('ik.cpp', 'w').write(code)
+
+def display_moveitik_results(results, robot):
+	print "There are ", len(results), " results to choose from: "
+	while True:
+		idx = raw_input("Please pick one (q to quit): ")
+		if idx == "q":
+			break
+
+		show_robot_state(results[int(idx)], robot)
+
+def show_robot_state(robot_state, atlas):
+	atlas.SetJointValues(robot_state.joint_state.position)
+	#for joint_idx, name in enumerate(robot_state.joint_state.name):
+	#	cur_joint = atlas.GetJoint(name)
+	#	cur_joint.
 
 
 def load_ik(atlas):

@@ -263,7 +263,7 @@ void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 	bounds->publish_plane2();
 	bounds->publish_centroid();
 
-	geometry_msgs::PoseStamped wrist_pose = get_wrist_orientation(intermediate_cloud);
+	//geometry_msgs::PoseStamped wrist_pose = get_wrist_orientation(intermediate_cloud);
 	//view->publish("openrave_grasps", wrist_pose);
 
 	storage->set_mesh(convex_hull);

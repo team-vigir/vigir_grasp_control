@@ -8,6 +8,7 @@ from geometry_msgs.msg import PoseArray
 from geometry_msgs.msg import PoseStamped
 from osu_grasp_msgs.msg import Mesh_and_bounds
 from std_msgs.msg import Header
+from moveit_msgs.msg import RobotState
 
 import numpy
 from numpy import array
@@ -28,6 +29,8 @@ class openraveIO:
 		self.final_pose_ref_frame = final_pose_ref_frame
 		self.mesh_ref_frame = mesh_ref_frame
 		#self.preplugin_pose_publisher = rospy.Publisher("openrave_preplugin_grasp", PoseStamped)
+		self.moveitik_visualization = rospy.Subscriber("convex_hull/moveit_ik_results", RobotState, self.moveitik_callback)
+		self.ikresults = []
 
 	def full_info_callback(self, msg):
 		print "Got a Mesh_and_bounds_msg!"
@@ -103,6 +106,10 @@ class openraveIO:
 	def publish_preplugin_grasp(self, transform):
 		pose = self.TransformToPoseStamped(transform)
 		self.preplugin_pose_publisher.publish(pose)
+
+	def moveitik_callback(self, msg):
+		print "Got IK result"
+		self.ikresults.append(msg)
 
 def testpublisher(raveio):
 	print "Running pose publishing test..."	

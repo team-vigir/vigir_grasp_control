@@ -251,8 +251,8 @@ void print_max_min_distances(Pt_Dist* dist_arr, long num_pts)
 {
 	cout << "Printing ordered distances from pointcloud to horizontal plane:" << endl;
 	for (int i = 0; i < num_pts; ++i){
-		cout << "\tPt_dist " << i << " cloud_idx: " << dist_arr[i].idx 
-				<< " distance: " << dist_arr[i].dist << endl;
+		ROS_DEBUG_STREAM("\tPt_dist " << i << " cloud_idx: " << dist_arr[i].idx 
+				<< " distance: " << dist_arr[i].dist << endl);
 	}
 
 	cout << endl;
