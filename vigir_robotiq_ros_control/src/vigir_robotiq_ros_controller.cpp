@@ -164,7 +164,7 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
     robotiq_input_sub_ = nh.subscribe("/robotiq_hands/"+hand_name_+"/SModelRobotInput",   1, &RobotiqHardwareInterface::robotiq_Callback,  this);
 
     // ROS topic subscriber for Robotiq Tactile Input
-    tactile_sub_ = nh.subscribe("/hand_contacts",   1, &RobotiqHardwareInterface::robotiq_tactile_Callback,  this);
+    tactile_sub_ = nh.subscribe("/robotiq_hands/"+hand_name_+"/hand_contacts",   1, &RobotiqHardwareInterface::robotiq_tactile_Callback,  this);
 
     // ROS topic advertisers for Robotiq Output
     robotiq_output_pub_ = nh.advertise<robotiq_s_model_control::SModel_robot_output>("/robotiq_hands/"+hand_name_+"/SModelRobotOutput", 1, true);
