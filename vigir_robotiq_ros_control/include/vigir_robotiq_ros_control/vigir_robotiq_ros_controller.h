@@ -32,6 +32,8 @@
 //Robotiq hand messages
 #include <robotiq_s_model_control/SModel_robot_input.h>
 #include <robotiq_s_model_control/SModel_robot_output.h>
+#include <takktile_ros/Touch.h>
+
 
 // ROS Control includes
 #include <ros/ros.h>
@@ -43,6 +45,8 @@
 #include <joint_limits_interface/joint_limits_interface.h>
 
 #include <sensor_msgs/JointState.h>
+
+#include <flor_grasp_msgs/HandStatus.h>
 
 namespace RobotiqHardwareInterface
 {
@@ -71,32 +75,37 @@ private:
   //Robotiq specific communication code
 
   void robotiq_Callback(const robotiq_s_model_control::SModel_robot_input::ConstPtr &msg);
+  void robotiq_tactile_Callback(const takktile_ros::Touch::ConstPtr &msg);
 
 
-  hardware_interface::JointStateInterface    joint_state_interface_;
-  hardware_interface::PositionJointInterface position_joint_interface_;
+  hardware_interface::JointStateInterface       joint_state_interface_;
+  hardware_interface::PositionJointInterface    position_joint_interface_;
 
-  std::map<std::string, double> joint_position_commands_;
+  std::map<std::string, double>                 joint_position_commands_;
 
-  std::map<std::string, double> joint_positions_states_;
-  std::map<std::string, double> last_joint_positions_states_;
-  std::map<std::string, double> joint_velocitys_states_;
-  std::map<std::string, double> joint_efforts_states_;
+  std::map<std::string, double>                 joint_positions_states_;
+  std::map<std::string, double>                 last_joint_positions_states_;
+  std::map<std::string, double>                 joint_velocitys_states_;
+  std::map<std::string, double>                 joint_efforts_states_;
 
-  boost::shared_ptr<ros::AsyncSpinner> subscriber_spinner_;
-  ros::CallbackQueue subscriber_queue_;
+  boost::shared_ptr<ros::AsyncSpinner>          subscriber_spinner_;
+  ros::CallbackQueue                            subscriber_queue_;
 
-  ros::Publisher robotiq_output_pub_;
-  ros::Publisher robotiq_joint_states_pub_;
-  ros::Subscriber robotiq_input_sub_;
+  ros::Publisher                                robotiq_output_pub_;
+  ros::Publisher                                hand_status_pub_;
+  ros::Subscriber                               robotiq_input_sub_;
+  ros::Subscriber                               tactile_sub_;
 
   robotiq_s_model_control::SModel_robot_input   robotiq_input_msg_;
   robotiq_s_model_control::SModel_robot_input   last_robotiq_input_msg_;
-  robotiq_s_model_control::SModel_robot_output robotiq_output_msg_;
+  robotiq_s_model_control::SModel_robot_output  robotiq_output_msg_;
+  takktile_ros::Touch                           last_tactile_msg_;
 
-  std::string hand_side_;
-  std::string hand_name_;
-  std::vector<std::string> joint_names_;
+  flor_grasp_msgs::HandStatus                   hand_status_;
+
+  std::string                                   hand_side_;
+  std::string                                   hand_name_;
+  std::vector<std::string>                      joint_names_;
 };
 
 } //end of namespace RobotiqHardwareInterface
