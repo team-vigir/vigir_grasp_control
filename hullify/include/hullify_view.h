@@ -29,6 +29,8 @@
 
 #include <Eigen/Dense>
 
+#include "plane_reps_and_3dmath.h"
+
 #include <cstdlib>
 #include <string>
 #include <vector>

@@ -69,9 +69,10 @@ class MeshMaker{
 		geometry_msgs::PoseStamped get_wrist_orientation(pcl::PointCloud<pcl::PointXYZ>::Ptr pts_in_question);
 		Axes get_goal_axes(pcl::PointCloud<pcl::PointXYZ>::Ptr pts_in_question);
 		Eigen::Matrix3d get_principal_axes(pcl::PointCloud<pcl::PointXYZ>::Ptr pts_in_question);
-		void send_hull_and_planes_to_openrave(string& mesh_full_abs_path, pcl::PolygonMesh::Ptr convex_hull);
+		void send_hull_and_planes_to_openrave(string& mesh_full_abs_path, pcl::PolygonMesh::Ptr convex_hull, pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_pts);
 		bool are_planes_obtuse(const Eigen::Vector3d& n1, const Eigen::Vector3d& n2);
-		void set_bounding_planes(osu_grasp_msgs::Mesh_and_bounds& openrave_msg);
+		void set_bounding_planes(osu_grasp_msgs::Mesh_and_bounds& openrave_msg, pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_pts);
+		Eigen::Vector3d get_ninety_degree_base(pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_pts);
 		Eigen::Vector3d get_zero_degree_normal(Eigen::Vector3d& horiz_normal, Eigen::Vector3d& camera_to_centroid);
 		//void record_planes(hullify::Mesh_and_bounds& msg, Eigen::Vector3d& know_p_proper, Eigen::Vector3d& know_p_improper, Eigen::Vector3d& ninety_normal, Eigen::Vector3d& zero_normal);
 		//void set_openrave_msg_planes(hullify::Mesh_and_bounds& msg, Eigen::Vector3d strict_vec1, Eigen::Vector3d strict_vec2, Eigen::Vector3d relaxed_vec1, Eigen::Vector3d relaxed_vec2);

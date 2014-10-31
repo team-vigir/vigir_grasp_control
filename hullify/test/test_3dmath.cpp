@@ -2,6 +2,26 @@
 #include "cluster_segmentation.h"
 #include "gtest/gtest.h"
 
+pcl::PointCloud<pcl::PointXYZ>::Ptr mk_box_cloud(double height, double width)
+{
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
+	//double height = 0.2;
+	//double width = 0.2;
+	int resolution = 100;
+	pcl::PointXYZ pt;
+	for (int i = 0; i < resolution; i++){
+		for (int j = 0; j < resolution; j++){
+			pt.x = i * (height/resolution);
+			pt.y = j * (width/resolution);
+			pt.z = 0;
+
+			cloud->push_back(pt);
+		}
+	}
+
+	return cloud;
+}
+
 pcl::ModelCoefficients::Ptr mk_xy_plane()
 {
 	pcl::ModelCoefficients::Ptr xy_plane (new pcl::ModelCoefficients);
@@ -267,13 +287,66 @@ TEST(nearest_cluster, ninety_nine_percent_completion_mark) {
    	EXPECT_TRUE(true);
 }*/
 
-TEST(master_function, anything_in_the_world) {
+/*TEST(master_function, anything_in_the_world) {
 	pcl::PointXYZ rand_point = init_pt(-0.33621544, -0.7632941, 0.85465014);
 
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cluster = isolate_hull_cluster(rand_point);
 	save_cloud(cluster, "isolated_cloud");
 
 	EXPECT_TRUE(true);
+}
+*/
+
+TEST(width_height_elimination, noiseless_shapes)
+{
+	pcl::PointCloud<pcl::PointXYZ>::Ptr square_cloud = mk_box_cloud(0.1, 0.1);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr square_cloud2 = mk_box_cloud(0.2, 0.2);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr rect_cloud = mk_box_cloud(0.1, 0.2);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr rect_cloud2 = mk_box_cloud(0.2, 0.1);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr rect_cloud3 = mk_box_cloud(0.1, 0.3);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr too_small = mk_box_cloud(0.05, 0.05);
+
+	vector<Plane> planes = find_all_planes(square_cloud);
+	//cout << "Num pts: " << square_cloud->size() << endl << "Press something to continue";
+	//string input;
+	//cin  >> input;
+	ASSERT_EQ(1, planes.size());
+
+	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> removed_clouds;
+	remove_table_planes(planes, removed_clouds);
+	EXPECT_EQ(1, removed_clouds.size());
+	EXPECT_EQ(0, planes.size());
+
+	pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+	//*full_cloud += *square_cloud2;
+	*full_cloud += *rect_cloud;
+	planes = find_all_planes(full_cloud);
+	removed_clouds.clear();
+	remove_table_planes(planes, removed_clouds);
+	EXPECT_EQ(0, removed_clouds.size());
+	EXPECT_EQ(1, planes.size());
+
+	planes.clear();
+	removed_clouds.clear();
+	planes = find_all_planes(rect_cloud2);
+	remove_table_planes(planes, removed_clouds);
+	EXPECT_EQ(0, removed_clouds.size());
+	EXPECT_EQ(1, planes.size());
+
+	planes.clear();
+	removed_clouds.clear();
+	planes = find_all_planes(rect_cloud3);
+	remove_table_planes(planes, removed_clouds);
+	EXPECT_EQ(0, removed_clouds.size());
+	EXPECT_EQ(1, planes.size());
+
+	planes.clear();
+	removed_clouds.clear();
+	planes = find_all_planes(too_small);
+	remove_table_planes(planes, removed_clouds);
+	EXPECT_EQ(0, removed_clouds.size());
+	EXPECT_EQ(1, planes.size());
+
 }
 
 int main(int argc, char** argv){

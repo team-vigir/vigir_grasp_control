@@ -68,8 +68,8 @@ class MeshBound {
 		void publish_centroid();
 		void publish_plane1();
 		void publish_plane2();
-		geometry_msgs::PolygonStamped mk_plane_msg(pcl::ModelCoefficients::Ptr plane);
-		Eigen::Vector3d get_clav_normal_vec(string arm);
+		geometry_msgs::PolygonStamped mk_plane_msg_ext(pcl::ModelCoefficients::Ptr plane, pcl::PointXYZ center);
+		Eigen::Vector3d get_torso_normal_vec(string arm);
 		
 	private:
 		void constructor_common();
@@ -77,6 +77,7 @@ class MeshBound {
 		void find_centroid();
 		void get_camera_normal();
 		void find_horiz_normal();
+		geometry_msgs::PolygonStamped mk_plane_msg(pcl::ModelCoefficients::Ptr plane);
 		Eigen::Vector3d get_camera_position();
 		pcl::PointCloud<pcl::PointXYZ>::Ptr extract_middle_points(pcl::ModelCoefficients::Ptr horiz_plane);
 		int* get_max_radial_dist(pcl::PointCloud<pcl::PointXYZ>::Ptr proj_pts);
