@@ -397,6 +397,20 @@ Eigen::Vector3d Line::get_pt(double t)
 	return ((t * slope) + intercept);
 }
 
+pcl::PointXYZ Line::project_pcl(pcl::PointXYZ pt)
+{
+	Eigen::Vector3d e_pt = project(pt);
+	return init_pt(e_pt);
+}
+
+Eigen::Vector3d Line::project(pcl::PointXYZ pt)
+{
+	Eigen::Vector3d e_pt = init_vec(pt);
+	Eigen::Vector3d a = e_pt - intercept;
+	double denom = pow(slope.norm(), 2);
+	return (intercept + (slope.dot(a) / denom) * slope);
+}
+
 //Simply substituting the result of the line equation into the plane equation
 // 	yields: t = (-d - n dot b) / (n dot m), where n is plane normal, b is line intercept, and m is slope
 Eigen::Vector3d Line::find_plane_intersection(pcl::ModelCoefficients::Ptr plane)

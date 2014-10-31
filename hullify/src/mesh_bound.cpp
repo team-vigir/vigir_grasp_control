@@ -432,10 +432,12 @@ void MeshBound::get_camera_normal()
 	cout << "Normal vector from camera to centroid: " << endl << camera_normal << endl;
 }
 
-Eigen::Vector3d MeshBound::get_clav_normal_vec(string arm)
+Eigen::Vector3d MeshBound::get_torso_normal_vec(string arm)
 {
 	tf::StampedTransform transform;
-	string frame = arm + "_clav";
+	ROS_ERROR("Got Torso Transform");
+	//string frame = arm + "_clav";
+	string frame = "utorso"; 
 	while (1){
 		try {
 			listener.lookupTransform(fixed_frame.c_str(), frame,
@@ -621,6 +623,24 @@ geometry_msgs::PolygonStamped MeshBound::mk_plane_msg(pcl::ModelCoefficients::Pt
 	geometry_msgs::PolygonStamped out_poly;
 	view->add_polygon_header(out_poly);
 	geometry_msgs::Polygon poly = view->mk_plane_rep_from_bounding_line(*centroid, horiz_normal, max_vec);
+	out_poly.polygon = poly;
+	
+	return out_poly;
+}
+
+geometry_msgs::PolygonStamped MeshBound::mk_plane_msg_ext(pcl::ModelCoefficients::Ptr plane, pcl::PointXYZ center)
+{
+	//pcl::PointXYZ center ((*centroid)[0], (*centroid)[1], (*centroid)[2]);
+	//pcl::PointXYZ max_pt = find_farthest_pt(center, cloud);
+	//Eigen::Vector3d temp = init_vec(max_pt) - *centroid;
+	
+	Eigen::Vector3d normal(plane->values[0], plane->values[1], plane->values[2]);
+	Eigen::Vector3d max_vec = vec_to_pt_on_plane(plane) - init_vec(center);
+	max_vec *= (0.1 / max_vec.norm());
+
+	geometry_msgs::PolygonStamped out_poly;
+	view->add_polygon_header(out_poly);
+	geometry_msgs::Polygon poly = view->mk_plane_rep_from_bounding_line(init_vec(center), normal.cross(max_vec), max_vec);
 	out_poly.polygon = poly;
 	
 	return out_poly;

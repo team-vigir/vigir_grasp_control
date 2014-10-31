@@ -119,9 +119,10 @@ def get_plane_dist(pt, plane_coefficient_list):
 	return dist
 
 #This is the number of wrist rolls to attempt around a given approach vector
-#	OpenRAVE will find easiest transformation to align approach vector with palm vector, and then roll around that.
+#	??What is this relative to? Current position?
 def limit_wrist_rolling():
 	wrist_orientations = linspace(-math.pi / 2, math.pi / 2, num=5)
+	#wrist_orientations = linspace(math.pi/2, math.pi/2, num=1)
 	print "wrist orientations: ", wrist_orientations
 	return wrist_orientations
 

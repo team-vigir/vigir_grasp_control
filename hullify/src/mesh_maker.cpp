@@ -61,10 +61,12 @@ MeshMaker::MeshMaker()
 	view->add_topic_no_queue("original_third_component_axis", marker_type);
 	//view->add_topic_no_queue("openrave_grasps", pose_type);
 	view->add_topic_no_queue("openrave_params", openrave_type);
-	view->add_topic_no_queue("v1_in_plane", marker_type);
-	view->add_topic_no_queue("v2_in_plane", marker_type);
+	//view->add_topic_no_queue("v1_in_plane", marker_type);
+	//view->add_topic_no_queue("v2_in_plane", marker_type);
+	view->add_topic_no_queue("ninety_degree_normal", marker_type);
 	view->add_topic_no_queue("zero_degree_normal", marker_type);
 	view->add_topic_no_queue("ninety_degree_plane", polygon_type);
+	view->add_topic_no_queue("zero_degree_plane", polygon_type);
 }
 
 void MeshMaker::init_reference_frame()
@@ -269,7 +271,7 @@ void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 	storage->set_mesh(convex_hull);
 
 	string mesh_full_abs_path = view->publish_mesh(mesh_base_name, convex_hull);
-	send_hull_and_planes_to_openrave(mesh_full_abs_path, convex_hull);
+	send_hull_and_planes_to_openrave(mesh_full_abs_path, convex_hull, intermediate_cloud);
 }
 
 bool MeshMaker::get_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg, pcl::PointCloud<pcl::PointXYZ>::Ptr intermediate_cloud)
@@ -389,7 +391,7 @@ Eigen::Matrix3d MeshMaker::get_principal_axes(pcl::PointCloud<pcl::PointXYZ>::Pt
 	return principal_axes.cast<double>();
 }
 
-void MeshMaker::send_hull_and_planes_to_openrave(string& mesh_full_abs_path, pcl::PolygonMesh::Ptr convex_hull)
+void MeshMaker::send_hull_and_planes_to_openrave(string& mesh_full_abs_path, pcl::PolygonMesh::Ptr convex_hull, pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_pts)
 {
 	osu_grasp_msgs::Mesh_and_bounds openrave_msg;
 
@@ -397,27 +399,31 @@ void MeshMaker::send_hull_and_planes_to_openrave(string& mesh_full_abs_path, pcl
 	openrave_msg.header.stamp = ros::Time::now();
 	openrave_msg.full_abs_mesh_path = mesh_full_abs_path;
 	mk_mesh_msg(openrave_msg.convex_hull, convex_hull);
-	set_bounding_planes(openrave_msg);
+	set_bounding_planes(openrave_msg, mesh_pts);
 
 	view->publish("openrave_params", openrave_msg);
 }
 
-void MeshMaker::set_bounding_planes(osu_grasp_msgs::Mesh_and_bounds& openrave_msg)
+void MeshMaker::set_bounding_planes(osu_grasp_msgs::Mesh_and_bounds& openrave_msg, pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_pts)
 {
 	Eigen::Vector3d p1_normal = bounds->get_plane1_normal();
 	Eigen::Vector3d p2_normal = bounds->get_plane2_normal();
-	Eigen::Vector3d clav_to_centroid;
+	Eigen::Vector3d camera_to_centroid = bounds->get_camera_normal_vec();
+	Eigen::Vector3d ninety_normal; //= get_ninety_degree_base(mesh_pts);
 	if (using_left_hand){
-		clav_to_centroid = bounds->get_clav_normal_vec("l");
+		ninety_normal = bounds->get_torso_normal_vec("l");
 	} else {
-		clav_to_centroid = bounds->get_clav_normal_vec("r");
+		ninety_normal = bounds->get_torso_normal_vec("r");
 	}
+
+	cout << "Ninety normal: " << ninety_normal << endl;
+
 	Eigen::Vector3d centroid = bounds->get_centroid();
 	Eigen::Vector3d horiz_normal = bounds->get_horiz_normal();
 
-	Eigen::Vector3d zero_degree_plane_normal = get_zero_degree_normal(horiz_normal, clav_to_centroid);
+	Eigen::Vector3d zero_degree_plane_normal = get_zero_degree_normal(horiz_normal, ninety_normal);
 
-	Eigen::Vector3d ninety_degree_plane_normal = -clav_to_centroid;
+	Eigen::Vector3d ninety_degree_plane_normal = -ninety_normal;
 
 	/*if (get_angle_mag_between(-camera_to_centroid, p1_normal) > (M_PI / 2)){
 		//p2 is in the proper side
@@ -428,8 +434,15 @@ void MeshMaker::set_bounding_planes(osu_grasp_msgs::Mesh_and_bounds& openrave_ms
 		record_planes(msg, p1_normal, p2_normal, ninety_degree_plane_normal, zero_degree_plane_normal);
 	}*/
 
+	ninety_degree_plane_normal.normalize();
+	centroid -= ninety_degree_plane_normal * 0.015;
+
+	ninety_degree_plane_normal.normalize();
+	zero_degree_plane_normal.normalize();
+	view->publish("ninety_degree_normal", view->mk_vector_msg(ninety_degree_plane_normal));
 	view->publish("zero_degree_normal", view->mk_vector_msg(zero_degree_plane_normal));
-	view->publish("ninety_degree_plane", bounds->mk_plane_msg(mk_plane(centroid, ninety_degree_plane_normal)));
+	view->publish("ninety_degree_plane", bounds->mk_plane_msg_ext(mk_plane(centroid, ninety_degree_plane_normal), init_pt(centroid)));
+	view->publish("zero_degree_plane", bounds->mk_plane_msg_ext(mk_plane(centroid, zero_degree_plane_normal), init_pt(centroid)));
 	openrave_msg.ninety_degree_bounding_planes[0] = view->mk_shape_plane(*mk_plane(centroid, ninety_degree_plane_normal));
 	openrave_msg.ninety_degree_bounding_planes[1] = view->mk_shape_plane(*mk_plane(centroid, zero_degree_plane_normal));
 	openrave_msg.knowledge_bounding_planes[0] = view->mk_shape_plane(bounds->get_plane1());
@@ -437,13 +450,43 @@ void MeshMaker::set_bounding_planes(osu_grasp_msgs::Mesh_and_bounds& openrave_ms
 	openrave_msg.plane_sep_angle_gt_pi = are_planes_obtuse(p1_normal, p2_normal);
 }
 
-Eigen::Vector3d MeshMaker::get_zero_degree_normal(Eigen::Vector3d& horiz_normal, Eigen::Vector3d& camera_to_centroid)
+Eigen::Vector3d MeshMaker::get_ninety_degree_base(pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_pts)
 {
-	if (using_left_hand){
-		return horiz_normal.cross(camera_to_centroid);
+	Eigen::Vector3d camera_to_centroid = bounds->get_camera_normal_vec();
+	Eigen::Matrix3d principal_axes = get_principal_axes(mesh_pts);
+	principal_axes.cast<double>();
+	Eigen::Vector3d pca2 = principal_axes.col(1);
+	Eigen::Vector3d pca3 = principal_axes.col(2);
+
+	double pca2_alignment = get_angle_mag_between(camera_to_centroid, pca2);
+	double pca3_alignment = get_angle_mag_between(camera_to_centroid, pca3);
+
+	if (pca2_alignment > M_PI/2){
+		pca2_alignment -= M_PI;
+		pca2 *= -1;
 	}
 
-	return -horiz_normal.cross(camera_to_centroid);
+	if (pca3_alignment > M_PI/2){
+		pca3_alignment -= M_PI;
+		pca3 *= -1;
+	}
+
+	if (pca2_alignment < pca3_alignment){
+		return pca2;
+	}
+
+	return pca3;
+}
+
+Eigen::Vector3d MeshMaker::get_zero_degree_normal(Eigen::Vector3d& horiz_normal, Eigen::Vector3d& camera_to_centroid)
+{
+	ROS_WARN("Be sure the object is not exactly above the robot. Code against that...");
+	if (using_left_hand){
+		//return horiz_normal.cross(camera_to_centroid);
+		camera_to_centroid.cross(Eigen::Vector3d(0, 0, 1));
+	}
+
+	return -camera_to_centroid.cross(Eigen::Vector3d(0, 0, 1));
 
 }
 

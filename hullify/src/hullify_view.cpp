@@ -181,7 +181,8 @@ void Hullify_View::add_polygon_header(geometry_msgs::PolygonStamped& poly)
 {
 	poly.header.stamp = ros::Time::now();
 	poly.header.seq = 1;
-	poly.header.frame_id = *visualization_ref_frame;
+	//poly.header.frame_id = *visualization_ref_frame;
+	poly.header.frame_id = "/pelvis";
 }
 
 //This function is for debugging purposes,
@@ -277,11 +278,11 @@ geometry_msgs::Polygon Hullify_View::mk_square_plane_rep(pcl::PointXYZ center, p
 //		and the plane's normal. It points to a boundary point in plane.
 geometry_msgs::Polygon Hullify_View::mk_plane_rep_from_bounding_line(Eigen::Vector3d line_pt, Eigen::Vector3d slope, Eigen::Vector3d line_pt_to_bound)
 {
-	pcl::PointXYZ center;
-	center.x = line_pt[0];
+	pcl::PointXYZ center = init_pt(line_pt);
+	/*center.x = line_pt[0];
 	center.y = line_pt[1];
 	center.z = line_pt[2];
-
+*/
 	geometry_msgs::Polygon out_poly;
 	
 	//Make slope the same magnitude as line_pt_to_bound

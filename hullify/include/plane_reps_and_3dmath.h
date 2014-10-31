@@ -47,6 +47,8 @@ public:
 
 	Eigen::Vector3d get_pt(double t);
 	Eigen::Vector3d find_plane_intersection(pcl::ModelCoefficients::Ptr plane);
+	pcl::PointXYZ project_pcl(pcl::PointXYZ pt);
+	Eigen::Vector3d project(pcl::PointXYZ pt);
 
 	Eigen::Vector3d slope;
 	Eigen::Vector3d intercept;

@@ -150,10 +150,10 @@ class VigirGrasper:
 			print "No suitable grasps found. Please select another pointcloud."
 			return
 
-		print len(self.totalgrasps), " Grasps available."
-		self.show_grasps(self.totalgrasps)
 		graspnum = len(self.totalgrasps)
-		
+		print graspnum, " Grasps available."
+		#self.show_grasps(self.totalgrasps)
+
 		pose_array = []
 		with robot:
 			x = 0
@@ -224,17 +224,29 @@ def partition_rays(mesh_and_bounds_msg, rays):
 	#print partitioned_rays
 	#print "sweet_shape: ", partitioned_rays[0].shape, " wider_shape: ", partitioned_rays[1].shape
 	#raw_input("How does that partition look?")
-	print "In partitioned rays: Picking out a certain number of approach rays"
-	#print partitioned_rays[0]
-	#print numpy.random.shuffle(partitioned_rays[0])
-	num_sweet_idxs = 25
+
+	#print "plane1 ", mesh_and_bounds_msg.ninety_degree_bounding_planes[0].coef, " plane2: ", mesh_and_bounds_msg.ninety_degree_bounding_planes[1].coef
+	#print "Sweet point: ", partitioned_rays[0][0]
+	#raw_input("Is that point filtered properly?")
+
+	return select_from_partition(partitioned_rays)
+
+def select_from_partition(partitioned_rays):
+	print "Picking out a certain number of approach rays!"
+	num_sweet_idxs = 55
 	num_ok_idxs = 8
-	if len(partitioned_rays[0]) < 25:
-		num_sweet_idxs = len(partitioned_rays[0])
-	if len(partitioned_rays[1]) < 8:
-		num_ok_idxs = len(partitioned_rays[1])
-	partitioned_rays[0] = partitioned_rays[0][:num_sweet_idxs]
-	partitioned_rays[1] = partitioned_rays[1][:num_ok_idxs]
+	if len(partitioned_rays[0]) > num_sweet_idxs:
+		numpy.random.shuffle(partitioned_rays[0])
+		partitioned_rays[0] = partitioned_rays[0][:num_sweet_idxs]
+	else:
+		num_ok_idxs = 65 - len(partitioned_rays[0])
+		
+
+	if len(partitioned_rays[1]) > num_ok_idxs:
+		numpy.random.shuffle(partitioned_rays[1])
+		partitioned_rays[1] = partitioned_rays[1][:num_ok_idxs]
+
+
 	return partitioned_rays
 
 def listen_for_LR_hand():
