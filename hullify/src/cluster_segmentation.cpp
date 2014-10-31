@@ -86,7 +86,7 @@ pcl::PointIndices::Ptr planar_segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr f
 	// Mandatory
 	seg.setModelType (pcl::SACMODEL_PLANE);
 	seg.setMethodType (pcl::SAC_RANSAC);
-	seg.setDistanceThreshold (0.0175);
+	seg.setDistanceThreshold (0.015);
 
 	seg.setInputCloud (full_cloud);
 	seg.segment (*inliers, *coefficients);
@@ -486,7 +486,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::Po
 
 	cout << "Num clusters: " << separated_clusters.size() << endl;
 	//separated_clusters.push_back(largest_plane);
-	separated_clusters.insert(separated_clusters.begin(), removed_clouds.begin(), removed_clouds.end());
+	//separated_clusters.insert(separated_clusters.begin(), removed_clouds.begin(), removed_clouds.end());
 	pcl::PointCloud<pcl::PointXYZ>::Ptr isolated_cluster;
 	isolated_cluster = return_nearest_cluster(selected_point, separated_clusters);
 
