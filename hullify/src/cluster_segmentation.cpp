@@ -390,13 +390,14 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr return_nearest_cluster(pcl::PointXYZ selecte
 {
 	double nearest_distance = 99999999999999999;
 	double cur_distance;
-	int idx = 0;
+	int idx = -1;
 	for(unsigned int i = 0; i < cluster_vector.size(); ++i) {
 		if((cur_distance = return_distance_nearest_point(cluster_vector[i], selected_point)) < nearest_distance) {
 			nearest_distance = cur_distance;
 			idx = i;
 		}
 	}
+	
 	return cluster_vector[idx];
 }
 
@@ -488,11 +489,16 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::Po
 	//separated_clusters.push_back(largest_plane);
 	//separated_clusters.insert(separated_clusters.begin(), removed_clouds.begin(), removed_clouds.end());
 	pcl::PointCloud<pcl::PointXYZ>::Ptr isolated_cluster;
+	if (separated_clusters.size() == 0){
+		ROS_INFO("No graspable cluster found in cloud.");
+		return pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+	}
+
 	isolated_cluster = return_nearest_cluster(selected_point, separated_clusters);
 
 	/*string input;
 	  cout << "How does that look?" << endl;
-	  cin >> input;
+	  ciseparated_clusters.sizen >> input;
 	 */
 	return isolated_cluster;
 }
