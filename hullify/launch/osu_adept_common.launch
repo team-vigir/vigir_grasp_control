@@ -6,6 +6,7 @@
 	<param name = "convex_hull/debug_and_logging" type = "string" value = "full" />
 	<param name = "convex_hull/perception_link" type = "string" value = "/camera_link" />
 
+	<param name = "convex_hull/output_pose_frame" type = "string" value = "/pelvis" />
 	<param name = "convex_hull/mesh_ref_frame" type = "string" value = "/pelvis" />
 
 	<include file = "$(find hullify)/launch/convex_hull_debug.launch" />

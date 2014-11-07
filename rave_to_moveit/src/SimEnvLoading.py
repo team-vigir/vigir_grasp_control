@@ -90,17 +90,22 @@ def view_robot_ref_frames(robot):
 #			print "Loaded ", loaded_hands[hand_name][ENV_NAME]
 
 def query_final_pose_frame():
-	while True:
-		suggestion = raw_input("Please input the reference frame of the final pose: \n\t0 - new \n\t1 - /world: ")
-		if suggestion == "0":
-			final_pose_frame = raw_input("what's your new frame? (please give it a slash prefix")
-		elif suggestion == "1":
-			final_pose_frame = "/world"
+#	while True:
+#		suggestion = raw_input("Please input the reference frame of the final pose: \n\t0 - new \n\t1 - /world: ")
+#		if suggestion == "0":
+#			final_pose_frame = raw_input("what's your new frame? (please give it a slash prefix")
+#		elif suggestion == "1":
+#			final_pose_frame = "/world"
+#
+#		else:
+#			continue
+#
+#		break
+	final_pose_frame = rospy.get_param("convex_hull/output_pose_frame")
+		#print("Could not get param: convex_hull/output_pose_frame, exiting")
+		#exit(1)
 
-		else:
-			continue
-
-		break
+	print "Output frame for poses: ", final_pose_frame
 	return final_pose_frame
 
 class VigirGrasper:
@@ -171,7 +176,7 @@ class VigirGrasper:
 		if rospy.get_param("convex_hull/openrave_show_grasps"):
 			self.show_selected_grasps(self.totalgrasps)
 
-		if !rospy.get_param("using_atlas"):
+		if not rospy.get_param("using_atlas"):
 			self.show_ik_on_request()
 
 	def get_grasps(self, mesh_and_bounds_msg, params, gt, returnnum=5):
@@ -203,13 +208,13 @@ class VigirGrasper:
 		for grasp in grasps:
 			self.gmodel.showgrasp(grasp)
 
-	def show_selected_grasps(self, grasps)
+	def show_selected_grasps(self, grasps):
 		while True:
 			res = raw_input("There are ", len(grasps), " available (zero indexed) please select one or q to quit: ")
 			if res == "q" or res == "Q":
 				break
 			res = int(res)
-			if res < 0 or res >= len(grasps)
+			if res < 0 or res >= len(grasps):
 				print "Improper numeric value. Remember, it's zero indexed."
 				continue
 

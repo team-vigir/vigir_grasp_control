@@ -57,7 +57,7 @@ void MeshBound::constructor_common()
 
 void MeshBound::init_perception_link()
 {
-	string input;
+	/*string input;
 	cout << "What is the name of the main Perception Link?" << endl
 		<< "\t0 - new\n\t1 - /hokuyo_link (Atlas)"
 		<< "\n\t2 - /camera_link (kinect): ";
@@ -80,7 +80,14 @@ void MeshBound::init_perception_link()
 
 		cout << "Perception link: " << perception_link << endl;
 		break;
+	}*/
+
+	if (!ros::param::get("convex_hull/perception_link", perception_link)){
+		ROS_ERROR("Missing convex_hull/perception_link param. Are you using a launch file?");
+		exit(1);
 	}
+
+	cout << "Perception link: " << perception_link << endl;
 }
 
 //Description: Changes the input cloud, invalidates the centroid
