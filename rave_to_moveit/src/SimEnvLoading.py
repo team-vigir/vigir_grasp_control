@@ -168,7 +168,11 @@ class VigirGrasper:
 			#print "pose_array: ", pose_array
 
 		self.raveio.publish_poses(pose_array)
-		self.show_ik_on_request()
+		if rospy.get_param("convex_hull/openrave_show_grasps"):
+			self.show_selected_grasps(self.totalgrasps)
+
+		if !rospy.get_param("using_atlas"):
+			self.show_ik_on_request()
 
 	def get_grasps(self, mesh_and_bounds_msg, params, gt, returnnum=5):
 		grasps = []
@@ -198,6 +202,18 @@ class VigirGrasper:
 	def show_grasps(self, grasps):
 		for grasp in grasps:
 			self.gmodel.showgrasp(grasp)
+
+	def show_selected_grasps(self, grasps)
+		while True:
+			res = raw_input("There are ", len(grasps), " available (zero indexed) please select one or q to quit: ")
+			if res == "q" or res == "Q":
+				break
+			res = int(res)
+			if res < 0 or res >= len(grasps)
+				print "Improper numeric value. Remember, it's zero indexed."
+				continue
+
+			self.gmodel.showgrasp(grasp[res])
 
 	def show_ik_on_request(self):
 		#while True:

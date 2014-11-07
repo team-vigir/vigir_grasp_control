@@ -1,15 +1,22 @@
 <launch>
-	<node type = "convex_hull" name = "convex_hull" pkg = "hullify" output = "screen" launch-prefix = "xterm -e gdb --args" />
+	<param name = "convex_hull/reference_frame" type = "string" value = "/world" />
+	<param name = "convex_hull/cloud_input_topic" type = "string value = "/selected_points/transformed" />
+	<param name = "convex_hull/openrave_show_grasps" type = "bool" value = "true" />
+	<param name = "convex_hull/using_atlas" type = "bool" value = "false" />
+	<param name = "convex_hull/debug_and_logging" type = "string" value = "full" />
+	<param name = "convex_hull/perception_link" type = "string" value = "/camera_link" />
 
-	<include file = "$(find osu_ros_adept)/launch/start_basic_connection.launch" />
+	<param name = "convex_hull/mesh_ref_frame" type = "string" value = "/pelvis" />
+
+	<include file = "$(find hullify)/launch/convex_hull_debug.launch" />
+	<node type = "SimEnvLoading.py" name = "SimEnvLoading" pkg = "rave_to_moveit" output = "screen" launch-prefix = "xterm -e" />
 
 	<include file = "$(find adept_moveit_connector)/launch/demo.launch" />
-
+	<include file = "$(find osu_ros_adept)/launch/start_basic_connection.launch" />
 	<include file = "$(find kinect_ptcloud_converter)/launch/set_up_kinect.launch" />
-
 	<node pkg = "moveit_int" name = "programmatic_moveit" type = "programmatic_moveit" launch-prefix = "xterm -e" />
 
-	<!--<include file = "$(find flor_grasp_controllers)/launch/osu_robotiq_handle.launch" />
-	<node pkg = "robotiq_s_model_control" name = "SModelSimpleController" type = "SModelSimpleController.py" />-->
+	<include file = "$(find flor_grasp_controllers)/launch/osu_robotiq_handle.launch" />
+	<node pkg = "robotiq_s_model_control" name = "SModelSimpleController" type = "SModelSimpleController.py" launch-prefix = "xterm -e" />
 	
 </launch>

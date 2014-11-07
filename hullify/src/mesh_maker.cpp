@@ -71,7 +71,13 @@ MeshMaker::MeshMaker()
 
 void MeshMaker::init_reference_frame()
 {
-	string input;
+	if (!ros::param::get("/convex_hull/reference_frame", visualization_ref_frame)){
+		cout << "Missing /convex_hull/reference_frame parameter. Are you using a launch file?" << endl;
+		exit(1);
+	}
+	cout << "Visualization frame: " << visualization_ref_frame << endl;
+
+	/*string input;
 	while(1){
 		cout << "Please input the frame of reference for everything: "
 			<< "\n\t0 - new\n\t1 - /world (Atlas)"
@@ -93,32 +99,47 @@ void MeshMaker::init_reference_frame()
 		}
 
 		break;
-	}
+	}*/
 }
 
 void MeshMaker::init_input_topic()
 {
-	string input;
-	while(1){
+	//string input;
+	bool using_atlas;
+	if (!ros::param::get("/convex_hull/using_atlas", using_atlas)){
+		cout << "Missing /convex_hull/using_atlas parameter. Are you using the launch files?" << endl;
+		exit(1);
+	}
+	/*while(1){
 		cout << "What is the input pointcloud topic for this meshing node?"
 			<< "\n\t0 - new\n\t1 - (Atlas's multiple cloud topics)"
 			<< "\n\t2 - /testing/default"
 			<< "\n\t3 - /kinect/selected_cloud (manual box entry)"
 			<< "\n\t4 - /selected_points/transformed (plugin selection): ";
 		cin >> input;
-		
+	*/	
 		in_topic_name.reserve(3);
-		if (input == "0"){
+	/*	if (input == "0"){
 			cout << "Please input the topic name: ";
 			cin >> input;
 			in_topic_name.push_back(input);
 
-		} else if (input == "1"){
+		} else */
+		if (using_atlas){
 			in_topic_name.push_back("/flor/worldmodel/ocs/dist_query_pointcloud_result");
 			in_topic_name.push_back("/flor/worldmodel/ocs/stereo_cloud_result");
 			in_topic_name.push_back("/flor/worldmodel/ocs/cloud_result");
 
-		} else if (input == "2"){
+		} else {
+			string cloud_topic;
+			if (!ros::param::get("/convex_hull/cloud_input_topic", cloud_topic)){
+				cout << "Could not find /convex_hull/cloud_input_topic paramter. Are you using launch files?" << endl;
+				exit(1);
+			}
+			in_topic_name.push_back(cloud_topic);
+		}
+
+		/*if (input == "2"){
 			in_topic_name.push_back("/testing/default");
 
 		} else if (input == "3"){
@@ -133,12 +154,14 @@ void MeshMaker::init_input_topic()
 		}
 
 		break;
-	}
+	}*/
+
+	cout << "The first input topic is " << in_topic_name[0] << endl;
 }
 
 void MeshMaker::init_mesh_ref_frame()
 {
-	string input;
+	/*string input;
 	cout << "Please input the reference frame for output meshes: "
 		<< "\n\t0 - new \n\t1 - /pelvis: ";
 	while(1){
@@ -154,12 +177,18 @@ void MeshMaker::init_mesh_ref_frame()
 		}
 
 		break;
+	}*/
+
+	if (!ros::param::get("convex_hull/mesh_ref_frame", mesh_ref_frame)){
+		cout << "Could not find parameter convex_hull/mesh_ref_frame. Are you using the launch files?" << endl;
+		exit(1);
 	}
+	cout << "Reference frame for the output meshes: " << mesh_ref_frame << endl;
 }
 
 void MeshMaker::init_mesh_name()
 {
-	string input;
+	/*string input;
 	cout << "Please input the base output filename of the mesh (1 - hull_mesh): ";
 	cin >> input;
 	if (input == "1"){
@@ -167,7 +196,10 @@ void MeshMaker::init_mesh_name()
 
 	} else {
 		mesh_base_name = input;
-	}
+	}*/
+
+	mesh_base_name = "hull_mesh";
+	cout << "Base mesh name: " << mesh_base_name << endl;
 }
 
 MeshMaker::~MeshMaker()
