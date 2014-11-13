@@ -106,9 +106,9 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-add_executable(srv_test srv_test/check_dist_client.cpp)
-target_link_libraries(srv_test ${catkin_LIBRARIES})
-add_dependencies(srv_test osu_grasp_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+#add_executable(srv_test srv_test/check_dist_client.cpp)
+#target_link_libraries(srv_test ${catkin_LIBRARIES})
+#add_dependencies(srv_test osu_grasp_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
