@@ -34,7 +34,7 @@ struct Plane{
 
 void stat_outlier_remove(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
 
-vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud);
+vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud); //int min_cluster_size=50 was set as second parameter. not sure why.
 vector<Plane> find_all_planes(pcl::PointCloud<pcl::PointXYZ>::Ptr &full_cloud);
 pcl::PointIndices::Ptr planar_segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, Plane& new_plane);
 

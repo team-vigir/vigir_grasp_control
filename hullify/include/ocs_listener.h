@@ -16,10 +16,15 @@ class Ocs_listener{
 
 		void dist_request_callback(const flor_perception_msgs::RaycastRequest::ConstPtr& msg);
 		void dist_result_callback(const std_msgs::Float64::ConstPtr& msg);
+		void kinect_pt_select_callback(const sensor_msgs::PointCloud2::ConstPtr& msg);
+
 	private:
+		void set_request_point(pcl::PointXYZ* pt);
+		
 		ros::NodeHandle nh;
 		ros::Subscriber distance_result_sub;
 		ros::Subscriber distance_request_sub;
+		ros::Subscriber selection_point_sub;
 
 		pcl::PointXYZ* current_request_point;
 		Eigen::Vector3d camera_pos;

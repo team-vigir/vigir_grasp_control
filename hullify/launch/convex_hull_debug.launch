@@ -1,4 +1,4 @@
 <launch>
-	<node type = "convex_hull" name = "convex_hull" pkg = "hullify" output = "screen" launch-prefix = "gdb --args" />
+	<node type = "convex_hull" name = "convex_hull" pkg = "hullify" output = "screen" launch-prefix = "xterm -e gdb --args" />
 
 </launch>
