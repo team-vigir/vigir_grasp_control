@@ -1,0 +1,66 @@
+#include "mesh_bound.h"
+
+//For simplicity, the function simply defines the
+//	normal vector from the centroid to the position
+//	of the camera. We then use the plane equation
+//Eq: ax + by + cz + d = 0
+//PCL needs Hessian Normal Form for its plane coefficients...
+pcl::ModelCoefficients::Ptr MeshMaker::find_plane(Eigen::Vector3d& centroid, pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
+{
+	//Find the camera's current position
+	Eigen::Vector3d camera_pos = get_camera_position();
+
+	//Draw a vector between it and the centroid
+	Eigen::Vector3d normal(centroid - camera_pos);
+	cout << "Normal vector: " << normal << endl;
+	publish_normal(normal);
+
+	//Construct plane coefficients
+	cout << "Centroid: " << endl << centroid << endl;
+	double d = -1 * (centroid.dot(normal));
+
+	//Create the plane
+	pcl::ModelCoefficients::Ptr plane (new pcl::ModelCoefficients());
+	double hess_denom = sqrt(pow(normal[0], 2) + pow(normal[1], 2) + pow(normal[2], 2)); //sqrt(a^2 + b^2 + c^2)
+	plane->values.resize(4);
+	plane->values[0] = normal[0] / hess_denom;
+	plane->values[1] = normal[1] / hess_denom;
+	plane->values[2] = normal[2] / hess_denom;
+	plane->values[3] =  d / hess_denom;
+	
+	cout << "Centroid: " << centroid << endl;
+
+	cout << "Plane values: " << "\n\ta: " << plane->values[0] << endl
+		<< "\tb: " << plane->values[1] << "\n\tc: " << plane->values[2] << endl
+		<< "\td: " << plane->values[3] << endl;
+
+	return plane;
+}
+
+Eigen::Vector3d MeshMaker::get_camera_position()
+{
+	tf::TransformListener listener;
+
+	tf::StampedTransform transform;
+	while (1){
+		try{
+			listener.lookupTransform("/world", "/post_spindle",
+						ros::Time(0), transform);
+		} catch (tf::TransformException ex){
+			ROS_ERROR("%s", ex.what());
+			sleep(1);
+			continue;
+		}
+
+		break;
+	}
+	
+	tf::Vector3 pos = transform.getOrigin();
+
+	//For testing!
+	pos.m_floats[0] = -1.5; pos.m_floats[1] = 0.5; pos.m_floats[2] = 2;
+	
+	cout << "The camera has position:" << endl << "\tX: " << pos.m_floats[0]
+		<< endl << "\tY: " << pos.m_floats[1] << endl << "\tZ: " << pos.m_floats[2] << endl;
+	return init_vec(pos);
+}

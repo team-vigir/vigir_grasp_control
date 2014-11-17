@@ -1,0 +1,12 @@
+#To test the service call for a pose stamped, run this command.
+rosservice call /CheckGraspDistance_test "{hand_pose: {header: auto, pose: {position: [0, 0, 0], orientation: [1, 0, 0, 0]}}, acceptable_dist: 1}"
+
+#To build the modified grasper plugin, simply go to the grasper_mod folder and run
+cmake CMakeLists.txt
+make
+
+#To move it to the plugin directory
+sudo cp libgrasper_mod.so /usr/share/openrave-0.9/plugins/libgrasper.so
+
+#For future qHull work, this is the location of the cmake list:
+http://www.qhull.org/CMakeLists.txt
