@@ -1,6 +1,6 @@
 #include "cluster_segmentation.h"
 
-vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud)
+vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, int min_cluster_size)
 {
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > cluster_vector;
 	pcl::PCDWriter writer;
@@ -10,7 +10,7 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::P
 	std::vector<pcl::PointIndices> cluster_indices;
 	pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
 	ec.setClusterTolerance (0.02); // 2cm
-	int min_cluster_size = 1; //ADDED THIS TO ALLOW KINECT CALIBRATION TO PROPERLY WORK (original value was 50). may want to consider adding as a parameter
+	//int min_cluster_size = 1; ADDED THIS TO ALLOW KINECT CALIBRATION TO PROPERLY WORK (original value was 50). may want to consider adding as a parameter
 	ec.setMinClusterSize (min_cluster_size);
 	ec.setMaxClusterSize (2500000);
 	ec.setSearchMethod (tree);

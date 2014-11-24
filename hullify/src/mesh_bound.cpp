@@ -39,7 +39,9 @@ void MeshBound::constructor_common()
 	plane2 = pcl::ModelCoefficients::Ptr();
 	//perception_link = "/hokuyo_link";
 	perception_link = "/camera_link";
+	torso_link = "/utorso";
 	init_perception_link();
+	init_torso_link();
 
 	visualization_msgs::Marker marker_type;
 	geometry_msgs::PolygonStamped poly_type;
@@ -88,6 +90,16 @@ void MeshBound::init_perception_link()
 	}
 
 	cout << "Perception link: " << perception_link << endl;
+}
+
+void MeshBound::init_torso_link()
+{
+	if (!ros::param::get("convex_hull/torso_link", torso_link)){
+		ROS_ERROR("Missing convex_hull/torso_link param. Are you using a launch file?");
+		exit(1);
+	}
+
+	cout << "Torso link for bounding planes: " << torso_link << endl;
 }
 
 //Description: Changes the input cloud, invalidates the centroid
@@ -442,12 +454,12 @@ void MeshBound::get_camera_normal()
 Eigen::Vector3d MeshBound::get_torso_normal_vec(string arm)
 {
 	tf::StampedTransform transform;
-	ROS_ERROR("Got Torso Transform");
+	//ROS_ERROR("Got Torso Transform");
 	//string frame = arm + "_clav";
-	string frame = "utorso"; 
+	//string frame = "utorso"; 
 	while (1){
 		try {
-			listener.lookupTransform(fixed_frame.c_str(), frame,
+			listener.lookupTransform(fixed_frame.c_str(), torso_link,
 						ros::Time(0), transform);
 		} catch (tf::TransformException ex){
 			ROS_ERROR("%s", ex.what());

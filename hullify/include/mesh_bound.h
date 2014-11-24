@@ -74,6 +74,7 @@ class MeshBound {
 	private:
 		void constructor_common();
 		void init_perception_link();
+		void init_torso_link();
 		void find_centroid();
 		void get_camera_normal();
 		void find_horiz_normal();
@@ -100,6 +101,7 @@ class MeshBound {
 		tf::TransformListener listener;
 		string fixed_frame;
 		string perception_link;
+		string torso_link;
 		pcl::PointCloud<pcl::PointXYZ>::Ptr cloud;
 		Eigen::Vector3d *centroid;
 		Eigen::Vector3d camera_normal;	//This is a unit vector
