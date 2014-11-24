@@ -21,6 +21,7 @@ import openraveIO
 #import plugin_mods_verification
 
 gt = None
+world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 
@@ -63,14 +64,15 @@ def build_environment():
 
 	env.SetViewer('qtcoin')
 	gt = tutorial_grasptransform.GraspTransform(env,target)
-	#view_robot_ref_frames(robot)
+	view_robot_ref_frames(robot)
 
 	return env, robot, target
 
 def view_robot_ref_frames(robot):
 	global gt
-	a1 =  gt.drawTransform(robot.GetTransform(), length=1)
-	a2 = gt.drawTransform(robot.GetActiveManipulator().GetEndEffector().GetTransform(), length=1)
+	global world_axes
+	world_axes =  gt.drawTransform(robot.GetTransform(), length=0.3)
+	a2 = gt.drawTransform(robot.GetActiveManipulator().GetEndEffector().GetTransform(), length=0.2)
 	raw_input("Drew robot transform frame. Pausing before leaving scope...")
 	
 	#atlas_and_ik.test_transforms(gt)
@@ -162,7 +164,7 @@ class VigirGrasper:
 		pose_array = []
 		with robot:
 			x = 0
-			while (x < graspnum) and x < len(self.totalgrasps):
+			while x < graspnum:
 				grasp = self.totalgrasps[x]
 				T = self.gmodel.getGlobalGraspTransform(grasp,collisionfree=True)
 				p = raveio.TransformToPoseStamped(T)
@@ -176,7 +178,7 @@ class VigirGrasper:
 		if rospy.get_param("convex_hull/openrave_show_grasps"):
 			self.show_selected_grasps(self.totalgrasps)
 
-		if not rospy.get_param("using_atlas"):
+		if not rospy.get_param("convex_hull/openrave_show_ik"):
 			self.show_ik_on_request()
 
 	def get_grasps(self, mesh_and_bounds_msg, params, gt, returnnum=5):
@@ -210,15 +212,22 @@ class VigirGrasper:
 
 	def show_selected_grasps(self, grasps):
 		while True:
-			res = raw_input("There are ", len(grasps), " available (zero indexed) please select one or q to quit: ")
+			print "There are ", len(grasps), " available (zero indexed) please select one or q to quit: "
+			res = raw_input()
+			if res == "":
+				continue
 			if res == "q" or res == "Q":
 				break
 			res = int(res)
 			if res < 0 or res >= len(grasps):
 				print "Improper numeric value. Remember, it's zero indexed."
 				continue
+			a1 = self.show_grasp_transform(gt, grasps[res])
+			self.gmodel.showgrasp(grasps[res])
 
-			self.gmodel.showgrasp(grasp[res])
+	def show_grasp_transform(self, gt, grasp):
+		Tgrasp = self.gmodel.getGlobalGraspTransform(grasp, collisionfree=True)
+		return gt.drawTransform(Tgrasp, length=0.2)
 
 	def show_ik_on_request(self):
 		#while True:
@@ -304,7 +313,7 @@ if __name__ == '__main__':
 	env, robot, target = build_environment()
 	grasper = VigirGrasper(env, robot, target)
 	final_pose_frame = query_final_pose_frame()
-	mesh_ref_frame = "/pelvis"
+	mesh_ref_frame = rospy.get_param("convex_hull/mesh_ref_frame")
 	raveio = openraveIO.openraveIO(grasper, final_pose_frame, mesh_ref_frame)
 	grasper.set_io(raveio)
 

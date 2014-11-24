@@ -41,13 +41,17 @@ class openraveIO:
 	
 		self.grasper.find_grasps(msg)
 
-	def publish_poses(self, pose_array):
-		pose_array = self.change_poses_ref_frames(pose_array)
+	def publish_poses(self, stamped_pose_array):
+		stamped_pose_array = self.change_poses_ref_frames(stamped_pose_array)
+		pose_array = self.mk_poses_from_pose_stamped(stamped_pose_array)
+		
 		pose_msg = PoseArray()
 		pose_msg.poses = pose_array
 		pose_msg.header.stamp = rospy.Time.now()
 		pose_msg.header.frame_id = self.final_pose_ref_frame
-	
+
+		print "pose_array: ", pose_array
+
 		self.pub.publish(pose_msg)
 
 	def change_poses_ref_frames(self, pose_array):
@@ -57,7 +61,7 @@ class openraveIO:
 			print trans, rot		
 			for idx, pose in enumerate(pose_array):
 				spose = self.transform_pose(pose, trans, rot)
-				pose_array[idx] = spose.pose
+				pose_array[idx] = spose
 
 		return pose_array
 	
@@ -85,6 +89,10 @@ class openraveIO:
 		pose.pose.orientation = geometry_msgs.msg.Quaternion(*quat)
 
 		return pose
+
+	def mk_poses_from_pose_stamped(self, stamped_pose_array):
+		poses = [ x.pose for x in stamped_pose_array ]
+		return poses
 
 	def TransformToPoseStamped(self, G):
 		"""
