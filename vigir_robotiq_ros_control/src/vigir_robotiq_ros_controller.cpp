@@ -44,13 +44,15 @@ namespace RobotiqHardwareInterface
 void RobotiqHardwareInterface::robotiq_Callback(const robotiq_s_model_control::SModel_robot_input::ConstPtr &msg)
 {
     if(msg){
-        if(first_time_){
-            last_robotiq_input_msg_ = *msg;
-            first_time_     = false;
-            new_data_ready_ = true;
-        }else
-            last_robotiq_input_msg_ = robotiq_input_msg_;
-        robotiq_input_msg_ = *msg;
+        new_data_ready_              = true;
+        robotiq_input_msg_           = *msg;        
+    }
+}
+
+void RobotiqHardwareInterface::robotiq_tactile_Callback(const takktile_ros::Touch::ConstPtr &msg)
+{
+    if(msg){
+        last_tactile_msg_ = *msg;
     }
 }
 
@@ -64,26 +66,71 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
     private_nh.param<std::string>("hand_side", hand_side_, std::string("left"));
     private_nh.param<std::string>("hand_name", hand_name_, std::string("l_hand"));
 
-    std::string param = "joint_names";
+    std::string joint_param  = "joint_names";
+    std::string link_param   = "link_names";
+    std::string sensor_param = "sensor_array";
 
     XmlRpc::XmlRpcValue joint_names_xmlrpc;
-    if (private_nh.hasParam(param))
-    {
-        private_nh.getParam(param, joint_names_xmlrpc);
-    }
+    if (private_nh.hasParam(joint_param))
+        private_nh.getParam(joint_param, joint_names_xmlrpc);
     else
     {
-        ROS_ERROR("Parameter %s not set, shutting down node...", param.c_str());
-        throw std::invalid_argument(param);
+        ROS_ERROR("Parameter %s not set, shutting down node...", joint_param.c_str());
+        throw std::invalid_argument(joint_param);
     }
+
+    XmlRpc::XmlRpcValue link_names_xmlrpc;
+    if (private_nh.hasParam(link_param))
+        private_nh.getParam(link_param, link_names_xmlrpc);
+    else
+    {
+        ROS_ERROR("Parameter %s not set, shutting down node...", link_param.c_str());
+        throw std::invalid_argument(link_param);
+    }
+
+    XmlRpc::XmlRpcValue sensor_array_xmlrpc;
+    if (private_nh.hasParam(sensor_param))
+        private_nh.getParam(sensor_param, sensor_array_xmlrpc);
+    else
+    {
+        ROS_ERROR("Parameter %s not set, shutting down node...", sensor_param.c_str());
+        throw std::invalid_argument(sensor_param);
+    }
+
+    //Hand Status Initialization
+    hand_status_.joint_states.name.resize(joint_names_xmlrpc.size());
+    hand_status_.joint_states.position.resize(joint_names_xmlrpc.size());
+    hand_status_.joint_states.velocity.resize(joint_names_xmlrpc.size());
+    hand_status_.joint_states.effort.resize(joint_names_xmlrpc.size());
+    hand_status_.joint_status.resize(joint_names_xmlrpc.size());
+    hand_status_.link_states.name.resize(link_names_xmlrpc.size());
+    hand_status_.link_states.tactile_array.resize(link_names_xmlrpc.size()); //Number of links with tactile arrays
+    ROS_INFO("%s Robotiq joint links number: %d",hand_side_.c_str(),(int)hand_status_.link_states.name.size());
+
+    int total_tactile=0;
+
+    for(int i=0;i<link_names_xmlrpc.size();i++){
+        hand_status_.link_states.name[i] = hand_side_ + "_" + static_cast<std::string>(link_names_xmlrpc[i]);  //Name of link
+        hand_status_.link_states.tactile_array[i].pressure.resize(static_cast<int>(sensor_array_xmlrpc[i]));  //Number of tactile sensors per array
+        ROS_INFO("Link name %s added to %s Robotiq with %d tactile sensors",hand_status_.link_states.name[i].c_str(),
+                                                                            hand_side_.c_str(),
+                                                                            (int)hand_status_.link_states.tactile_array[i].pressure.size());
+        total_tactile += static_cast<int>(sensor_array_xmlrpc[i]);
+    }
+
+    last_tactile_msg_.pressure.resize(total_tactile);
+    for(int i=0;i<total_tactile;i++)
+        last_tactile_msg_.pressure[i]=0.0;
 
     for (int i=0; i<joint_names_xmlrpc.size(); i++)
     {
         joint_names_.push_back(hand_side_ + "_" + static_cast<std::string>(joint_names_xmlrpc[i]));
+        hand_status_.joint_states.name[i] = hand_side_ + "_" + static_cast<std::string>(joint_names_xmlrpc[i]);
         ROS_INFO("Joint name %s added to %s Robotiq",joint_names_[i].c_str() ,hand_side_.c_str());
     }
 
     ROS_INFO("%s Robotiq joint names size: %d",hand_side_.c_str(),(int)joint_names_.size());
+
 
     for(unsigned int i=0; i<joint_names_.size(); i++)
     {
@@ -116,9 +163,14 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
     // ROS topic subscriber for Robotiq Input
     robotiq_input_sub_ = nh.subscribe("/robotiq_hands/"+hand_name_+"/SModelRobotInput",   1, &RobotiqHardwareInterface::robotiq_Callback,  this);
 
+    // ROS topic subscriber for Robotiq Tactile Input
+    tactile_sub_ = nh.subscribe("/robotiq_hands/"+hand_name_+"/hand_contacts",   1, &RobotiqHardwareInterface::robotiq_tactile_Callback,  this);
+
     // ROS topic advertisers for Robotiq Output
     robotiq_output_pub_ = nh.advertise<robotiq_s_model_control::SModel_robot_output>("/robotiq_hands/"+hand_name_+"/SModelRobotOutput", 1, true);
 
+    // ROS topic advertisers for Robotiq Hand Status
+    hand_status_pub_ = nh.advertise<flor_grasp_msgs::HandStatus>("/grasp_control/"+hand_name_+"/hand_status", 1, true);
 
     subscriber_spinner_.reset(new ros::AsyncSpinner(1, &subscriber_queue_));
     subscriber_spinner_->start();
@@ -204,31 +256,52 @@ bool RobotiqHardwareInterface::checkForConflict(const std::list<hardware_interfa
 
 void RobotiqHardwareInterface::read(ros::Time time, ros::Duration period)
 {
-    joint_positions_states_[joint_names_[0]] = robotiq_input_msg_.gPOA *  0.004784314;         //position of finger A. Do math stuff to figure out joint 1 value
-    joint_positions_states_[joint_names_[1]] = robotiq_input_msg_.gPOB *  0.004431373;         //position of finger B. Do math stuff to figure out joint 1 value
-    joint_positions_states_[joint_names_[2]] = robotiq_input_msg_.gPOC *  0.004431373;         //position of finger C. Do math stuff to figure out joint 1 value
-    joint_positions_states_[joint_names_[3]] = robotiq_input_msg_.gPOS *  BYTE_TO_SPR - SPR_ZERO; //position of scissors finger B.
-    joint_positions_states_[joint_names_[4]] = robotiq_input_msg_.gPOS * -BYTE_TO_SPR + SPR_ZERO; //position of scissors finger C.
-
-    last_joint_positions_states_[joint_names_[0]] = last_robotiq_input_msg_.gPOA *  0.004784314;         //position of finger A. Do math stuff to figure out joint 1 value
-    last_joint_positions_states_[joint_names_[1]] = last_robotiq_input_msg_.gPOB *  0.004431373;         //position of finger B. Do math stuff to figure out joint 1 value
-    last_joint_positions_states_[joint_names_[2]] = last_robotiq_input_msg_.gPOC *  0.004431373;         //position of finger C. Do math stuff to figure out joint 1 value
-    last_joint_positions_states_[joint_names_[3]] = last_robotiq_input_msg_.gPOS *  BYTE_TO_SPR - SPR_ZERO; //position of scissors finger B.
-    last_joint_positions_states_[joint_names_[4]] = last_robotiq_input_msg_.gPOS * -BYTE_TO_SPR + SPR_ZERO; //position of scissors finger C.
-
-    if(period.toSec() != 0.0){
-        joint_velocitys_states_[joint_names_[0]] = (joint_positions_states_[joint_names_[0]] - last_joint_positions_states_[joint_names_[0]])/period.toSec();
-        joint_velocitys_states_[joint_names_[1]] = (joint_positions_states_[joint_names_[1]] - last_joint_positions_states_[joint_names_[1]])/period.toSec();
-        joint_velocitys_states_[joint_names_[2]] = (joint_positions_states_[joint_names_[2]] - last_joint_positions_states_[joint_names_[2]])/period.toSec();
-        joint_velocitys_states_[joint_names_[3]] = (joint_positions_states_[joint_names_[3]] - last_joint_positions_states_[joint_names_[3]])/period.toSec();
-        joint_velocitys_states_[joint_names_[4]] = (joint_positions_states_[joint_names_[4]] - last_joint_positions_states_[joint_names_[4]])/period.toSec();
+    for(int i=0;i<joint_names_.size();i++){
+        last_joint_positions_states_[joint_names_[i]] =  joint_positions_states_[joint_names_[i]];
+        switch (i) {
+        case 0: //Finger A
+            hand_status_.joint_status[0]          = robotiq_input_msg_.gDTA;
+            hand_status_.joint_states.position[0] = joint_positions_states_[joint_names_[0]] = robotiq_input_msg_.gPOA *  0.004784314;         //position of finger A. Do math stuff to figure out joint 1 value
+            hand_status_.joint_states.effort[0]   = joint_efforts_states_[  joint_names_[0]] = robotiq_input_msg_.gCUA; //Current of finger A.
+            break;
+        case 1: //Finger B
+            hand_status_.joint_status[1]          = robotiq_input_msg_.gDTB;
+            hand_status_.joint_states.position[1] = joint_positions_states_[joint_names_[1]] = robotiq_input_msg_.gPOB *  0.004431373;         //position of finger B. Do math stuff to figure out joint 1 value
+            hand_status_.joint_states.effort[1]   = joint_efforts_states_[  joint_names_[1]] = robotiq_input_msg_.gCUB; //Current of finger B.
+            break;
+        case 2: //Finger C
+            hand_status_.joint_status[2]          = robotiq_input_msg_.gDTC;
+            hand_status_.joint_states.position[2] = joint_positions_states_[joint_names_[2]] = robotiq_input_msg_.gPOC *  0.004431373;         //position of finger C. Do math stuff to figure out joint 1 value
+            hand_status_.joint_states.effort[2]   = joint_efforts_states_[  joint_names_[2]] = robotiq_input_msg_.gCUC; //Current of finger C.
+            break;
+        case 3: //Finger BC Spread
+            hand_status_.joint_status[3]          = robotiq_input_msg_.gDTS;
+            hand_status_.joint_status[4]          = robotiq_input_msg_.gDTS;
+            hand_status_.joint_states.position[3] = joint_positions_states_[joint_names_[3]] = robotiq_input_msg_.gPOS *  BYTE_TO_SPR - SPR_ZERO; //position of scissors finger B.
+            hand_status_.joint_states.position[4] = joint_positions_states_[joint_names_[4]] = robotiq_input_msg_.gPOS * -BYTE_TO_SPR + SPR_ZERO; //position of scissors finger C.
+            hand_status_.joint_states.effort[3]   = joint_efforts_states_[  joint_names_[3]] = robotiq_input_msg_.gCUS; //Current of scissors finger B.
+            hand_status_.joint_states.effort[4]   = joint_efforts_states_[  joint_names_[4]] = robotiq_input_msg_.gCUS; //Current of scissors finger C.
+            break;
+        default:
+            break;
+        }
+        if(period.toSec() != 0.0){
+            hand_status_.joint_states.velocity[  i]  =
+            joint_velocitys_states_[joint_names_[i]] = (joint_positions_states_[joint_names_[i]] -
+                                                   last_joint_positions_states_[joint_names_[i]])/period.toSec();
+        }
     }
+    hand_status_.header.stamp    = ros::Time::now();
+    hand_status_.hand_status     = robotiq_input_msg_.gIMC;
 
-    joint_efforts_states_[  joint_names_[0]] = robotiq_input_msg_.gCUA; //Current of finger A.
-    joint_efforts_states_[  joint_names_[1]] = robotiq_input_msg_.gCUB; //Current of finger B.
-    joint_efforts_states_[  joint_names_[2]] = robotiq_input_msg_.gCUC; //Current of finger C.
-    joint_efforts_states_[  joint_names_[3]] = robotiq_input_msg_.gCUS; //Current of scissors finger B.
-    joint_efforts_states_[  joint_names_[4]] = robotiq_input_msg_.gCUS; //Current of scissors finger C.
+    if(robotiq_input_msg_.gFLT  != 0)
+        hand_status_.hand_status = robotiq_input_msg_.gFLT;
+
+    for(int link_idx=0, sensor_idx=0;link_idx<hand_status_.link_states.tactile_array.size();link_idx++)
+        for(int array_idx=0;array_idx<hand_status_.link_states.tactile_array[link_idx].pressure.size();array_idx++, sensor_idx++)
+            hand_status_.link_states.tactile_array[link_idx].pressure[array_idx] = last_tactile_msg_.pressure[sensor_idx];
+
+    hand_status_pub_.publish(hand_status_);
 }
 
 void RobotiqHardwareInterface::write(ros::Time time, ros::Duration period)
