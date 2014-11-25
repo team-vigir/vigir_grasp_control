@@ -37,3 +37,5 @@ bool is_theta_greater_than_pi(Eigen::Vector3d line_normal, Eigen::Vector3d vec_i
 void perform_axial_rotation(Eigen::Quaterniond rotation, Axes& axes);
 void print_quaternion(Eigen::Quaterniond quat);
 void verify_transform(Eigen::Quaterniond tranform, Eigen::Vector3d initial_y_axis, Eigen::Vector3d goal_y_axis);
+
+geometry_msgs::PoseStamped set_back_pose_on_y(geometry_msgs::PoseStamped& pose, double distance);

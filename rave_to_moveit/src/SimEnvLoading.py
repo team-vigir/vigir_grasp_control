@@ -6,6 +6,7 @@ import rospkg
 import os
 import numpy, time
 from std_msgs.msg import String
+from geometry_msgs.msg import PoseStamped, Pose
 
 import numpy
 from numpy import pi, eye, dot, cross, linalg, sqrt, ceil, size
@@ -162,13 +163,16 @@ class VigirGrasper:
 		#self.show_grasps(self.totalgrasps)
 
 		pose_array = []
+		offset = rospy.get_param("/convex_hull/pregrasp_offset")
 		with robot:
 			x = 0
 			while x < graspnum:
 				grasp = self.totalgrasps[x]
 				T = self.gmodel.getGlobalGraspTransform(grasp,collisionfree=True)
 				p = raveio.TransformToPoseStamped(T)
+				pp = self.get_pregrasp_pose(p, grasp[self.gmodel.graspindices.get('igraspdir')], offset)
 				pose_array.append(p)
+				pose_array.append(pp)
 
 				x += 1
 		
@@ -205,6 +209,24 @@ class VigirGrasper:
 				
 
 		return grasps
+	
+	# The approach_vector must be the direction the hand moves toward the object!
+	def get_pregrasp_pose(self, final_pose_stamped, approach_vec, offset):
+		pre_grasp_pose_stamped = PoseStamped(final_pose_stamped.header, final_pose_stamped.pose)
+		
+		if offset > 0:
+			offset = -offset
+		
+		# Normalize approach
+		sq_sum = (approach_vec[0]**2 + approach_vec[1]**2 + approach_vec[2]**2)**(1/2)
+		offset_vec = [(offset * x)/sq_sum for x in approach_vec]
+
+		print "Offset vec: ", offset_vec, " approach_vec: ", approach_vec
+		pre_grasp_pose_stamped.pose.position.x += offset_vec[0]
+		pre_grasp_pose_stamped.pose.position.y += offset_vec[1]
+		pre_grasp_pose_stamped.pose.position.z += offset_vec[2]
+
+		return pre_grasp_pose_stamped
 
 	def show_grasps(self, grasps):
 		for grasp in grasps:
@@ -222,8 +244,8 @@ class VigirGrasper:
 			if res < 0 or res >= len(grasps):
 				print "Improper numeric value. Remember, it's zero indexed."
 				continue
-			a1 = self.show_grasp_transform(gt, grasps[res])
-			self.gmodel.showgrasp(grasps[res])
+			a1 = self.show_grasp_transform(gt, grasps[res*2])
+			self.gmodel.showgrasp(grasps[res*2])
 
 	def show_grasp_transform(self, gt, grasp):
 		Tgrasp = self.gmodel.getGlobalGraspTransform(grasp, collisionfree=True)
