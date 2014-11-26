@@ -15,4 +15,5 @@
 	<param name = "convex_hull/torso_link" type = "string" value = "/camera_rgb_optical_frame" />
 	<param name = "convex_hull/moveit_int_offset" type = "double" value = "0.035" />
 	
+	<param name = "/openrave/show_atlas" type = "bool" value = "false" />
 </launch>
