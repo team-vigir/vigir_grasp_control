@@ -1,1 +1,3 @@
-joint_names: ["f0_j1", "f1_j1", "f2_j1", "f1_j0", "f2_j0", "f0_j2", "f1_j2", "f2_j2", "f0_j3", "f1_j3", "f2_j3"]
+joint_names: ["f0_j1",     "f1_j1",     "f2_j1",     "f1_j0", "f2_j0", "f0_j2", "f1_j2", "f2_j2", "f0_j3", "f1_j3", "f2_j3"]
+link_names:  ["f0_link_3", "f1_link_3", "f2_link_3", "palm"]
+sensor_array: [4,4,4,15]

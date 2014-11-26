@@ -1,0 +1,18 @@
+<launch>
+	<param name = "convex_hull/kinect_raw_cloud_topic" type = "string" value = "/camera/depth_registered/points" />
+	<param name = "convex_hull/reference_frame" type = "string" value = "/world" />
+	<param name = "convex_hull/cloud_input_topic" type = "string" value = "/selected_points/transformed" />
+	<param name = "convex_hull/kinect_cloud_frame" type = "string" value = "/camera_rgb_optical_frame" />
+	<param name = "convex_hull/openrave_show_grasps" type = "bool" value = "true" />
+	<param name = "convex_hull/openrave_show_ik" type = "bool" value = "false" />
+	<param name = "convex_hull/using_atlas" type = "bool" value = "false" />
+	<param name = "convex_hull/debug_and_logging" type = "string" value = "full" />
+	<param name = "convex_hull/perception_link" type = "string" value = "/camera_rgb_optical_frame" />
+	<param name = "convex_hull/pregrasp_offset" type = "double" value = "0.15" />
+
+	<param name = "convex_hull/output_pose_frame" type = "string" value = "/world" />
+	<param name = "convex_hull/mesh_ref_frame" type = "string" value = "/world" />
+	<param name = "convex_hull/torso_link" type = "string" value = "/camera_rgb_optical_frame" />
+	<param name = "convex_hull/moveit_int_offset" type = "double" value = "0.035" />
+	
+</launch>

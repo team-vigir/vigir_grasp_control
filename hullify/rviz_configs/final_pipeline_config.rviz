@@ -4,10 +4,14 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
+        - /MotionPlanning1
         - /MotionPlanning1/Scene Geometry1
         - /TF1/Frames1
+        - /Pose2
+        - /Pose3
       Splitter Ratio: 0.74256
-    Tree Height: 266
+    Tree Height: 246
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -38,7 +42,9 @@ Visualization Manager:
       Value: true
     - Class: moveit_rviz_plugin/MotionPlanning
       Enabled: true
+      Move Group Namespace: ""
       MoveIt_Goal_Tolerance: 0
+      MoveIt_Planning_Attempts: 10
       MoveIt_Planning_Time: 5
       MoveIt_Use_Constraint_Aware_IK: true
       MoveIt_Warehouse_Host: 127.0.0.1
@@ -193,7 +199,7 @@ Visualization Manager:
         Scene Alpha: 1
         Scene Color: 50; 230; 50
         Scene Display Time: 0.2
-        Show Scene Geometry: true
+        Show Scene Geometry: false
         Voxel Coloring: Z-Axis
         Voxel Rendering: Occupied Voxels
       Scene Robot:
@@ -337,7 +343,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -353,13 +359,13 @@ Visualization Manager:
       Topic: /kinect/selected_cloud
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: true
       Marker Topic: /convex_hull/hull_mesh
       Name: Marker
       Namespaces:
-        {}
+        plane_ns: true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -433,7 +439,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -449,7 +455,7 @@ Visualization Manager:
       Topic: /selected_points/transformed
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/TF
       Enabled: false
       Frame Timeout: 15
@@ -464,10 +470,38 @@ Visualization Manager:
         {}
       Update Interval: 0
       Value: false
+    - Alpha: 1
+      Axes Length: 0.3
+      Axes Radius: 0.03
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Shape: Axes
+      Topic: /convex_hull/adept_wrist_pose_input
+      Value: true
+    - Alpha: 1
+      Axes Length: 0.2
+      Axes Radius: 0.06
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Shape: Axes
+      Topic: /convex_hull/adept_wrist_pose
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: adept_combined
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -480,7 +514,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 1.12403
+      Distance: 1.23647
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
@@ -492,10 +526,10 @@ Visualization Manager:
         Z: 2.5332e-07
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.2748
+      Pitch: 0.714796
       Target Frame: base_link
       Value: XYOrbit (rviz)
-      Yaw: 5.93507
+      Yaw: 4.48007
     Saved: ~
 Window Geometry:
   Displays:
@@ -507,9 +541,9 @@ Window Geometry:
   Hide Right Dock: false
   Motion Planning:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002a200000326fc0200000005fb000000100044006900730070006c00610079007301000000280000019f000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000001cd000001810000017400ffffff000002b70000032600000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002a200000326fc0200000005fb000000100044006900730070006c00610079007301000000280000018b000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000001b9000001950000018a00ffffff000002b70000032600000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1375
-  X: 58
-  Y: 24
+  X: 55
+  Y: 14

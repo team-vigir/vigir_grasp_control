@@ -15,7 +15,7 @@
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PolygonStamped.h>
 
-#include "pcl/ros/conversions.h"
+#include "pcl/conversions.h"
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_types.h>
 #include <pcl/filters/project_inliers.h>

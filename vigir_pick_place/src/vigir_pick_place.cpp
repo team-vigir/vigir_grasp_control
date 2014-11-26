@@ -112,6 +112,9 @@ void pick(moveit::planning_interface::MoveGroup &group)
 
   grasps.push_back(g);
   group.setSupportSurfaceName("table");
+
+  group.setPlannerId("RRTConnectkConfigDefault");
+
   group.pick("part", grasps);
 }
 
@@ -177,7 +180,7 @@ void place(moveit::planning_interface::MoveGroup &group)
   ocm.absolute_z_axis_tolerance = M_PI;
   ocm.weight = 1.0;
   //  group.setPathConstraints(constr);
-  //group.setPlannerId("RRTConnectkConfigDefault");
+  group.setPlannerId("RRTConnectkConfigDefault");
 
   group.place("part", loc);
 }

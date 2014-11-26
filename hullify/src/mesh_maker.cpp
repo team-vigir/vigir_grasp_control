@@ -315,8 +315,10 @@ bool MeshMaker::get_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg, pcl::Po
 	pcl::moveFromROSMsg(temp_cloud, *intermediate_cloud);
 
     if (!is_valid_cloud(intermediate_cloud)){       
-        return false;
+	return false;
     }
+
+
     return true;
 }
 

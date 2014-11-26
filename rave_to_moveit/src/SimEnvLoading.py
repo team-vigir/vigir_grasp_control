@@ -6,12 +6,14 @@ import rospkg
 import os
 import numpy, time
 from std_msgs.msg import String
+from geometry_msgs.msg import PoseStamped, Pose
 
 import numpy
 from numpy import pi, eye, dot, cross, linalg, sqrt, ceil, size
 from numpy import hstack, vstack, mat, array, arange, fabs, zeros
 import math
 import random
+import copy
 
 import grasping
 import plane_filters
@@ -21,6 +23,7 @@ import openraveIO
 #import plugin_mods_verification
 
 gt = None
+world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 
@@ -69,8 +72,9 @@ def build_environment():
 
 def view_robot_ref_frames(robot):
 	global gt
-	a1 =  gt.drawTransform(robot.GetTransform(), length=1)
-	a2 = gt.drawTransform(robot.GetActiveManipulator().GetEndEffector().GetTransform(), length=1)
+	global world_axes
+	world_axes =  gt.drawTransform(robot.GetTransform(), length=0.3)
+	a2 = gt.drawTransform(robot.GetActiveManipulator().GetEndEffector().GetTransform(), length=0.2)
 	raw_input("Drew robot transform frame. Pausing before leaving scope...")
 	
 	#atlas_and_ik.test_transforms(gt)
@@ -160,13 +164,18 @@ class VigirGrasper:
 		#self.show_grasps(self.totalgrasps)
 
 		pose_array = []
+		offset = rospy.get_param("/convex_hull/pregrasp_offset")
 		with robot:
 			x = 0
-			while (x < graspnum) and x < len(self.totalgrasps):
+			while x < graspnum:
 				grasp = self.totalgrasps[x]
 				T = self.gmodel.getGlobalGraspTransform(grasp,collisionfree=True)
 				p = raveio.TransformToPoseStamped(T)
+				print "p before: ", p
+				pp = self.get_pregrasp_pose(copy.deepcopy(p), grasp[self.gmodel.graspindices.get('igraspdir')], offset)
+				print "p after: ", p
 				pose_array.append(p)
+				pose_array.append(pp)
 
 				x += 1
 		
@@ -176,7 +185,7 @@ class VigirGrasper:
 		if rospy.get_param("convex_hull/openrave_show_grasps"):
 			self.show_selected_grasps(self.totalgrasps)
 
-		if not rospy.get_param("using_atlas"):
+		if not rospy.get_param("convex_hull/openrave_show_ik"):
 			self.show_ik_on_request()
 
 	def get_grasps(self, mesh_and_bounds_msg, params, gt, returnnum=5):
@@ -203,6 +212,24 @@ class VigirGrasper:
 				
 
 		return grasps
+	
+	# The approach_vector must be the direction the hand moves toward the object!
+	def get_pregrasp_pose(self, final_pose_stamped, approach_vec, offset):
+		pre_grasp_pose_stamped = PoseStamped(final_pose_stamped.header, final_pose_stamped.pose)
+		
+		if offset > 0:
+			offset = -offset
+		
+		# Normalize approach
+		sq_sum = (approach_vec[0]**2 + approach_vec[1]**2 + approach_vec[2]**2)**(1/2)
+		offset_vec = [(offset * x)/sq_sum for x in approach_vec]
+
+		print "Offset vec: ", offset_vec, " approach_vec: ", approach_vec
+		pre_grasp_pose_stamped.pose.position.x += offset_vec[0]
+		pre_grasp_pose_stamped.pose.position.y += offset_vec[1]
+		pre_grasp_pose_stamped.pose.position.z += offset_vec[2]
+
+		return pre_grasp_pose_stamped
 
 	def show_grasps(self, grasps):
 		for grasp in grasps:
@@ -210,15 +237,22 @@ class VigirGrasper:
 
 	def show_selected_grasps(self, grasps):
 		while True:
-			res = raw_input("There are ", len(grasps), " available (zero indexed) please select one or q to quit: ")
+			print "There are ", len(grasps), " available (zero indexed) please select one or q to quit: "
+			res = raw_input()
+			if res == "":
+				continue
 			if res == "q" or res == "Q":
 				break
 			res = int(res)
 			if res < 0 or res >= len(grasps):
 				print "Improper numeric value. Remember, it's zero indexed."
 				continue
+			a1 = self.show_grasp_transform(gt, grasps[res])
+			self.gmodel.showgrasp(grasps[res])
 
-			self.gmodel.showgrasp(grasp[res])
+	def show_grasp_transform(self, gt, grasp):
+		Tgrasp = self.gmodel.getGlobalGraspTransform(grasp, collisionfree=True)
+		return gt.drawTransform(Tgrasp, length=0.2)
 
 	def show_ik_on_request(self):
 		#while True:
@@ -304,7 +338,7 @@ if __name__ == '__main__':
 	env, robot, target = build_environment()
 	grasper = VigirGrasper(env, robot, target)
 	final_pose_frame = query_final_pose_frame()
-	mesh_ref_frame = "/pelvis"
+	mesh_ref_frame = rospy.get_param("convex_hull/mesh_ref_frame")
 	raveio = openraveIO.openraveIO(grasper, final_pose_frame, mesh_ref_frame)
 	grasper.set_io(raveio)
 
