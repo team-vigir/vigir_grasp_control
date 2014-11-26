@@ -50,7 +50,7 @@ class openraveIO:
 		pose_msg.header.stamp = rospy.Time.now()
 		pose_msg.header.frame_id = self.final_pose_ref_frame
 
-		print "pose_array: ", pose_array
+		#print "pose_array: ", pose_array
 
 		self.pub.publish(pose_msg)
 

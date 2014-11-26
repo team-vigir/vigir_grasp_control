@@ -13,6 +13,6 @@
 	<param name = "convex_hull/output_pose_frame" type = "string" value = "/world" />
 	<param name = "convex_hull/mesh_ref_frame" type = "string" value = "/world" />
 	<param name = "convex_hull/torso_link" type = "string" value = "/camera_rgb_optical_frame" />
-	<param name = "convex_hull/moveit_int_offset" type = "double" value = "0.02" />
+	<param name = "convex_hull/moveit_int_offset" type = "double" value = "0.035" />
 	
 </launch>

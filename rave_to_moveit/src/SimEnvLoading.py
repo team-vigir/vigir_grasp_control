@@ -13,6 +13,7 @@ from numpy import pi, eye, dot, cross, linalg, sqrt, ceil, size
 from numpy import hstack, vstack, mat, array, arange, fabs, zeros
 import math
 import random
+import copy
 
 import grasping
 import plane_filters
@@ -65,7 +66,7 @@ def build_environment():
 
 	env.SetViewer('qtcoin')
 	gt = tutorial_grasptransform.GraspTransform(env,target)
-	view_robot_ref_frames(robot)
+	#view_robot_ref_frames(robot)
 
 	return env, robot, target
 
@@ -170,7 +171,9 @@ class VigirGrasper:
 				grasp = self.totalgrasps[x]
 				T = self.gmodel.getGlobalGraspTransform(grasp,collisionfree=True)
 				p = raveio.TransformToPoseStamped(T)
-				pp = self.get_pregrasp_pose(p, grasp[self.gmodel.graspindices.get('igraspdir')], offset)
+				print "p before: ", p
+				pp = self.get_pregrasp_pose(copy.deepcopy(p), grasp[self.gmodel.graspindices.get('igraspdir')], offset)
+				print "p after: ", p
 				pose_array.append(p)
 				pose_array.append(pp)
 
@@ -244,8 +247,8 @@ class VigirGrasper:
 			if res < 0 or res >= len(grasps):
 				print "Improper numeric value. Remember, it's zero indexed."
 				continue
-			a1 = self.show_grasp_transform(gt, grasps[res*2])
-			self.gmodel.showgrasp(grasps[res*2])
+			a1 = self.show_grasp_transform(gt, grasps[res])
+			self.gmodel.showgrasp(grasps[res])
 
 	def show_grasp_transform(self, gt, grasp):
 		Tgrasp = self.gmodel.getGlobalGraspTransform(grasp, collisionfree=True)
