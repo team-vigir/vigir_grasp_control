@@ -37,6 +37,8 @@
 
 static const std::string ROBOT_DESCRIPTION="robot_description";
 
+std::string planner;
+
 void pick(moveit::planning_interface::MoveGroup &group)
 {
   std::vector<moveit_msgs::Grasp> grasps;
@@ -113,7 +115,7 @@ void pick(moveit::planning_interface::MoveGroup &group)
   grasps.push_back(g);
   group.setSupportSurfaceName("table");
 
-  //group.setPlannerId("RRTConnectkConfigDefault");
+  group.setPlannerId(planner);
 
   group.pick("part", grasps);
 }
@@ -180,7 +182,7 @@ void place(moveit::planning_interface::MoveGroup &group)
   ocm.absolute_z_axis_tolerance = M_PI;
   ocm.weight = 1.0;
   //  group.setPathConstraints(constr);
-  group.setPlannerId("RRTConnectkConfigDefault");
+  group.setPlannerId(planner);
 
   group.place("part", loc);
 }
@@ -192,8 +194,18 @@ int main(int argc, char **argv)
   spinner.start();
 
   ros::NodeHandle nh;
+  ros::NodeHandle nhp("~");
   ros::Publisher pub_co = nh.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
   ros::Publisher pub_aco = nh.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
+
+
+
+  if (!nhp.hasParam("planner"))
+  {
+      ROS_WARN(" Did not find PLANNER parameter - using RRTConnectkConfigDefault as default");
+  }else{
+      nhp.param<std::string>("planner", planner,"RRTConnectkConfigDefault");
+  }
 
   ros::WallDuration(1.0).sleep();
 
