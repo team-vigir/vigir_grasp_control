@@ -113,7 +113,7 @@ void pick(moveit::planning_interface::MoveGroup &group)
   grasps.push_back(g);
   group.setSupportSurfaceName("table");
 
-  group.setPlannerId("RRTConnectkConfigDefault");
+  //group.setPlannerId("RRTConnectkConfigDefault");
 
   group.pick("part", grasps);
 }
@@ -219,7 +219,7 @@ int main(int argc, char **argv)
   co.primitives[0].dimensions[shape_msgs::SolidPrimitive::BOX_Z] = 1.0;
   co.primitive_poses.resize(1);
   co.primitive_poses[0].position.x = 0.67;
-  co.primitive_poses[0].position.y = 0.67;
+  co.primitive_poses[0].position.y = 0.47;
   co.primitive_poses[0].position.z = 1.575;
   co.primitive_poses[0].orientation.w = 1.0;
   pub_co.publish(co);
