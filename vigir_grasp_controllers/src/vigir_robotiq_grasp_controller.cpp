@@ -181,7 +181,7 @@ namespace vigir_grasp_controller{
        {
            bool new_command = false;
            for(unsigned int i=0; i<joint_names_.size();i++){
-               if(joint_commands_.rPR[i] != last_joint_commands_.rPR[i]){
+               if(fabs(joint_commands_.rPR[i] - last_joint_commands_.rPR[i])>0.004){
                    last_joint_commands_.rPR[i] = joint_commands_.rPR[i];
                    new_command = true;
                }
