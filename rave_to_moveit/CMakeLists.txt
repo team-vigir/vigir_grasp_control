@@ -115,6 +115,11 @@ include_directories(
 #add_dependencies(rave_to_moveit_node osu_grasp_msgs_generate_messages_cpp)
 add_custom_target(rave_to_moveit DEPENDS osu_grasp_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
+
+install(DIRECTORY meshes DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY plugins DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY robots DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY scenes DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(rave_to_moveit_node
 #   ${catkin_LIBRARIES}
