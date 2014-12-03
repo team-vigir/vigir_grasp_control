@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<!-- This launch file uses the basic Grasp controller plugin. -->
+
+<launch>
+<arg name="launch_prefix" default="xterm -e"/> <!-- gdb -ex run -args"/> -->
+
+<node ns="right_grasp_controller" name="vigir_grasp_controller" pkg="vigir_grasp_controllers" type="sandia_grasp_controller_node" respawn="true" output="screen">
+
+    <param name="hand" value="r_hand" />
+    <param name="filename" value="$(find vigir_template_library)/grasp_library.grasp" />
+
+    <remap from="template_selection" to="/template/r_hand_template_match_request" />
+    <remap from="hand_offset"        to="/template/r_hand_template_offset" />
+    <!-- remap from="template_selection" to="/grasp_control/template_selection" / IF USING MATCHING (OTHERWISE GRAB PLACEMENT) -->
+    <remap from="mode_command"       to="/grasp_control/r_hand/mode_command" />
+    <remap from="grasp_selection"    to="/grasp_control/r_hand/grasp_selection" />
+    <remap from="release_grasp"      to="/grasp_control/r_hand/release_grasp" />
+
+    <remap from="active_state"       to="/grasp_control/r_hand/active_state" />
+    <remap from="grasp_status"       to="/grasp_control/r_hand/grasp_status" />
+    <remap from="hand_mass"          to="/grasp_control/r_hand/hand_mass" />
+    <remap from="sandia_states"      to="/grasp_control/r_hand/tactile_feedback" />
+    <remap from="wrist_target"       to="/grasp_control/r_hand/target_pose" />
+    <remap from="template_stitch_pose"       to="/grasp_control/r_hand/template_stitch_pose" />
+    <remap from="wrist_plan"         to="/grasp_control/r_hand/plan_request" />
+    <remap from="template_stitch"    to="/grasp_control/r_hand/template_stitch_request" />
+    <remap from="wrist_pose"         to="/flor/r_arm_current_pose" />
+    <remap from="planner_status"     to="/grasp_planning/r_hand/status" />
+    <remap from="controller_mode"    to="/flor/controller/mode" />
+</node>
+
+</launch>
