@@ -10,6 +10,7 @@
 
 	<param name = "convex_hull/mesh_ref_frame" type = "string" value = "/pelvis" />
 	<param name = "convex_hull/torso_link" type = "string" value = "/utorso" />
+	<param name = "/openrave/show_atlas" type = "bool" value = "true" />
 
 	<include file = "$(find hullify)/launch/core_pipeline.launch" />
 </launch>

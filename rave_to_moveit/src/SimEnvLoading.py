@@ -62,13 +62,14 @@ def build_environment():
 	robot = atlas_and_ik.load_atlas(env)
 	env.Load('scenes/grasp_target.env.xml')
 	target = env.GetKinBody('grasp_target')
-	#env.Load('adeptsetup.robot.xml')
 
 	env.SetViewer('qtcoin')
 	gt = tutorial_grasptransform.GraspTransform(env,target)
 	#view_robot_ref_frames(robot)
 	
-	disable_atlas_visiblity(robot)
+	show_atlas = rospy.get_param("/openrave/show_atlas", True)
+	if not show_atlas:
+		disable_atlas_visiblity(robot)
 
 	return env, robot, target
 
