@@ -1,15 +1,19 @@
+<?xml version = "1.0" ?>
 <launch>
 	<include file = "$(find hullify)/launch/kinect_params.launch" />
-	
-	<include file = "$(find hullify)/launch/convex_hull_debug.launch" />
+
+	<!--<include file = "$(find hullify)/launch/convex_hull_debug.launch" />-->
+	<node pkg = "hullify" name = "convex_hull" type = "convex_hull" launch-prefix = "xterm -e" />
 	<node type = "SimEnvLoading.py" name = "SimEnvLoading" pkg = "rave_to_moveit" output = "screen" launch-prefix = "xterm -e" />
 
-	<include file = "$(find adept_moveit_connector)/launch/demo.launch" />
+	<include file = "$(find adept_moveit_connector)/launch/demo.launch" >
+		<arg name="debug" value = "false" />
+	</include>
 	<!--<include file = "$(find osu_ros_adept)/launch/start_basic_connection.launch" />-->
-	<include file = "$(find kinect_ptcloud_converter)/launch/set_up_kinect.launch" />
+	<!--<include file = "$(find kinect_ptcloud_converter)/launch/set_up_kinect.launch" />-->
 
-	<include file = "$(find moveit_int)/launch/prog_moveit_debug.launch" />
-	<!--<node pkg = "moveit_int" name = "programmatic_moveit" type = "programmatic_moveit" launch-prefix = "xterm -e" />-->
+	<!--<include file = "$(find moveit_int)/launch/prog_moveit_debug.launch" />-->
+	<node pkg = "moveit_int" name = "programmatic_moveit" type = "programmatic_moveit" launch-prefix = "xterm -e" />
 
 	<node type = "static_transform_publisher" name = "camera_static_transform_publisher" pkg = "tf" args = "-0.537 0.379 0 0 0 0 1 /world /adept_combined 10" launch-prefix = "xterm -e"/>
 

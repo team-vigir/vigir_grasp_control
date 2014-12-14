@@ -69,19 +69,36 @@ def build_environment():
 	
 	show_atlas = rospy.get_param("/openrave/show_atlas", True)
 	if not show_atlas:
-		robot.SetVisible(False)
+		disable_atlas_visiblity(robot)
 
 	return env, robot, target
 
+def disable_atlas_visiblity(robot):
+	print "Disabling Atlas visiblity."
+	robot.SetVisible(False)
+	
+	draw_world_axes(robot)
+
+	#Reenable the manipulator visibility
+	manipulators = robot.GetManipulators()
+	for manip in manipulators:
+		manip_links = manip.GetChildLinks()
+		for link in manip_links:
+			link.SetVisible(True)
+
 def view_robot_ref_frames(robot):
 	global gt
-	global world_axes
-	world_axes =  gt.drawTransform(robot.GetTransform(), length=0.3)
 	a2 = gt.drawTransform(robot.GetActiveManipulator().GetEndEffector().GetTransform(), length=0.2)
+	
+	draw_world_axes(robot)
+
 	raw_input("Drew robot transform frame. Pausing before leaving scope...")
 	
 	#atlas_and_ik.test_transforms(gt)
-	
+
+def draw_world_axes(robot):
+	global world_axes
+	world_axes =  gt.drawTransform(robot.GetTransform(), length=0.3)
 
 #def load_hands():
 #	global env
