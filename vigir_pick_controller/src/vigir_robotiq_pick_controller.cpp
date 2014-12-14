@@ -155,48 +155,49 @@ namespace vigir_pick_controller{
         {
             if(db[i][2].compare(this->hand_side_) != 0)
             {
-                ROS_INFO(" Skipping grasp specification for %s given %s controller", db[i][9].c_str(), hand_name_.c_str());
+                ROS_INFO(" Skipping grasp specification for %s given %s controller", db[i][2].c_str(), hand_name_.c_str());
                 continue;
             }
+            ROS_INFO(" Adding grasp specification for %s given %s controller", db[i][2].c_str(), hand_name_.c_str());
             unsigned int type = std::atoi(db[i][1].c_str());
 
             moveit_msgs::Grasp grasp;
             grasp.id                            = db[i][0];
             grasp.grasp_pose.header.frame_id    = this->hand_name_;
-            grasp.grasp_pose.pose.position.x    = std::atof(db[i][9].c_str());
-            grasp.grasp_pose.pose.position.y    = std::atof(db[i][10].c_str());
-            grasp.grasp_pose.pose.position.z    = std::atof(db[i][11].c_str());
-            grasp.grasp_pose.pose.orientation.w = std::atof(db[i][12].c_str());
-            grasp.grasp_pose.pose.orientation.x = std::atof(db[i][13].c_str());
-            grasp.grasp_pose.pose.orientation.y = std::atof(db[i][14].c_str());
-            grasp.grasp_pose.pose.orientation.z = std::atof(db[i][15].c_str());
+            grasp.grasp_pose.pose.position.x    = std::atof(db[i][10].c_str());
+            grasp.grasp_pose.pose.position.y    = std::atof(db[i][11].c_str());
+            grasp.grasp_pose.pose.position.z    = std::atof(db[i][12].c_str());
+            grasp.grasp_pose.pose.orientation.w = std::atof(db[i][13].c_str());
+            grasp.grasp_pose.pose.orientation.x = std::atof(db[i][14].c_str());
+            grasp.grasp_pose.pose.orientation.y = std::atof(db[i][15].c_str());
+            grasp.grasp_pose.pose.orientation.z = std::atof(db[i][16].c_str());
 
             //Static transformation to /r_hand
             staticTransform(grasp.grasp_pose.pose);
 
 
             grasp.grasp_posture.joint_names.resize(5);
-            grasp.grasp_posture.joint_names[0] = "left_f0_j1";
-            grasp.grasp_posture.joint_names[1] = "left_f1_j1";
-            grasp.grasp_posture.joint_names[2] = "left_f2_j1";
-            grasp.grasp_posture.joint_names[3] = "left_f1_j0";
-            grasp.grasp_posture.joint_names[4] = "left_f2_j0";
+            grasp.grasp_posture.joint_names[0] = this->hand_side_ + "_f0_j1";
+            grasp.grasp_posture.joint_names[1] = this->hand_side_ + "_f1_j1";
+            grasp.grasp_posture.joint_names[2] = this->hand_side_ + "_f2_j1";
+            grasp.grasp_posture.joint_names[3] = this->hand_side_ + "_f1_j0";
+            grasp.grasp_posture.joint_names[4] = this->hand_side_ + "_f2_j0";
             grasp.grasp_posture.points.resize(1);
             grasp.grasp_posture.points[0].positions.resize(5);
-            grasp.grasp_posture.points[0].positions[0] = std::atof(db[i][4].c_str());
-            grasp.grasp_posture.points[0].positions[1] = std::atof(db[i][5].c_str());
-            grasp.grasp_posture.points[0].positions[2] = std::atof(db[i][6].c_str());
-            grasp.grasp_posture.points[0].positions[3] = std::atof(db[i][7].c_str());
+            grasp.grasp_posture.points[0].positions[0] = std::atof(db[i][5].c_str());
+            grasp.grasp_posture.points[0].positions[1] = std::atof(db[i][6].c_str());
+            grasp.grasp_posture.points[0].positions[2] = std::atof(db[i][7].c_str());
+            grasp.grasp_posture.points[0].positions[3] = std::atof(db[i][8].c_str());
             grasp.grasp_posture.points[0].positions[4] = std::atof(db[i][8].c_str());
 
             grasp.grasp_posture.points[0].time_from_start = ros::Duration(3.0);
 
             grasp.pre_grasp_posture.joint_names.resize(5);
-            grasp.pre_grasp_posture.joint_names[0] = "left_f0_j1";
-            grasp.pre_grasp_posture.joint_names[1] = "left_f1_j1";
-            grasp.pre_grasp_posture.joint_names[2] = "left_f2_j1";
-            grasp.pre_grasp_posture.joint_names[3] = "left_f1_j0";
-            grasp.pre_grasp_posture.joint_names[4] = "left_f2_j0";
+            grasp.pre_grasp_posture.joint_names[0] = this->hand_side_ + "_f0_j1";
+            grasp.pre_grasp_posture.joint_names[1] = this->hand_side_ + "_f1_j1";
+            grasp.pre_grasp_posture.joint_names[2] = this->hand_side_ + "_f2_j1";
+            grasp.pre_grasp_posture.joint_names[3] = this->hand_side_ + "_f1_j0";
+            grasp.pre_grasp_posture.joint_names[4] = this->hand_side_ + "_f2_j0";
             grasp.pre_grasp_posture.points.resize(1);
             grasp.pre_grasp_posture.points[0].positions.resize(5);
             grasp.pre_grasp_posture.points[0].positions[0] = 0.0;
@@ -218,8 +219,8 @@ namespace vigir_pick_controller{
             grasp.post_grasp_retreat.desired_distance          = 0.1;
             object_template_map_[type].grasps.push_back(grasp);
         }
-        for(int i=0;i<object_template_map_[3].grasps.size(); i++)
-            ROS_INFO("Grasp id inside ot: %s",object_template_map_[3].grasps[i].id.c_str());
+//        for(int i=0;i<object_template_map_[3].grasps.size(); i++)
+//            ROS_INFO("Grasp id inside ot: %s",object_template_map_[3].grasps[i].id.c_str());
 
         // Initialize states and control values
         grasp_status_.status  = RobotStatusCodes::GRASP_CONTROLLER_OK;

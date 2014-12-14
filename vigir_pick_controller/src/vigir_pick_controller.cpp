@@ -593,6 +593,10 @@ void VigirPickController::controllerLoop()
 
 std::vector< std::vector <std::string> > VigirPickController::readCSVFile(std::string& file_name){
     std::ifstream file ( file_name.c_str() );
+    if(!file){
+        ROS_ERROR("NO GRASP DATABASE FILE FOUND: %s",file_name.c_str());
+    }
+
     std::vector< std::vector <std::string> > db;
     for (std::string line; std::getline(file, line); )
     {
