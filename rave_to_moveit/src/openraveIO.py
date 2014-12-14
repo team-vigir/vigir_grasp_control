@@ -1,3 +1,4 @@
+import os
 import roslib
 import rospy
 import tf
@@ -10,6 +11,7 @@ from osu_grasp_msgs.msg import Mesh_and_bounds
 from std_msgs.msg import Header
 from moveit_msgs.msg import RobotState
 
+import scipy
 import numpy
 from numpy import array
 
@@ -118,6 +120,15 @@ class openraveIO:
 	def moveitik_callback(self, msg):
 		print "Got IK result"
 		self.ikresults.append(msg)
+
+def save_grasp_screenshot(env):
+	outfile_name = raw_input("Please input file name for image: ")
+	
+	home_path = os.environ['HOME'] + "/"
+	full_file_name = home_path + outfile_name
+	I = env.GetViewer().GetCameraImage(640,480,  env.GetViewer().GetCameraTransform(),[640,640,320,240])
+
+	scipy.misc.imsave(full_file_name, I)
 
 def testpublisher(raveio):
 	print "Running pose publishing test..."	

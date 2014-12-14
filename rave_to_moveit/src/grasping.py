@@ -682,7 +682,10 @@ class GraspingModel(DatabaseGenerator):
                     self.env.UpdatePublishedBodies()
                     # wait while environment is locked?
                     if delay is None:
-                        raw_input('press any key to continue: ')
+                        user_input = raw_input('press any key to continue (s to save image before leaving): ')
+			if user_input == "s" or user_input == "S":
+				openraveIO.save_grasp_screenshot(self.env)
+				
                     elif delay > 0:
                         time.sleep(delay)
     def testGrasp(self,graspingnoise=None,Ngraspingtries = 20,forceclosurethreshold=1e-9,**kwargs):
