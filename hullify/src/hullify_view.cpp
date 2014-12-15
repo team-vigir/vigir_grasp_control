@@ -138,8 +138,13 @@ void Hullify_View::rm_prev_mesh(map<string, string>::iterator& mesh_info)
 {
 	if (mesh_info->second != ""){
 		cout << "Deleting previous mesh: " << mesh_info->first << endl;
-		string command = "rm " + mesh_info->second;
-		system(command.c_str()); 
+		//string command = "rm " + mesh_info->second;
+		//system(command.c_str()); 
+		int ret = remove(mesh_info->second.c_str());
+		if (ret == -1) {
+			ROS_ERROR("Could not delete previous mesh");
+			perror("Remove call on line __LINE__ of __FILE__ failed");
+		}
 
 	} else {
 		cout << "No previous mesh to delete." << endl;
