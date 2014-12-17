@@ -19,6 +19,7 @@ import grasping
 import plane_filters
 import atlas_and_ik
 import openraveIO
+import view_filter
 #import check_initial_collisions as collision_test
 #import plugin_mods_verification
 
@@ -172,8 +173,9 @@ class VigirGrasper:
 		self.totalgrasps = []
 
 		params = plane_filters.generate_grasp_params(self.gmodel, mesh_and_bounds_msg)
-		
-		self.totalgrasps = self.get_grasps(mesh_and_bounds_msg, params, gt, returnnum=8)
+		params['approachrays'] = view_filter.directional_filter(params['approachrays'], mesh_and_bounds_msg.mesh_centroid, raveio.pelvis_listener, 140)
+
+		self.totalgrasps = self.get_grasps(mesh_and_bounds_msg, params, gt, returnnum=20)
 		
 		if len(self.totalgrasps) == 0:
 			print "No suitable grasps found. Please select another pointcloud."
@@ -191,9 +193,9 @@ class VigirGrasper:
 				grasp = self.totalgrasps[x]
 				T = self.gmodel.getGlobalGraspTransform(grasp,collisionfree=True)
 				p = raveio.TransformToPoseStamped(T)
-				print "p before: ", p
+				#print "p before: ", p
 				pp = self.get_pregrasp_pose(copy.deepcopy(p), grasp[self.gmodel.graspindices.get('igraspdir')], offset)
-				print "p after: ", p
+				#print "p after: ", p
 				pose_array.append(p)
 				pose_array.append(pp)
 
@@ -210,7 +212,8 @@ class VigirGrasper:
 
 	def get_grasps(self, mesh_and_bounds_msg, params, gt, returnnum=5):
 		grasps = []
-		partitioned_rays = partition_rays(mesh_and_bounds_msg, params['approachrays'])
+		#partitioned_rays = partition_rays(mesh_and_bounds_msg, params['approachrays'])	#90 plane filtering
+		partitioned_rays = [params['approachrays']]
 
 		if sum([len(x) for x in partitioned_rays]) < 1:
 			print "Insufficient approach rays generated. How do the planes look? Returning null pose."

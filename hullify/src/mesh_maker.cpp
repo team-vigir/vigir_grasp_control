@@ -428,11 +428,17 @@ Eigen::Matrix3d MeshMaker::get_principal_axes(pcl::PointCloud<pcl::PointXYZ>::Pt
 void MeshMaker::send_hull_and_planes_to_openrave(string& mesh_full_abs_path, pcl::PolygonMesh::Ptr convex_hull, pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_pts)
 {
 	osu_grasp_msgs::Mesh_and_bounds openrave_msg;
+	Eigen::Vector3d centroid = bounds->get_centroid();
+	geometry_msgs::Point ros_centroid;
+	ros_centroid.x = centroid[0];
+	ros_centroid.y = centroid[1];
+	ros_centroid.z = centroid[2];
 
 	openrave_msg.header.frame_id = visualization_ref_frame;
 	openrave_msg.header.stamp = ros::Time::now();
 	openrave_msg.full_abs_mesh_path = mesh_full_abs_path;
 	mk_mesh_msg(openrave_msg.convex_hull, convex_hull);
+	openrave_msg.mesh_centroid = ros_centroid;
 	set_bounding_planes(openrave_msg, mesh_pts);
 
 	view->publish("openrave_params", openrave_msg);

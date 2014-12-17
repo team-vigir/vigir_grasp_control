@@ -11,6 +11,9 @@
 	<param name = "convex_hull/mesh_ref_frame" type = "string" value = "/pelvis" />
 	<param name = "convex_hull/torso_link" type = "string" value = "/utorso" />
 	<param name = "/openrave/show_atlas" type = "bool" value = "true" />
+	<param name = "convex_hull/ik_joint_limit_tolerance" type = "double" value = "0.0" />
+
+	<param name = "/convex_hull/planning_scene_topic" type = "string" value = "/flor/planning/planning_scene" />
 
 	<include file = "$(find hullify)/launch/core_pipeline.launch" />
 </launch>
