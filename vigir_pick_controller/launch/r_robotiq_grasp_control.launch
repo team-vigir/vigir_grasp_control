@@ -3,7 +3,7 @@
 
 <launch>
 
-<node name="right_grasp_controller" pkg="flor_grasp_controllers" type="robotiq_grasp_controller_node"    output="screen" respawn="true">
+<node name="right_grasp_controller" pkg="vigir_pick_controller" type="vigir_robotiq_pick_controller_node" output="screen" respawn="true">
 
     <param name="hand" value="r_hand" />
     <param name="filename" value="$(find vigir_template_library)/debris/box.urdf" />

@@ -106,15 +106,20 @@ include_directories(
 # )
 
 ## Declare a cpp executable
-add_executable(srv_test srv_test/check_dist_client.cpp)
-target_link_libraries(srv_test ${catkin_LIBRARIES})
-add_dependencies(srv_test osu_grasp_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+#add_executable(srv_test srv_test/check_dist_client.cpp)
+#target_link_libraries(srv_test ${catkin_LIBRARIES})
+#add_dependencies(srv_test osu_grasp_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 #add_dependencies(rave_to_moveit_node osu_grasp_msgs_generate_messages_cpp)
 add_custom_target(rave_to_moveit DEPENDS osu_grasp_msgs_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 
+
+install(DIRECTORY meshes DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY plugins DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY robots DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY scenes DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(rave_to_moveit_node
 #   ${catkin_LIBRARIES}

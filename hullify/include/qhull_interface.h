@@ -9,6 +9,7 @@
 #include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_types.h>
 
+#include <stdio.h>
 #include <cstdlib>
 #include <vector>
 #include <iostream>

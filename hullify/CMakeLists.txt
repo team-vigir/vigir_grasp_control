@@ -153,6 +153,10 @@ set_target_properties(pose_playing PROPERTIES COMPILE_FLAGS "-Wall -g")
 #For the Eigen package in laser_geometry
 add_definitions(${EIGEN_DEFINITIONS})
 
+install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY meshes DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY msg DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY rviz_configs DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 #############
 ## Install ##
 #############

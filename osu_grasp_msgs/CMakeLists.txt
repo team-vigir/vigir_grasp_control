@@ -50,8 +50,8 @@ find_package(catkin REQUIRED COMPONENTS
 add_message_files(
    FILES
    Mesh_and_bounds.msg
-   CheckGraspDistanceRequest.msg
-   CheckGraspDistanceResponse.msg
+#   CheckGraspDistanceRequest.msg
+#   CheckGraspDistanceResponse.msg
 )
 
 ## Generate services in the 'srv' folder
@@ -102,6 +102,8 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
+install(DIRECTORY msg DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY srv DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 ## Declare a cpp library
 # add_library(osu_grasp_msgs
 #   src/${PROJECT_NAME}/osu_grasp_msgs.cpp

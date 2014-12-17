@@ -3,7 +3,7 @@
 
 <launch>
 
-<node name="left_grasp_controller" pkg="vigir_pick_controller" type="vigir_robotiq_pick_controller_node" output="screen" respawn="true">
+<node name="left_grasp_controller"  pkg="vigir_pick_controller" type="vigir_robotiq_pick_controller_node" output="screen" respawn="true">
 
     <param name="hand" value="l_hand" />
     <param name="filename" value="$(find vigir_template_library)/grasp_library_robotiq.grasp" />

@@ -31,6 +31,7 @@
 
 #include "plane_reps_and_3dmath.h"
 
+#include <stdio.h>	//for remove() file deletion
 #include <cstdlib>
 #include <string>
 #include <vector>
