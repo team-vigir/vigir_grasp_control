@@ -1,0 +1,26 @@
+####### OSU Robot Startup Instructions
+
+Start minicom and the robot: sudo minicom (may need to press enter to start loading)
+In minicom
+	load ros.v2
+	enable power
+	execute a.ros
+
+Switch to AdeptRobotiq network using the Ubuntu network manager in the top right corner of the screen.
+
+in a new terminal: roslaunch osu_ros_adept start_basic_connection.launch
+	# Verify that one of the terminals says "spinning" in it and that the other gives a prompt to enter joint angles.
+
+in a new terminal: 
+	roscore
+in a new terminal (or a new tab on the roscore terminal): 
+	roslaunch hullify kinect.launch
+
+in a new terminal (or tab):
+	roslaunch hullify osu_adept_common.launch
+
+Troubleshooting:
+	-You may notice that the robot does not sit properly in the world. Just switch the reference frame to "adept_combined" and then back to world. It will reset and view properly.
+	-If OpenRAVE freezes while searching for grasps, it's probably because Moveit's move_group node has frozen and OpenRAVE is waiting for a reply. To restart (more like forcibly eject and restart) move_group, open a new terminal and type "roslaunch adept_moveit_connector move_group.launch". OpenRAVE should start working again. Kill this terminal if you restart the entire system.
+	-If nothing seems to be a good grasp, try turning on the collision environment in Rviz (left pane, show scene geometry checkbox) and ensure that there aren't straggling octomap cubes everywhere. If you want to be sure, reset the octomap using "rosservice call /octomap_reset" or something similar (type octomap and then tab-complete it)
+	-After hitting the estop, you will need to reset the 

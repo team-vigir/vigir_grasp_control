@@ -9,6 +9,7 @@
 	<param name = "convex_hull/debug_and_logging" type = "string" value = "full" />
 	<param name = "convex_hull/perception_link" type = "string" value = "/camera_rgb_optical_frame" />
 	<param name = "convex_hull/pregrasp_offset" type = "double" value = "0.15" />
+	<param name = "convex_hull/ar_code_frame" type = "string" value = "/ar_marker_3" />
 
 	<param name = "convex_hull/output_pose_frame" type = "string" value = "/world" />
 	<param name = "convex_hull/mesh_ref_frame" type = "string" value = "/world" />

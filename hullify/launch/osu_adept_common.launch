@@ -15,7 +15,7 @@
 	<!--<include file = "$(find moveit_int)/launch/prog_moveit_debug.launch" />-->
 	<node pkg = "moveit_int" name = "programmatic_moveit" type = "programmatic_moveit" launch-prefix = "xterm -e" />
 
-	<node type = "static_transform_publisher" name = "camera_static_transform_publisher" pkg = "tf" args = "-0.537 0.379 0 0 0 0 1 /world /adept_combined 10" launch-prefix = "xterm -e"/>
+	<!--<node type = "static_transform_publisher" name = "camera_static_transform_publisher" pkg = "tf" args = "-0.537 0.379 0 0 0 0 1 /world /adept_combined 10" launch-prefix = "xterm -e"/>-->
 
 	<!--<include file = "$(find flor_grasp_controllers)/launch/osu_robotiq_handle.launch" />
 	<node pkg = "robotiq_s_model_control" name = "SModelSimpleController" type = "SModelSimpleController.py" launch-prefix = "xterm -e" />-->
