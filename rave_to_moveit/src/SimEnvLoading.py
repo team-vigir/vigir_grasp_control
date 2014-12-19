@@ -260,12 +260,13 @@ class VigirGrasper:
 
 	def show_selected_grasps(self, grasps):
 		while True:
-			print "There are ", len(grasps), " available (zero indexed) please select one or q to quit: "
+			print "There are ", len(grasps), " available (zero indexed) please select one or -1 to quit: "
 			res = raw_input()
 			if res == "":
 				continue
-			if res == "q" or res == "Q":
+			if res == "-1" or res == "q" or res == "Q":
 				break
+
 			res = int(res)
 			if res < 0 or res >= len(grasps):
 				print "Improper numeric value. Remember, it's zero indexed."

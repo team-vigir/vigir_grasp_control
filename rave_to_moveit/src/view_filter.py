@@ -9,8 +9,9 @@ def directional_filter(approach_rays, centroid_pt, transform_listener, final_ray
 	camera_to_centroid = get_camera_to_centroid(centroid_vec, transform_listener)
 	filtered_rays = apply_directional_filter(camera_to_centroid, approach_rays, acceptable_angle)
 
-	trimmed_filtered_rays = random_selection(filtered_rays, final_ray_count)
-	return trimmed_filtered_rays
+	#trimmed_filtered_rays = random_selection(filtered_rays, final_ray_count)
+	#return trimmed_filtered_rays
+	return filtered_rays
 
 def get_camera_to_centroid(centroid, transform_listener):
 	rest_period = rospy.Duration(0.2)
