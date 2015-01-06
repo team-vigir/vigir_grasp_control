@@ -1,17 +1,14 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 84
+    Help Height: 78
     Name: Displays
     Property Tree Widget:
       Expanded:
         - /Global Options1
         - /MotionPlanning1
-        - /MotionPlanning1/Scene Geometry1
         - /TF1/Frames1
-        - /Pose2
-        - /Pose3
       Splitter Ratio: 0.74256
-    Tree Height: 246
+    Tree Height: 260
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -188,7 +185,7 @@ Visualization Manager:
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
         Planning Group: adept_arm
-        Query Goal State: true
+        Query Goal State: false
         Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
@@ -199,7 +196,7 @@ Visualization Manager:
         Scene Alpha: 1
         Scene Color: 50; 230; 50
         Scene Display Time: 0.2
-        Show Scene Geometry: false
+        Show Scene Geometry: true
         Voxel Coloring: Z-Axis
         Voxel Rendering: Occupied Voxels
       Scene Robot:
@@ -324,80 +321,6 @@ Visualization Manager:
         Show Robot Collision: false
         Show Robot Visual: true
       Value: true
-    - Class: rviz/Axes
-      Enabled: false
-      Length: 1
-      Name: Axes
-      Radius: 0.1
-      Reference Frame: <Fixed Frame>
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 4096
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.01
-      Style: Flat Squares
-      Topic: /kinect/selected_cloud
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Class: rviz/Marker
-      Enabled: true
-      Marker Topic: /convex_hull/hull_mesh
-      Name: Marker
-      Namespaces:
-        plane_ns: true
-      Queue Size: 100
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.1
-      Class: rviz/Pose
-      Color: 255; 25; 0
-      Enabled: true
-      Head Length: 0.3
-      Head Radius: 0.1
-      Name: Pose
-      Shaft Length: 1
-      Shaft Radius: 0.05
-      Shape: Axes
-      Topic: /convex_hull/adept_wrist_orientation
-      Value: true
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /convex_hull/camera_normal
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /convex_hull/original_third_component_axis
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -437,6 +360,35 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.01
+      Style: Flat Squares
+      Topic: /kinect/selected_cloud
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
       Enabled: false
@@ -455,20 +407,6 @@ Visualization Manager:
       Topic: /selected_points/transformed
       Use Fixed Frame: true
       Use rainbow: true
-      Value: false
-    - Class: rviz/TF
-      Enabled: false
-      Frame Timeout: 15
-      Frames:
-        All Enabled: false
-      Marker Scale: 1
-      Name: TF
-      Show Arrows: true
-      Show Axes: true
-      Show Names: true
-      Tree:
-        {}
-      Update Interval: 0
       Value: false
     - Alpha: 1
       Axes Length: 0.3
@@ -498,10 +436,69 @@ Visualization Manager:
       Shape: Axes
       Topic: /convex_hull/adept_wrist_pose
       Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.1
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Shape: Axes
+      Topic: /convex_hull/adept_wrist_orientation
+      Value: true
+    - Class: rviz/Axes
+      Enabled: false
+      Length: 1
+      Name: Axes
+      Radius: 0.1
+      Reference Frame: <Fixed Frame>
+      Value: false
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /convex_hull/hull_mesh
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: false
+      Marker Topic: /convex_hull/camera_normal
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
+    - Class: rviz/Marker
+      Enabled: false
+      Marker Topic: /convex_hull/original_third_component_axis
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
+    - Class: rviz/TF
+      Enabled: false
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: true
+      Show Axes: true
+      Show Names: true
+      Tree:
+        {}
+      Update Interval: 0
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
-    Fixed Frame: world
+    Fixed Frame: adept_combined
     Frame Rate: 30
   Name: root
   Tools:
@@ -513,35 +510,35 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/XYOrbit
-      Distance: 1.23647
+      Class: rviz/Orbit
+      Distance: 2.56748
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.637958
-        Y: -0.268556
-        Z: 2.5332e-07
+        X: 0.639951
+        Y: -0.0329462
+        Z: -0.0232977
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 0.714796
+      Pitch: 0.574795
       Target Frame: base_link
-      Value: XYOrbit (rviz)
-      Yaw: 4.48007
+      Value: Orbit (rviz)
+      Yaw: 4.34508
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 876
+  Height: 884
   Help:
     collapsed: false
   Hide Left Dock: false
   Hide Right Dock: false
   Motion Planning:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002a200000326fc0200000005fb000000100044006900730070006c00610079007301000000280000018b000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000001b9000001950000018a00ffffff000002b70000032600000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002a20000032efc0200000005fb000000100044006900730070006c006100790073010000002800000193000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073000000010b000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000001c1000001950000018a00ffffff000002b70000032e00000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1375
