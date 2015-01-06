@@ -32,7 +32,6 @@
 //Robotiq hand messages
 #include <robotiq_s_model_control/SModel_robot_input.h>
 #include <robotiq_s_model_control/SModel_robot_output.h>
-#include <takktile_ros/Touch.h>
 
 
 // ROS Control includes
@@ -47,6 +46,7 @@
 #include <sensor_msgs/JointState.h>
 
 #include <flor_grasp_msgs/HandStatus.h>
+#include <flor_grasp_msgs/Tactile.h>
 
 namespace RobotiqHardwareInterface
 {
@@ -75,7 +75,7 @@ private:
   //Robotiq specific communication code
 
   void robotiq_Callback(const robotiq_s_model_control::SModel_robot_input::ConstPtr &msg);
-  void robotiq_tactile_Callback(const takktile_ros::Touch::ConstPtr &msg);
+  void robotiq_tactile_Callback(const flor_grasp_msgs::Tactile::ConstPtr &msg);
 
 
   hardware_interface::JointStateInterface       joint_state_interface_;
@@ -99,7 +99,7 @@ private:
   robotiq_s_model_control::SModel_robot_input   robotiq_input_msg_;
   robotiq_s_model_control::SModel_robot_input   last_robotiq_input_msg_;
   robotiq_s_model_control::SModel_robot_output  robotiq_output_msg_;
-  takktile_ros::Touch                           last_tactile_msg_;
+  flor_grasp_msgs::Tactile                      last_tactile_msg_;
 
   flor_grasp_msgs::HandStatus                   hand_status_;
 
