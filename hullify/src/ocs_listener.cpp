@@ -13,13 +13,16 @@ int main(int argc, char** argv){
 
 Ocs_listener::Ocs_listener()
 {
-	distance_request_sub = nh.subscribe("/flor/worldmodel/ocs/dist_query_distance_request_world", 1, &Ocs_listener::dist_request_callback, this);
-	distance_result_sub = nh.subscribe("/flor/worldmodel/ocs/dist_query_distance_result", 1, &Ocs_listener::dist_result_callback, this);
+	distance_request_sub = nh.subscribe("/flor/worldmodel/ocs/dist_query_distance_request_world", 1, 
+						&Ocs_listener::dist_request_callback, this);
+	distance_result_sub = nh.subscribe("/flor/worldmodel/ocs/dist_query_distance_result", 1, 
+						&Ocs_listener::dist_result_callback, this);
 
 	bool using_atlas;
 	bool param_set = ros::param::get("/convex_hull/using_atlas", using_atlas);
 	if (!param_set){
-		ROS_ERROR("Could not find parameter: /convex_hull/using_atlas in ocs_listener constructor. Are you using launch files?");
+		ROS_ERROR_STREAM("Could not find parameter: /convex_hull/using_atlas in" 
+				<< " ocs_listener constructor. Are you using launch files?");
 		exit(1);
 	}
 	if (!using_atlas){
@@ -29,8 +32,10 @@ Ocs_listener::Ocs_listener()
 		ros::param::get("convex_hull/kinect_cloud_frame", kinect_cloud_frame);
 		ros::param::get("convex_hull/reference_frame", world_frame);
 		
-		selection_point_sub = nh.subscribe(ptcloud_source, 1, &Ocs_listener::kinect_pt_select_callback, this);
-		kinect_raw_cloud_sub = nh.subscribe(kinect_raw_cloud_src, 1, &Ocs_listener::kinect_raw_cloud_callback, this);
+		selection_point_sub = nh.subscribe(ptcloud_source, 1, 
+						&Ocs_listener::kinect_pt_select_callback, this);
+		kinect_raw_cloud_sub = nh.subscribe(kinect_raw_cloud_src, 1, 
+						&Ocs_listener::kinect_raw_cloud_callback, this);
 		box_selection_pub = nh.advertise<sensor_msgs::PointCloud2>("/selected_points", 1);
 	}
 
@@ -50,15 +55,12 @@ void Ocs_listener::dist_request_callback(const flor_perception_msgs::RaycastRequ
 void Ocs_listener::dist_result_callback(const std_msgs::Float64::ConstPtr& msg)
 {
 	if (msg->data < 0){
-		//cout << "No result found" << endl;
 		set_request_point(NULL);
 
 	} else {
 		current_request_point = new pcl::PointXYZ;
 		Eigen::Vector3d dist = unit_camera_direction * msg->data;
-		//cout << "dist: " << dist << endl << "camera_pos: " << camera_pos << endl;
 		*current_request_point = init_pt(camera_pos + dist);
-		//cout << "result pt: x-" << current_request_point->x << " y-" << current_request_point->y << " z-" << current_request_point->z << endl;
 	}
 }
 
@@ -84,16 +86,21 @@ void Ocs_listener::kinect_raw_cloud_callback(const sensor_msgs::PointCloud2::Con
 
 void Ocs_listener::publish_box_selection()
 {
+	string original_ptcloud_frame = current_raw_cloud->header.frame_id;
 	sensor_msgs::PointCloud2 recent_cloud = *current_raw_cloud;
-	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::moveFromROSMsg(recent_cloud, *cloud);
+	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud (new pcl::PointCloud<pcl::PointXYZ>), 
+						temp_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::moveFromROSMsg(recent_cloud, *temp_cloud);
+	pcl_ros::transformPointCloud(world_frame, *temp_cloud, *cloud, listener);
 
 	ROS_INFO_STREAM("Input to box selection has " << cloud->size() << " points.");
 	pcl::PointCloud<pcl::PointXYZ>::Ptr selected_cloud = select_box(cloud, 0.3);
 	ROS_INFO_STREAM("Output of box selection has " << selected_cloud->size() << " points.");
 
+	ROS_INFO_STREAM("Original Pointcloud frame: " << original_ptcloud_frame);
+	pcl_ros::transformPointCloud(original_ptcloud_frame, *selected_cloud, *temp_cloud, listener);
 	sensor_msgs::PointCloud2 out_cloud;
-	pcl::toROSMsg(*selected_cloud, out_cloud);
+	pcl::toROSMsg(*temp_cloud, out_cloud);
 	
 	box_selection_pub.publish(out_cloud);
 }
@@ -101,19 +108,17 @@ void Ocs_listener::publish_box_selection()
 pcl::PointCloud<pcl::PointXYZ>::Ptr Ocs_listener::select_box(pcl::PointCloud<pcl::PointXYZ>::Ptr in_cloud, double width)
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr out_cloud (new pcl::PointCloud<pcl::PointXYZ>);
-	pcl::PointXYZ transformed_select_point = transform_request_point();
+	out_cloud->header = in_cloud->header;
+	//pcl::PointXYZ transformed_select_point = transform_request_point(); //Necessary if the cloud isn't in the world frame
+	pcl::PointXYZ transformed_select_point = *current_request_point;
 	cout << "Transformed point: " << transformed_select_point.x << "  " << transformed_select_point.y << "  " << transformed_select_point.z << endl;
 	long num_pts = in_cloud->size();
 	for (long i = 0; i < num_pts; ++i){
-		//ROS_INFO_STREAM("dx - " << fabs((*in_cloud)[i].x - current_request_point->x) << " dy - " << fabs((*in_cloud)[i].y - current_request_point->y) << " dz - " << fabs((*in_cloud)[i].z - current_request_point->z));
 		if (fabs((*in_cloud)[i].x - transformed_select_point.x) < (width/2) &&
 			fabs((*in_cloud)[i].y - transformed_select_point.y) < (width/2) &&
 			fabs((*in_cloud)[i].z - transformed_select_point.z) < (width/2)) {
 			out_cloud->push_back((*in_cloud)[i]);
-			//ROS_INFO("\tAccepted");
-		} //else {
-			//ROS_INFO("\tRejected");
-		//}
+		}
 	}
 
 	return out_cloud;

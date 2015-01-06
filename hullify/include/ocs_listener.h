@@ -10,6 +10,9 @@
 
 #include <tf/transform_listener.h>
 
+#include "pcl/ros/conversions.h"
+#include <pcl_ros/transforms.h>
+
 class Ocs_listener{
 	public:
 		Ocs_listener();
