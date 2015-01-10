@@ -175,7 +175,11 @@ class VigirGrasper:
 		params = plane_filters.generate_grasp_params(self.gmodel, mesh_and_bounds_msg)
 		params['approachrays'] = view_filter.directional_filter(params['approachrays'], mesh_and_bounds_msg.mesh_centroid, raveio.pelvis_listener, 140)
 
+		raveio.enable_moveit_octomap_updating(False)
+		
 		self.totalgrasps = self.get_grasps(mesh_and_bounds_msg, params, gt, returnnum=20)
+		
+		raveio.enable_moveit_octomap_updating(True)
 		
 		if len(self.totalgrasps) == 0:
 			print "No suitable grasps found. Please select another pointcloud."
@@ -218,6 +222,7 @@ class VigirGrasper:
 		if sum([len(x) for x in partitioned_rays]) < 1:
 			print "Insufficient approach rays generated. How do the planes look? Returning null pose."
 			return []
+
 
 		for rays in partitioned_rays:
 			#raw_input("Starting a new set of approach rays... Press a key to continue...")

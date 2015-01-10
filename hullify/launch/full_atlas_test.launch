@@ -8,6 +8,7 @@
 	<param name = "convex_hull/perception_link" type = "string" value = "/hokuyo_link" />
 	<param name = "convex_hull/output_pose_frame" type = "string" value = "world" />
 	<param name = "convex_hull/pregrasp_offset" type = "double" value = "0.15" />
+	<param name = "convex_hull/disable_octomap_updates_openrave" type = "bool" value = "false" />
 
 	<param name = "convex_hull/mesh_ref_frame" type = "string" value = "/pelvis" />
 	<param name = "convex_hull/torso_link" type = "string" value = "/utorso" />

@@ -10,6 +10,7 @@
 	<param name = "convex_hull/perception_link" type = "string" value = "/camera_rgb_optical_frame" />
 	<param name = "convex_hull/pregrasp_offset" type = "double" value = "0.15" />
 	<param name = "convex_hull/ar_code_frame" type = "string" value = "/ar_marker_3" />
+	<param name = "convex_hull/disable_octomap_updates_openrave" type = "bool" value = "true" />
 
 	<param name = "convex_hull/output_pose_frame" type = "string" value = "/world" />
 	<param name = "convex_hull/mesh_ref_frame" type = "string" value = "/world" />

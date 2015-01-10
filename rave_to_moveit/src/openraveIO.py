@@ -9,6 +9,7 @@ from geometry_msgs.msg import PoseArray
 from geometry_msgs.msg import PoseStamped
 from osu_grasp_msgs.msg import Mesh_and_bounds
 from std_msgs.msg import Header
+from std_msgs.msg import Bool
 from moveit_msgs.msg import RobotState
 
 import scipy
@@ -33,6 +34,9 @@ class openraveIO:
 		#self.preplugin_pose_publisher = rospy.Publisher("openrave_preplugin_grasp", PoseStamped)
 		self.moveitik_visualization = rospy.Subscriber("convex_hull/moveit_ik_results", RobotState, self.moveitik_callback)
 		self.ikresults = []
+		self.disable_octomap_updates_while_evaluating_grasps = rospy.get_param("/convex_hull/disable_octomap_updates_openrave", False);
+		if self.disable_octomap_updates_while_evaluating_grasps:
+			self.octomap_update_toggle_pub = rospy.Publisher('/convex_hull/disable_ptcloud_depth_octomap_throttle', Bool, queue_size=1)
 
 	def full_info_callback(self, msg):
 		print "Got a Mesh_and_bounds_msg!"
@@ -120,6 +124,13 @@ class openraveIO:
 	def moveitik_callback(self, msg):
 		print "Got IK result"
 		self.ikresults.append(msg)
+
+	def enable_moveit_octomap_updating(self, enable):
+		if self.disable_octomap_updates_while_evaluating_grasps:
+			msg = Bool()
+			msg.data = enable
+			self.octomap_update_toggle_pub.publish(msg)
+			
 
 def save_grasp_screenshot(env):
 	outfile_name = raw_input("Please input file name for image: ")

@@ -1,6 +1,7 @@
 from openravepy import *
 from openravepy import ikfast
 import openravepy
+import rospy
 
 from moveit_msgs.msg import RobotState
 
@@ -13,16 +14,27 @@ ikmodel = None
 
 def load_atlas(env):
 	#env.Load('robots/atlas/flor_atlas.dae')
-	env.Load('robots/atlas/atlas_setup.robot.xml')
-	atlas = env.GetRobot('atlas')
-	
+	using_atlas = rospy.get_param("convex_hull/using_atlas", True)
+	atlas = None
+	if using_atlas:
+		env.Load('robots/atlas/atlas_setup.robot.xml')
+		atlas = env.GetRobot('atlas')
+	else:
+		print "Loading Adept setup"
+		env.Load('robots/adept/adept_setup.robot.xml')
+		atlas = env.GetRobot('adept') #See name in adept_setup.robot.zml
+
+
 	if atlas is not None:
 		print "Initial Atlas Load successful."
 	else:
 		print "Atlas is None in load_atlas(). Load failed."
 		exit()
 
-	world_orientation = array([[1, 0, 0, 0], [0, 1, 0, 0,], [0, 0, 1, 0], [0, 0, 0, 1]])
+	world_orientation = array([	[1, 0, 0, 0], 
+					[0, 1, 0, 0], 
+					[0, 0, 1, 0], 
+					[0, 0, 0, 1]])
 	atlas.SetTransform(world_orientation)
 	
 	#set_atlas_manipulators(atlas)
