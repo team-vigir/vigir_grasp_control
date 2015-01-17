@@ -16,7 +16,6 @@
   <build_depend>flor_control_msgs</build_depend>
   <build_depend>moveit_core</build_depend>
   <build_depend>robotiq_s_model_control</build_depend>
-  <build_depend>takktile_ros</build_depend>
   <build_depend>hardware_interface</build_depend>
   <build_depend>controller_manager</build_depend>
 
@@ -29,7 +28,6 @@
   <run_depend>flor_control_msgs</run_depend>
   <run_depend>moveit_core</run_depend>
   <run_depend>robotiq_s_model_control</run_depend>
-  <run_depend>takktile_ros</run_depend>
   <run_depend>hardware_interface</run_depend>
   <run_depend>controller_manager</run_depend>
 

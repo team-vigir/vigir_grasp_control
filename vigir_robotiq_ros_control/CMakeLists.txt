@@ -14,7 +14,6 @@ find_package(catkin REQUIRED COMPONENTS
   flor_control_msgs
   moveit_core
   robotiq_s_model_control
-  takktile_ros
   hardware_interface
   controller_manager
 )
@@ -32,7 +31,6 @@ catkin_package(
         flor_control_msgs
         moveit_core
         robotiq_s_model_control
-        takktile_ros
         hardware_interface
         controller_manager
 )
@@ -57,3 +55,6 @@ install( TARGETS
     vigir_robotiq_ros_controller_node
     DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
+
+install(DIRECTORY launch DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY config DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
