@@ -1,4 +1,4 @@
-<Robot name = "adept" File = 'adept_connector.dae'>
+<Robot name = "adept" File = 'adept.dae'>
 	<Manipulator name = 'adept_arm'>
 		<base>Adept_Viper_s650_Link1</base>
 		<effector>left_palm</effector>
