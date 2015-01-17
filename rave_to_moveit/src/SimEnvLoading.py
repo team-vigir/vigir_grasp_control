@@ -142,6 +142,7 @@ class VigirGrasper:
 		self.gmodel = gmodel = grasping.GraspingModel(robot,target)
 		self.totalgrasps = []
 		self.raveio = None
+		self.grasp_returnnum = rospy.get_param("/convex_hull/openrave_grasp_count_goal", 20);
 
 	def set_io(self, io_obj):
 		self.raveio = io_obj
@@ -177,7 +178,7 @@ class VigirGrasper:
 
 		raveio.enable_moveit_octomap_updating(False)
 		
-		self.totalgrasps = self.get_grasps(mesh_and_bounds_msg, params, gt, returnnum=20)
+		self.totalgrasps = self.get_grasps(mesh_and_bounds_msg, params, gt, returnnum=self.grasp_returnnum)
 		
 		raveio.enable_moveit_octomap_updating(True)
 		
