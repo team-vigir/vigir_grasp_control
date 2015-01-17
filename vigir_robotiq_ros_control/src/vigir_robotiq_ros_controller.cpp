@@ -49,7 +49,7 @@ void RobotiqHardwareInterface::robotiq_Callback(const robotiq_s_model_control::S
     }
 }
 
-void RobotiqHardwareInterface::robotiq_tactile_Callback(const takktile_ros::Touch::ConstPtr &msg)
+void RobotiqHardwareInterface::robotiq_tactile_Callback(const flor_grasp_msgs::Tactile::ConstPtr &msg)
 {
     if(msg){
         last_tactile_msg_ = *msg;

@@ -74,35 +74,59 @@ void pick(moveit::planning_interface::MoveGroup &group)
   g.post_grasp_retreat.min_distance = 0.05;
   g.post_grasp_retreat.desired_distance = 0.1;
 
-  g.pre_grasp_posture.joint_names.resize(5);
-  g.pre_grasp_posture.joint_names[0] = "left_f0_j1";
-  g.pre_grasp_posture.joint_names[1] = "left_f1_j1";
-  g.pre_grasp_posture.joint_names[2] = "left_f2_j1";
-  g.pre_grasp_posture.joint_names[3] = "left_f1_j0";
-  g.pre_grasp_posture.joint_names[4] = "left_f2_j0";
+  g.pre_grasp_posture.joint_names.resize(11);
+  g.pre_grasp_posture.joint_names[0]  = "left_f0_j1";
+  g.pre_grasp_posture.joint_names[1]  = "left_f1_j1";
+  g.pre_grasp_posture.joint_names[2]  = "left_f2_j1";
+  g.pre_grasp_posture.joint_names[3]  = "left_f1_j0";
+  g.pre_grasp_posture.joint_names[4]  = "left_f2_j0";
+  g.pre_grasp_posture.joint_names[5]  = "left_f0_j2";
+  g.pre_grasp_posture.joint_names[6]  = "left_f1_j2";
+  g.pre_grasp_posture.joint_names[7]  = "left_f2_j2";
+  g.pre_grasp_posture.joint_names[8]  = "left_f0_j3";
+  g.pre_grasp_posture.joint_names[9]  = "left_f1_j3";
+  g.pre_grasp_posture.joint_names[10] = "left_f2_j3";
   g.pre_grasp_posture.points.resize(1);
-  g.pre_grasp_posture.points[0].positions.resize(5);
-  g.pre_grasp_posture.points[0].positions[0] = 0.0;
-  g.pre_grasp_posture.points[0].positions[1] = 0.0;
-  g.pre_grasp_posture.points[0].positions[2] = 0.0;
-  g.pre_grasp_posture.points[0].positions[3] = 0.0;
-  g.pre_grasp_posture.points[0].positions[4] = 0.0;
+  g.pre_grasp_posture.points[0].positions.resize(11);
+  g.pre_grasp_posture.points[0].positions[0]  = 0.0;
+  g.pre_grasp_posture.points[0].positions[1]  = 0.0;
+  g.pre_grasp_posture.points[0].positions[2]  = 0.0;
+  g.pre_grasp_posture.points[0].positions[3]  = 0.0;
+  g.pre_grasp_posture.points[0].positions[4]  = 0.0;
+  g.pre_grasp_posture.points[0].positions[5]  = 0.0;
+  g.pre_grasp_posture.points[0].positions[6]  = 0.0;
+  g.pre_grasp_posture.points[0].positions[7]  = 0.0;
+  g.pre_grasp_posture.points[0].positions[8]  = 0.0;
+  g.pre_grasp_posture.points[0].positions[9]  = 0.0;
+  g.pre_grasp_posture.points[0].positions[10] = 0.0;
 
   g.pre_grasp_posture.points[0].time_from_start = ros::Duration(3.0);
 
-  g.grasp_posture.joint_names.resize(5);
-  g.grasp_posture.joint_names[0] = "left_f0_j1";
-  g.grasp_posture.joint_names[1] = "left_f1_j1";
-  g.grasp_posture.joint_names[2] = "left_f2_j1";
-  g.grasp_posture.joint_names[3] = "left_f1_j0";
-  g.grasp_posture.joint_names[4] = "left_f2_j0";
+  g.grasp_posture.joint_names.resize(11);
+  g.grasp_posture.joint_names[0]  = "left_f0_j1";
+  g.grasp_posture.joint_names[1]  = "left_f1_j1";
+  g.grasp_posture.joint_names[2]  = "left_f2_j1";
+  g.grasp_posture.joint_names[3]  = "left_f1_j0";
+  g.grasp_posture.joint_names[4]  = "left_f2_j0";
+  g.grasp_posture.joint_names[5]  = "left_f0_j2";
+  g.grasp_posture.joint_names[6]  = "left_f1_j2";
+  g.grasp_posture.joint_names[7]  = "left_f2_j2";
+  g.grasp_posture.joint_names[8]  = "left_f0_j3";
+  g.grasp_posture.joint_names[9]  = "left_f1_j3";
+  g.grasp_posture.joint_names[10] = "left_f2_j3";
   g.grasp_posture.points.resize(1);
-  g.grasp_posture.points[0].positions.resize(5);
-  g.grasp_posture.points[0].positions[0] = 1.0;
-  g.grasp_posture.points[0].positions[1] = 1.0;
-  g.grasp_posture.points[0].positions[2] = 1.0;
-  g.grasp_posture.points[0].positions[3] = 0.0;
-  g.grasp_posture.points[0].positions[4] = 0.0;
+  g.grasp_posture.points[0].positions.resize(11);
+  g.grasp_posture.points[0].positions[0]  = 1.0;
+  g.grasp_posture.points[0].positions[1]  = 1.0;
+  g.grasp_posture.points[0].positions[2]  = 1.0;
+  g.grasp_posture.points[0].positions[3]  = 0.0;
+  g.grasp_posture.points[0].positions[4]  = 0.0;
+  g.grasp_posture.points[0].positions[5]  = 0.0;
+  g.grasp_posture.points[0].positions[6]  = 0.0;
+  g.grasp_posture.points[0].positions[7]  = 0.0;
+  g.grasp_posture.points[0].positions[8]  = 0.0;
+  g.grasp_posture.points[0].positions[9]  = 0.0;
+  g.grasp_posture.points[0].positions[10] = 0.0;
 
   g.grasp_posture.points[0].time_from_start = ros::Duration(3.0);
 
@@ -116,6 +140,8 @@ void pick(moveit::planning_interface::MoveGroup &group)
   group.setSupportSurfaceName("table");
 
   group.allowReplanning(true);
+
+  ROS_INFO("Picking with %s",planner.c_str());
 
   group.setPlannerId(planner);
 
@@ -203,7 +229,7 @@ int main(int argc, char **argv)
   ros::Publisher pub_co = nh.advertise<moveit_msgs::CollisionObject>("collision_object", 10);
   ros::Publisher pub_aco = nh.advertise<moveit_msgs::AttachedCollisionObject>("attached_collision_object", 10);
 
-
+  planner="RRTConnectkConfigDefault";
 
   if (!nhp.hasParam("planner"))
   {
