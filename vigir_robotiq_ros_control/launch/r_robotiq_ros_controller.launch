@@ -12,7 +12,7 @@
             command = "load"/>
             
   <node name    = "right_rosparam_append_node" 
-        pkg     = "flor_atlas_moveit_config"
+        pkg     = "vigir_atlas_moveit_config"
         type    = "rosparam_append"
         args    = "$(find vigir_robotiq_ros_control)/config/r_robotiq_controllers.yaml /move_group/controller_list"/>
             
