@@ -22,6 +22,7 @@ import plane_filters
 import atlas_and_ik
 import openraveIO
 import view_filter
+import process_pool
 #import check_initial_collisions as collision_test
 #import plugin_mods_verification
 
@@ -30,7 +31,7 @@ world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
-num_addtl_processes = 3
+num_addtl_processes = 0
 
 #Environment var name->[file_name, name_in_system]
 FILE_PATH = 0
@@ -167,7 +168,7 @@ class VigirGrasper:
 		self.grasp_returnnum = rospy.get_param("/convex_hull/openrave_grasp_count_goal", 20);
 
 		self.num_addtl_processes = num_addtl_processes
-		init_subprocesses()
+		self.init_subprocesses()
 
 	def init_subprocesses(self):
 		print "Initalizing process pool. ", self.num_addtl_processes, " additional processes"
@@ -175,7 +176,8 @@ class VigirGrasper:
 		self.processes = []
 		for i in range(self.num_addtl_processes):		
 			self.grasp_task_msgs.append(process_pool.grasp_params())
-			self.processes.append(graspProcess(process_pool.process_loop, env.CloneSelf(openravepy_int.CloningOptions.Bodies | openravepy_int.CloningOptions.Modules), Queue(), Queue()) 
+			cloned_env = env.CloneSelf(openravepy_int.CloningOptions.Bodies | openravepy_int.CloningOptions.Modules)
+			self.processes.append(graspProcess(process_pool.process_loop, cloned_env, Queue(), Queue()))
 
 	def set_io(self, io_obj):
 		self.raveio = io_obj
@@ -261,7 +263,7 @@ class VigirGrasper:
 		grasps = []
 		#partitioned_rays = partition_rays(mesh_and_bounds_msg, params['approachrays'])	#90 plane filtering
 		#partitioned_rays = [params['approachrays']]
-		partitiioned_rays = partition_rays_for_processes(params['approachrays'], self.num_addtl_processes + 1)
+		partitioned_rays = partition_rays_for_processes(params['approachrays'], self.num_addtl_processes + 1)
 		
 		if sum([len(x) for x in partitioned_rays]) < 1:
 			print "Insufficient approach rays generated. How do the bounding/filtering planes look? Returning null pose."
@@ -284,11 +286,12 @@ class VigirGrasper:
 		# Dispatch the subprocesses
 		for idx, process in enumerate(self.processes):
 			self.grasp_task_msgs[idx].openrave_params = params
-			self.grasp_task_msgs[idx].openrave_params['approach_rays'] = partitioned_rays[idx]
+			self.grasp_task_msgs[idx].openrave_params['approachrays'] = partitioned_rays[idx]
 			self.processes[idx].evaluate_grasps(self.grasp_task_msgs[idx])
 
 		# Get results on the local process
-		params['approach_rays'] = partitioned_rays[-1]
+		params['remaininggrasps'] = -1	# Run through all grasps, no limit
+		params['approachrays'] = partitioned_rays[-1]
 		self.gmodel.generate(**params)
 		grasps.extend(self.gmodel.grasps)
 
@@ -298,7 +301,7 @@ class VigirGrasper:
 			for i in outstanding_results:
 				if not self.processes[i].result_queue.empty():
 					print "Got results from process ", i
-					grasps.extend(self.processes[i].result_queue.get()
+					grasps.extend(self.processes[i].result_queue.get())
 					del outstanding_results[i]
 			rospy.sleep(0.1)
 
@@ -409,7 +412,7 @@ def partition_rays_for_processes(approach_rays, total_num_evaluators):
 	leftover_rays = num_rays % total_num_evaluators
 
 	for i in range(total_num_evaluators):
-		partition.append(approach_rays[i * num_rays_each: (i+1) * num_rays_each]
+		partition.append(approach_rays[i * num_rays_each: (i+1) * num_rays_each])
 
 	for i in range(leftover_rays):
 		numpy.append(partition[i], approach_rays[-1 - i])

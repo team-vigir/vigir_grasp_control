@@ -42,7 +42,7 @@ def replace_target(env, convex_hull):
 	#print new_mesh.indices
 	#print new_mesh.vertices
 	#print dir(new_mesh)
-	grasp_target = self.env.GetKinBody('grasp_target')
+	grasp_target = SimEnvLoading.get_grasp_target(env)
 	env.RemoveKinBody(grasp_target)
 	
 	grasp_target.InitFromTrimesh(new_mesh, True)

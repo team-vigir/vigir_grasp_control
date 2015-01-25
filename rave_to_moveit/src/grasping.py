@@ -526,6 +526,8 @@ class GraspingModel(DatabaseGenerator):
                     #raw_input("Do we have an image? Compare it to the volume.")
 		    grasp[self.graspindices.get('performance')] = volume
 		    return grasp,
+		else:
+		    print '\t\x1b[33m Grasp Failed to meet minimum grasp metric\x1b[37m'
                     
                 return ()
 
