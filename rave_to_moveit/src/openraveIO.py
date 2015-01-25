@@ -43,7 +43,7 @@ class openraveIO:
 		print "Plane1: ", msg.ninety_degree_bounding_planes[0]
 		print "Plane2: ", msg.ninety_degree_bounding_planes[1]
 	
-		self.grasper.replace_target(msg.convex_hull)
+		self.grasper.update_process_targets(msg.convex_hull)
 	
 		self.grasper.find_grasps(msg)
 

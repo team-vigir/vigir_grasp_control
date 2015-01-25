@@ -1,3 +1,3 @@
 Here is where the modified grasp evaluator for OpenRAVE is placed. It is a replacement of the grasper plugin written in C++.
 
-It should be made for each new host the software is placed on. In the future, this will become a part of the build script, but for now, it is built separately.
+Please note that openrave will try to load anything that looks like a plugin in here. So you cannot make backups of a particular plugin and place them here; OpenRAVE will load them instead of your newer version
