@@ -24,7 +24,7 @@ def get_camera_to_centroid(centroid, transform_listener):
 			break
 		except:
 			print "Caught transform Exception"
-			rest_period.sleep()
+			rospy.sleep(rest_period)
 			continue
 	
 	print "The kinect is located at: ", trans
