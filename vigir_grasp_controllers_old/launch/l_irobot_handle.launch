@@ -1,0 +1,19 @@
+<launch>
+  
+  <arg name="left_hand_name" default="10.66.171.22" />
+
+  <node pkg="handle_ros" type="handle_ros" name="handle_ros_left_hand" output="screen" respawn="true">  
+    <param name="hand_name" value="$(arg left_hand_name)" type="string"/>
+    <param name="hand_port" value="3490" type="string"/>
+    <param name="hand_udp" value="false" type="bool"/>
+    <remap from="/handle/sensors/raw" to="/left_hand/sensors/raw"/>
+    <remap from="/handle/control" to="/left_hand/control"/>
+    <remap from="/handle/calibrate" to="/left_hand/calibrate"/>
+  </node>
+
+  <node pkg="flor_grasp_controllers" type="irobot_joint_states_node" name="irobot_jointstates_left_hand" output="screen" respawn="true" >  
+    <param name="zero" value="6250" type="int"/> <!--This is for spacers, without spacers set to 6750 or what best fits -->
+    <param name="hand" value="left" type="string"/>
+  </node>
+
+</launch>
