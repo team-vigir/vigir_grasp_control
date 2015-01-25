@@ -22,10 +22,12 @@ def process_loop(env, param_pipe, result_queue):
 		#Get the grasping params		
 		new_grasping_task = param_pipe.get(block=True, timeout=None)
 		replace_target(env, new_grasping_task.convex_hull)
+		print "\tTarget hash in subprocess: ", target.GetKinematicsGeometryHash()
 
 		# Evaluate the grasps
 		gmodel.generate(**new_grasping_task.openrave_params)
 		result_queue.put(gmodel.grasps)
+		print "\tFinished evaluating grasps. Good grasp count: ", len(gmodel.grasps)
 
 def replace_target(env, convex_hull):
 	new_mesh = TriMesh()

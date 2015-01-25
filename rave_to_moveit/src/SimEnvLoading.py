@@ -72,7 +72,6 @@ def build_environment():
 	robot = get_robot(env)
 	
 	env.Load('scenes/grasp_target.env.xml')
-	#target = env.GetKinBody(grasp_target_name)
 	target = get_grasp_target(env)
 
 	env.SetViewer('qtcoin')
@@ -135,21 +134,8 @@ def draw_world_axes(robot):
 #			loaded_hands[hand_name][ENV_NAME] = robot.GetName()
 #			print "Loaded ", loaded_hands[hand_name][ENV_NAME]
 
-def query_final_pose_frame():
-#	while True:
-#		suggestion = raw_input("Please input the reference frame of the final pose: \n\t0 - new \n\t1 - /world: ")
-#		if suggestion == "0":
-#			final_pose_frame = raw_input("what's your new frame? (please give it a slash prefix")
-#		elif suggestion == "1":
-#			final_pose_frame = "/world"
-#
-#		else:
-#			continue
-#
-#		break
+def get_final_pose_frame():
 	final_pose_frame = rospy.get_param("convex_hull/output_pose_frame")
-		#print("Could not get param: convex_hull/output_pose_frame, exiting")
-		#exit(1)
 
 	print "Output frame for poses: ", final_pose_frame
 	return final_pose_frame
@@ -184,7 +170,7 @@ class VigirGrasper:
 		init_subprocesses()
 
 	def init_subprocesses(self):
-		print "Initalizing process pool"
+		print "Initalizing process pool. ", self.num_addtl_processes, " additional processes"
 		self.grasp_task_msgs = []
 		self.processes = []
 		for i in range(self.num_addtl_processes):		
@@ -467,7 +453,7 @@ if __name__ == '__main__':
 	env, robot, target = build_environment()
 	grasper = VigirGrasper(env, robot, target)
 	
-	final_pose_frame = query_final_pose_frame()
+	final_pose_frame = get_final_pose_frame()
 	mesh_ref_frame = rospy.get_param("convex_hull/mesh_ref_frame")
 	raveio = openraveIO.openraveIO(grasper, final_pose_frame, mesh_ref_frame)
 	
