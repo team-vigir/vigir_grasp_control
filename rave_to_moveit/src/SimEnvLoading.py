@@ -87,13 +87,24 @@ def build_environment():
 
 def get_robot(env):
 	using_atlas = rospy.get_param("convex_hull/using_atlas", True)
+	robot = None
 	if using_atlas:
-		return env.GetRobot("atlas")
+		robot = env.GetRobot("atlas")
 	else:
-		return env.GetRobot("adept")
+		robot = env.GetRobot("adept")
+
+	if robot == None:
+		print "Could not select specified robot. Is it in the environment?"
+
+	return robot
 
 def get_grasp_target(env):
-	return env.GetKinBody(grasp_target_name)
+	target = env.GetKinBody(grasp_target_name)
+	if target == None:
+		print "Could not obtain grasping target. Is it in the envionment?"
+		exit(1)
+
+	return target
 
 def disable_atlas_visiblity(robot):
 	print "Disabling Atlas visiblity."
@@ -150,9 +161,9 @@ class graspProcess:
 		self.param_pipe = param_pipe
 		self.result_queue = result_queue
 
-		process.start()
+		self.process.start()
 	
-	def evaluate_grasps(params):
+	def evaluate_grasps(self, params):
 		self.param_pipe.put(params)
 
 class VigirGrasper:
@@ -175,7 +186,7 @@ class VigirGrasper:
 		self.grasp_task_msgs = []
 		self.processes = []
 		for i in range(self.num_addtl_processes):		
-			self.grasp_task_msgs.append(process_pool.grasp_params())
+			self.grasp_task_msgs.append(process_pool.grasp_params(None, None))
 			cloned_env = env.CloneSelf(openravepy_int.CloningOptions.Bodies | openravepy_int.CloningOptions.Modules)
 			self.processes.append(graspProcess(process_pool.process_loop, cloned_env, Queue(), Queue()))
 

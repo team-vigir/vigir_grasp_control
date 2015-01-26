@@ -19,12 +19,12 @@ def process_loop(env, param_pipe, result_queue):
 	gmodel = grasping.GraspingModel(robot,target)
 
 	while True:
-		#Get the grasping params		
+		#Get the grasping params with blocking IO
 		new_grasping_task = param_pipe.get(block=True, timeout=None)
 		replace_target(env, new_grasping_task.convex_hull)
 		print "\tTarget hash in subprocess: ", target.GetKinematicsGeometryHash()
 
-		# Evaluate the grasps
+		# Evaluate the grasps and report
 		gmodel.generate(**new_grasping_task.openrave_params)
 		result_queue.put(gmodel.grasps)
 		print "\tFinished evaluating grasps. Good grasp count: ", len(gmodel.grasps)
@@ -34,18 +34,13 @@ def replace_target(env, convex_hull):
 	new_mesh.vertices = []
 	for vertex in convex_hull.vertices:
 		new_mesh.vertices.append([vertex.x, vertex.y, vertex.z])
-	#print "convex_hull indices: ", convex_hull.triangles
+	
 	new_mesh.indices = []
 	for triangle_mesh in convex_hull.triangles:
 		new_mesh.indices.append(list(triangle_mesh.vertex_indices))
 
-	#print new_mesh.indices
-	#print new_mesh.vertices
-	#print dir(new_mesh)
 	grasp_target = SimEnvLoading.get_grasp_target(env)
 	env.RemoveKinBody(grasp_target)
 	
 	grasp_target.InitFromTrimesh(new_mesh, True)
 	env.AddKinBody(grasp_target)
-
-	#lol = raw_input("Pausing...")
