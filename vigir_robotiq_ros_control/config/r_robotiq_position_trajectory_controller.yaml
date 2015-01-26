@@ -1,6 +1,6 @@
 # trajectory controllers ---------------------------------------
   right_hand_traj_controller:
-    type: "position_controllers/VigirGraspTrajectoryController"
+    type: "vigir_ros_controllers/GraspTrajectoryController"
     joints:
       - right_f0_j1
       - right_f1_j1
