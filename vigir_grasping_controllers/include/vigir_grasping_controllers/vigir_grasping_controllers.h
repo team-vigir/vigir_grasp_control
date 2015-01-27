@@ -70,9 +70,9 @@
 // Project
 #include <trajectory_interface/trajectory_interface.h>
 
-#include <vigir_grasp_trajectory_controller/joint_trajectory_segment.h>
-#include <vigir_grasp_trajectory_controller/init_joint_trajectory.h>
-#include <joint_trajectory_controller//hardware_interface_adapter.h>
+#include <vigir_grasping_controllers/joint_trajectory_segment.h>
+#include <vigir_grasping_controllers/init_joint_trajectory.h>
+#include <joint_trajectory_controller/hardware_interface_adapter.h>
 
 namespace vigir_grasping_controllers
 {
@@ -272,6 +272,6 @@ private:
 
 } // namespace
 
-#include <vigir_grasp_trajectory_controller/vigir_grasp_trajectory_controller_impl.h>
+#include <vigir_grasping_controllers/vigir_grasping_controllers_impl.h>
 
 #endif // header guard

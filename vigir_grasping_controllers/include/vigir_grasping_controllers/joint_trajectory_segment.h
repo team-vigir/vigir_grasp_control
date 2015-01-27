@@ -48,7 +48,7 @@
 
 // Project
 #include <joint_trajectory_controller/joint_trajectory_msg_utils.h>
-#include <vigir_grasp_trajectory_controller/tolerances.h>
+#include <vigir_grasping_controllers/tolerances.h>
 
 namespace vigir_grasping_controllers
 {

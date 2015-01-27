@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package>
-  <name>vigir_grasp_trajectory_controller</name>
+  <name>vigir_grasping_controllers</name>
   <version>0.0.0</version>
-  <description>The vigir_grasp_trajectory_controller package</description>
+  <description>The vigir_grasping_controllers package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag --> 
   <!-- Example:  -->
@@ -50,6 +50,6 @@
 
   <!-- The export tag contains other, unspecified, tags -->
   <export>
-    <controller_interface plugin="${prefix}/vigir_grasp_ros_control_plugins.xml"/>
+    <controller_interface plugin="${prefix}/vigir_grasping_controllers_plugins.xml"/>
   </export>
 </package>

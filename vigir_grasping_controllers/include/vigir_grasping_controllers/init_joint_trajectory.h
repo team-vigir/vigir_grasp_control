@@ -49,7 +49,7 @@
 
 // Project
 #include <joint_trajectory_controller/joint_trajectory_msg_utils.h>
-#include <vigir_grasp_trajectory_controller/joint_trajectory_segment.h>
+#include <vigir_grasping_controllers/joint_trajectory_segment.h>
 
 namespace vigir_grasping_controllers
 {

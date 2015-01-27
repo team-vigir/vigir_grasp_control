@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vigir_grasp_trajectory_controller)
+project(vigir_grasping_controllers)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
@@ -100,10 +100,10 @@ include_directories(
 
 ## Declare a cpp library
 add_library(${PROJECT_NAME}
-    src/vigir_grasp_trajectory_controller.cpp
+    src/vigir_grasping_controllers.cpp
     include/${PROJECT_NAME}/init_joint_trajectory.h
-    include/${PROJECT_NAME}/vigir_grasp_trajectory_controller.h
-    include/${PROJECT_NAME}/vigir_grasp_trajectory_controller_impl.h
+    include/${PROJECT_NAME}/vigir_grasping_controllers.h
+    include/${PROJECT_NAME}/vigir_grasping_controllers_impl.h
     include/${PROJECT_NAME}/joint_trajectory_segment.h
     include/${PROJECT_NAME}/tolerances.h
 )
@@ -137,7 +137,7 @@ install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
   )
 
-install(FILES vigir_grasp_ros_control_plugins.xml
+install(FILES vigir_grasping_controllers_plugins.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
 
 #install the executable.

@@ -31,7 +31,7 @@
 
 // Project
 #include <trajectory_interface/quintic_spline_segment.h>
-#include <vigir_grasp_trajectory_controller/vigir_grasp_trajectory_controller.h>
+#include <vigir_grasping_controllers/vigir_grasping_controllers.h>
 
 
 namespace vigir_grasping_controllers
@@ -41,7 +41,7 @@ namespace vigir_grasping_controllers
    * commands to an \b effort interface.
    */
   typedef vigir_grasping_controllers::VigirGraspTrajectoryController<trajectory_interface::QuinticSplineSegment<double>,
-                                                                 hardware_interface::EffortJointInterface>
+                                                                 hardware_interface::PositionJointInterface>
           GraspTrajectoryController;
 }
 
