@@ -291,8 +291,8 @@ namespace vigir_grasp_controller_old{
 
 
 
-        std::string mesh_path = "package://vigir_template_library/object_templates/"+last_template_data.mesh_path + ".ply";
-        ROS_INFO("1 mesh_path: %s", mesh_path.c_str());
+        std::string mesh_path = last_template_data.mesh_path + ".ply";
+        ROS_INFO("Adding collision object from path: %s", mesh_path.c_str());
         shapes::Mesh* shape = shapes::createMeshFromResource(mesh_path);
         shapes::ShapeMsg mesh_msg;
 
