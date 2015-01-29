@@ -50,7 +50,6 @@
 #include "geometric_shapes/shape_messages.h"
 #include "geometric_shapes/shape_operations.h"
 
-
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
 #include <moveit_msgs/PlanningScene.h>
@@ -164,7 +163,6 @@ namespace vigir_grasp_controller_old{
         flor_grasp_msgs::HandStatus                  local_hand_status_msg_;
 
         VigirRobotiqFingerPoses                       finger_poses_;
-        std::vector< VigirRobotiqGraspSpecification>  potential_grasps_;
         std::vector< VigirRobotiqFingerPoses>         initial_finger_poses_; // cylindrical,prismatic, spherical
         std::vector< VigirRobotiqFingerPoses>         final_finger_poses_;   // cylindrical,prismatic, spherical
         VigirRobotiqFingerPoses                       current_finger_poses_;
@@ -178,7 +176,7 @@ namespace vigir_grasp_controller_old{
 
     private:
 
-        void loadRobotiqGraspDatabase(std::string& file_name);
+        void initializeEigenGrasps();
         int staticTransform(geometry_msgs::Pose& palm_pose);
         void trajectoryActiveCB();
         void trajectoryFeedbackCB(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback);

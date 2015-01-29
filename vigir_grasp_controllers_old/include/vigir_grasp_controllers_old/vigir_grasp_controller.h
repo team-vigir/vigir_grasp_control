@@ -75,6 +75,9 @@
 #include "geometric_shapes/shapes.h"
 #include "geometric_shapes/shape_messages.h"
 #include "geometric_shapes/shape_operations.h"
+#include <moveit_msgs/GripperTranslation.h>
+
+#include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 
 #define FINGER_EFFORTS 4
 
@@ -230,8 +233,9 @@ struct VigirGraspSpecification
 
      void attachCollisionObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data); //Attach a collision object to the hand
 
+     void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
 
-
+     void requestTemplateService(const uint16_t& requested_template_type);
 
   protected:
 
@@ -310,6 +314,7 @@ struct VigirGraspSpecification
     int16_t                                 finger_close_scale_;
 
     // Internal variables used by active controllers
+    vigir_object_template_msgs::GetTemplateStateAndTypeInfoResponse last_template_res_;
     geometry_msgs::Pose                     final_wrist_pose_;
     geometry_msgs::Pose                     pregrasp_wrist_pose_;
     tf::Transform                           stitch_template_pose_;
@@ -389,6 +394,9 @@ struct VigirGraspSpecification
     ros::Subscriber planner_status_sub_;        ///< Planner status (for reporting bundled error messages)
     ros::Subscriber controller_mode_sub_;       ///< Controller mode (verify we can control appendages)
     ros::Subscriber grasp_planning_group_sub_;
+
+
+    ros::ServiceClient template_info_client_;
 
 
     // called from within main loop to invoke handle updating of sensor data

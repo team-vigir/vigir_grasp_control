@@ -213,6 +213,8 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
      grasp_selection_sub_   = nh.subscribe("grasp_selection",    1, &VigirGraspController::graspSelectionCallback, this);
      grasp_planning_group_sub_   = nh.subscribe("/flor/ocs/ghost_ui_state",    1, &VigirGraspController::graspPlanningGroupCallback, this);
 
+     template_info_client_       = nh.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
+
      //Stitch template to hand transformation initialization
      this->stitch_template_pose_.setIdentity();
 
@@ -885,6 +887,7 @@ void VigirGraspController::controllerLoop()
                //ROS_INFO("current state: %d ",current_state);
                //ROS_INFO("requested: GraspID: %d , TemplateID: %d , Template Type: %d ",requested_grasp_id, requested_template_id, requested_template_type);
                //ROS_INFO("GraspID: %d , TemplateID: %d , Template Type: %d ",grasp_id_, template_id_, template_type_);
+               requestTemplateService(requested_template_type);
                updateGraspTemplate(requested_grasp_id, requested_template_id, requested_template_type);
 
                // If grasp was found in database, update wrist_target_pose_ and set to INIT
@@ -1175,7 +1178,7 @@ void VigirGraspController::controllerLoop()
                        close_percentage = uint8_t(100.0*grasp_fraction);
                        grip_percentage  = uint8_t(grasp_effort);
                        hand_T_template = hand_T_template_;
-                       this->setAttachingObject(hand_T_template, last_template_data); //Attaching collision object to robot
+                       //this->setAttachingObject(hand_T_template, last_template_data); //Attaching collision object to robot
                    }
                    if (!start_grasp_flag)
                        ROS_WARN("Logic error in %s - ready to monitor but not started grasp flag", hand_name_.c_str());
@@ -1397,6 +1400,54 @@ bool isIKSolutionCollisionFree()
 // END MAIN CONTROL LOOP
 /////////////////////////////////////////////////////////////////////////
 // Helper functions
+void VigirGraspController::requestTemplateService(const uint16_t& requested_template_type){
+    //CALLING THE TEMPLATE SERVER
+    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
+    srv.request.template_type = requested_template_type;
+    if (!template_info_client_.call(srv))
+    {
+        ROS_ERROR("Failed to call service request grasp info");
+    }
+    last_template_res_ = srv.response;
+}
+
+void VigirGraspController::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans){
+    geometry_msgs::Vector3Stamped direction = trans.direction;
+    tf::Transform template_T_hand, vec_in, vec_out;
+    ROS_INFO("receiving trans distance: %f; dx: %f, dy: %f, dz: %f", trans.desired_distance, direction.vector.x, direction.vector.y, direction.vector.z);
+    float norm = sqrt((direction.vector.x * direction.vector.x) +(direction.vector.y * direction.vector.y) +(direction.vector.z * direction.vector.z));
+    if(norm != 0){
+        direction.vector.x /= norm;
+        direction.vector.y /= norm;
+        direction.vector.z /= norm;
+    }else{
+        ROS_INFO("Norm is ZERO!");
+        direction.vector.x = 0 ;
+        direction.vector.y = -1;
+        direction.vector.z = 0 ;
+    }
+
+    direction.vector.x *= trans.desired_distance;
+    direction.vector.y *= trans.desired_distance;
+    direction.vector.z *= trans.desired_distance;
+
+    ROS_INFO("setting trans; dx: %f, dy: %f, dz: %f", direction.vector.x, direction.vector.y, direction.vector.z);
+
+    template_T_hand.setRotation(tf::Quaternion(pose.orientation.x,pose.orientation.y,pose.orientation.z,pose.orientation.w));
+    template_T_hand.setOrigin(tf::Vector3(0,0,0));
+
+    vec_in.setOrigin(tf::Vector3(direction.vector.x,direction.vector.y,direction.vector.z));
+    vec_in.setRotation(tf::Quaternion(0,0,0,1));
+
+    vec_out = template_T_hand * vec_in;
+
+    ROS_INFO("setting result; dx: %f, dy: %f, dz: %f", vec_out.getOrigin().getX(), vec_out.getOrigin().getY(), vec_out.getOrigin().getZ());
+
+    pose.position.x += vec_out.getOrigin().getX();
+    pose.position.y += vec_out.getOrigin().getY();
+    pose.position.z += vec_out.getOrigin().getZ();
+}
+
 
 } // end of vigir_grasp_controllers namespace
 

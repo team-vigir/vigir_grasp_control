@@ -20,6 +20,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   tf
   trajectory_msgs
+  vigir_object_template_msgs
 )
 
 ## System dependencies are found with CMake's conventions
@@ -94,7 +95,7 @@ find_package(Boost REQUIRED system filesystem date_time thread)
 catkin_package(
   INCLUDE_DIRS src
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS actionlib atlas_msgs control_msgs flor_control_msgs flor_grasp_msgs flor_ocs_msgs geometric_shapes handle_msgs moveit_core moveit_msgs osrf_msgs robotiq_s_model_control roscpp tf trajectory_msgs
+  CATKIN_DEPENDS actionlib atlas_msgs control_msgs flor_control_msgs flor_grasp_msgs flor_ocs_msgs geometric_shapes handle_msgs moveit_core moveit_msgs osrf_msgs robotiq_s_model_control roscpp tf trajectory_msgs vigir_object_template_msgs
 #  DEPENDS system_lib
 )
 

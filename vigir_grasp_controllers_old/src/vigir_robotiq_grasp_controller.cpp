@@ -84,7 +84,7 @@ namespace vigir_grasp_controller_old{
       aco_pub_                  = nh.advertise<moveit_msgs::AttachedCollisionObject>("/attached_collision_object", 1, true);
 
       // Load the hand specific grasping database
-      loadRobotiqGraspDatabase(this->filename);
+      initializeEigenGrasps();
 
       this->link_tactile_.name.resize(NUM_ROBOTIQ_PALM_JOINTS);
       this->link_tactile_.tactile_array.resize(NUM_ROBOTIQ_PALM_JOINTS);
@@ -380,16 +380,16 @@ namespace vigir_grasp_controller_old{
 
     void VigirRobotiqGraspController::setFingerPosesToID(const uint16_t& requested_release_id, const uint16_t& grasp_template_id)
     {// Assumes data is locked by calling thread
-        for (std::vector <VigirRobotiqGraspSpecification>::iterator it = potential_grasps_.begin() ; it != potential_grasps_.end(); ++it)
-        {
-            if((*it).grasp_id == requested_release_id)
-            {
-                this->grasp_id_       = (*it).grasp_id;
-                this->template_id_    = grasp_template_id;
-                this->template_type_  = (*it).template_type;
-                this->finger_poses_   = (*it).finger_poses;   // assumes defined array fully copied
-            }
-        }
+//        for (std::vector <VigirRobotiqGraspSpecification>::iterator it = potential_grasps_.begin() ; it != potential_grasps_.end(); ++it)
+//        {
+//            if((*it).grasp_id == requested_release_id)
+//            {
+//                this->grasp_id_       = (*it).grasp_id;
+//                this->template_id_    = grasp_template_id;
+//                this->template_type_  = (*it).template_type;
+//                this->finger_poses_   = (*it).finger_poses;   // assumes defined array fully copied
+//            }
+//        }
 
         if ( (this->grasp_id_ != requested_release_id))
         {
@@ -401,32 +401,32 @@ namespace vigir_grasp_controller_old{
 
     void VigirRobotiqGraspController::updateGraspTemplate(const uint16_t& requested_grasp_id, const uint16_t& requested_template_id, const uint16_t& requested_template_type)
     {
-        for (std::vector <VigirRobotiqGraspSpecification>::iterator it = potential_grasps_.begin() ; it != potential_grasps_.end(); ++it)
+        for(int index = 0; index < last_template_res_.template_type_information.grasps.size(); index++)
         {
-           if((*it).grasp_id == requested_grasp_id && (*it).template_type == requested_template_type)
-           {
-               boost::lock_guard<boost::mutex> sensor_data_lock(this->write_data_mutex_);
-               this->grasp_id_            = (*it).grasp_id;
-               this->template_type_       = (*it).template_type;
-               this->template_id_         = requested_template_id;
-               this->finger_poses_        = (*it).finger_poses;   // assumes defined array fully copied
-               this->final_wrist_pose_    = (*it).final_wrist_pose;
-               this->pregrasp_wrist_pose_ = (*it).pregrasp_wrist_pose;
-               this->grasp_type_          = (*it).grasp_type;
+            if(std::atoi(last_template_res_.template_type_information.grasps[index].id.c_str()) == requested_grasp_id){
+                boost::lock_guard<boost::mutex> sensor_data_lock(this->write_data_mutex_);
+                this->grasp_id_            = requested_grasp_id;
+                this->template_type_       = requested_template_type;
+                this->template_id_         = requested_template_id;
+                this->grasp_type_          = GRASP_CYLINDRICAL;
 
-               // Force a new round of template match to be sure and get wrist pose
-               this->template_updated_    = false;
+                this->finger_poses_.f0[0]  = last_template_res_.template_type_information.grasps[index].grasp_posture.points[0].positions[0];
+                this->finger_poses_.f0[1]  = last_template_res_.template_type_information.grasps[index].grasp_posture.points[0].positions[4];
+                this->finger_poses_.f0[2]  = last_template_res_.template_type_information.grasps[index].grasp_posture.points[0].positions[8];
+                this->finger_poses_.f0[3]  = last_template_res_.template_type_information.grasps[index].grasp_posture.points[0].positions[3];
 
-//                            ROS_INFO("  update grasp id = %d template=%d ", this->grasp_id_, this->template_id_);
-//                            ROS_INFO("        update grasp final-grasp target p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//                                     this->final_wrist_pose_.position.x,    this->final_wrist_pose_.position.z,    this->final_wrist_pose_.position.z,
-//                                     this->final_wrist_pose_.orientation.w, this->final_wrist_pose_.orientation.x, this->final_wrist_pose_.orientation.y, this->final_wrist_pose_.orientation.z);
-//                            ROS_INFO("        update grasp pre-grasp target p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-//                                     this->pregrasp_wrist_pose_.position.x,    this->pregrasp_wrist_pose_.position.z,    this->pregrasp_wrist_pose_.position.z,
-//                                     this->pregrasp_wrist_pose_.orientation.w, this->pregrasp_wrist_pose_.orientation.x, this->pregrasp_wrist_pose_.orientation.y, this->pregrasp_wrist_pose_.orientation.z);
+                this->final_wrist_pose_    = last_template_res_.template_type_information.grasps[index].grasp_pose.pose;
+                this->pregrasp_wrist_pose_ = last_template_res_.template_type_information.grasps[index].grasp_pose.pose;
+                staticTransform(this->final_wrist_pose_);
 
-           }
+                gripperTranslationToPreGraspPose(this->pregrasp_wrist_pose_,last_template_res_.template_type_information.grasps[index].pre_grasp_approach);
+                staticTransform(this->pregrasp_wrist_pose_);
 
+                // Force a new round of template match to be sure and get wrist pose
+                this->template_updated_    = false;
+
+                break;
+            }
         }
 
         if (-1 == this->grasp_id_ ) ROS_WARN("Failed to match grasp ID - set to -1");
@@ -540,24 +540,9 @@ namespace vigir_grasp_controller_old{
         return false;
     }
 
-    void VigirRobotiqGraspController::loadRobotiqGraspDatabase(std::string& file_name)
+    void VigirRobotiqGraspController::initializeEigenGrasps()
     {
-        /// @TODO - need to add expection protection for reading data out of range
-
-        ROS_INFO("Setup default joint names for the %s hand", hand_name_.c_str());
-
-        // Read the files to load all template and grasping data
-
-        // TODO - need to make this a paramter that we can set by calling from plugin
-        std::ifstream file ( file_name.c_str() );
-        std::string grasp_line;
-        VigirRobotiqGraspSpecification grasp_spec;
         std::string tmp_hand_name;
-        int8_t      tmp_hand_id;
-
-        potential_grasps_.clear();
-        potential_grasps_.push_back(VigirRobotiqGraspSpecification()); // default 0 grasp
-
 
         this->joint_names_.clear(); // reset the vector
 
@@ -579,150 +564,6 @@ namespace vigir_grasp_controller_old{
         {   // should throw exception here and abort plugin loading
             ROS_ERROR("Invalid joint names - don't match our vectors %d vs. %d", uint8_t(this->joint_names_.size()), NUM_ROBOTIQ_PALM_JOINTS);
         }
-
-
-        if (file.is_open())
-        {
-          while ( file.good() )
-          {
-            getline ( file, grasp_line);
-            if(grasp_line.find('#')==0 || grasp_line.size() <= 0){
-                continue;
-            }
-            std::stringstream values(grasp_line);
-            std::string value;
-            std::stringstream trimmer;
-            std::getline( values, value, ',' );
-            grasp_spec.grasp_id = atoi(value.c_str()); //grasp id
-            if (0 == grasp_spec.grasp_id)
-            {
-                ROS_INFO(" Skipping grasp specification 0 for %s given %s controller", tmp_hand_name.c_str(), hand_name_.c_str());
-                continue;
-            }
-
-            getline( values, value, ',' ); //template type
-            grasp_spec.template_type = atoi(value.c_str());
-
-            getline( values, value, ',' );  //hand
-            trimmer << value;
-            value.clear();
-            trimmer >> value; //removes white spaces
-            if(value.compare("left") == 0)
-            {
-                tmp_hand_name = "l_hand";
-                tmp_hand_id = -1;
-            }
-            else
-            {
-              tmp_hand_name = "r_hand";
-              tmp_hand_id = 1;
-            }
-
-            if (tmp_hand_id != hand_id_)
-            {
-                ROS_INFO(" Skipping grasp specification for %s given %s controller", tmp_hand_name.c_str(), hand_name_.c_str());
-                continue;
-            }
-
-            std::string tmp_grasp_type;
-            getline( values, tmp_grasp_type, ',' ); //grasp_type
-            trimmer.clear();
-            trimmer << tmp_grasp_type;
-            tmp_grasp_type.clear();
-            trimmer >> tmp_grasp_type; //removes white spaces
-            grasp_spec.grasp_type = GRASP_CYLINDRICAL;
-            if ("spherical" == tmp_grasp_type)
-            {
-                grasp_spec.grasp_type = GRASP_SPHERICAL;
-            } else if ("prismatic" == tmp_grasp_type) {
-                grasp_spec.grasp_type = GRASP_PRISMATIC;
-            } else if ("cylindrical" == tmp_grasp_type) {
-                grasp_spec.grasp_type = GRASP_CYLINDRICAL;
-            } else {
-                ROS_WARN(" Unknown grasp type <%s> assuming cylindrical", tmp_grasp_type.c_str());
-            }
-
-            getline( values, value, ',' ); // "finger poses:,"
-            assert(NUM_ROBOTIQ_PALM_JOINTS == this->joint_names_.size());
-            for(unsigned int i = 0; i < NUM_ROBOTIQ_PALM_JOINTS; ++i)
-            {
-              getline( values, value, ',' );
-
-              // Graspit outputs the fingers in different order, and these were copied into .grasp library
-              // We need to swap f0 and f2, which this code does
-              grasp_spec.finger_poses.f0[i]= atof(value.c_str()); //joints from the index
-            }
-            float ftmp;
-
-            getline( values, value, ',' ); // "final pose:,"
-            for(unsigned int i = 0; i < 7; ++i)
-            {
-              getline( values, value, ',' );
-              ftmp = atof(value.c_str()); //final pose values
-              if (ftmp > 2.0)
-              {
-                  ROS_ERROR("Found pose value > 2.0 in final wrist - Is this file using millimeters again - should be meters!");
-              }
-              switch(i)
-              {
-                  case 0: grasp_spec.final_wrist_pose.position.x    = ftmp; break;
-                  case 1: grasp_spec.final_wrist_pose.position.y    = ftmp; break;
-                  case 2: grasp_spec.final_wrist_pose.position.z    = ftmp; break;
-                  case 3: grasp_spec.final_wrist_pose.orientation.w = ftmp; break;
-                  case 4: grasp_spec.final_wrist_pose.orientation.x = ftmp; break;
-                  case 5: grasp_spec.final_wrist_pose.orientation.y = ftmp; break;
-                  case 6: grasp_spec.final_wrist_pose.orientation.z = ftmp; break;
-              }
-            }
-            //Static transformation to /r_hand
-            staticTransform(grasp_spec.final_wrist_pose);
-
-            getline( values, value, ',' ); // "pre-grasp pose:,"
-            for(unsigned int i = 0; i < 7; ++i)
-            {
-              getline( values, value, ',' );
-              ftmp = atof(value.c_str()); //pre-grasp values
-              if (ftmp > 2.0)
-              {
-                  ROS_ERROR("Found pose value > 2.0 in pre-grasp wrist - Is this file using millimeters again - should be meters!");
-              }
-              switch(i)
-              {
-                  case 0: grasp_spec.pregrasp_wrist_pose.position.x    = ftmp; break;
-                  case 1: grasp_spec.pregrasp_wrist_pose.position.y    = ftmp; break;
-                  case 2: grasp_spec.pregrasp_wrist_pose.position.z    = ftmp; break;
-                  case 3: grasp_spec.pregrasp_wrist_pose.orientation.w = ftmp; break;
-                  case 4: grasp_spec.pregrasp_wrist_pose.orientation.x = ftmp; break;
-                  case 5: grasp_spec.pregrasp_wrist_pose.orientation.y = ftmp; break;
-                  case 6: grasp_spec.pregrasp_wrist_pose.orientation.z = ftmp; break;
-              }
-            }
-            //Static transformation to /r_hand
-            staticTransform(grasp_spec.pregrasp_wrist_pose);
-
-            ROS_INFO("Loading Grasp from file: Id: %d, Template type: %d, Hand name: %s, Hand id: %d, Grasp type: %s",
-                     grasp_spec.grasp_id,grasp_spec.template_type,tmp_hand_name.c_str(),
-                     tmp_hand_id,tmp_grasp_type.c_str());
-            ROS_INFO("      pre-grasp   target p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-                     grasp_spec.pregrasp_wrist_pose.position.x,    grasp_spec.pregrasp_wrist_pose.position.z,grasp_spec.pregrasp_wrist_pose.position.z,
-                     grasp_spec.pregrasp_wrist_pose.orientation.w, grasp_spec.pregrasp_wrist_pose.orientation.x, grasp_spec.pregrasp_wrist_pose.orientation.y, grasp_spec.pregrasp_wrist_pose.orientation.z);
-            ROS_INFO("      final grasp target p=(%f, %f, %f) q=(%f, %f, %f, %f)",
-                     grasp_spec.final_wrist_pose.position.x,    grasp_spec.final_wrist_pose.position.z,grasp_spec.final_wrist_pose.position.z,
-                     grasp_spec.final_wrist_pose.orientation.w, grasp_spec.final_wrist_pose.orientation.x, grasp_spec.final_wrist_pose.orientation.y, grasp_spec.final_wrist_pose.orientation.z);
-            potential_grasps_.push_back(grasp_spec);
-          }
-          file.close();
-        }else
-        {
-          ROS_ERROR("Error loading grasp library from : %s",file_name.c_str());
-        }
-
-        // Let's sort the grasp id's into numerical order to allow fast location
-        ROS_INFO(" Sort grasp identifiers ...");
-
-        std::sort(potential_grasps_.begin(), potential_grasps_.end(), FlorGraspSpecificationSorter);
-
-        // probably should dump to screen to verify that data is still correct.
         ROS_INFO(" Resizing finger poses vectors for grasp types ...");
 
         initial_finger_poses_.resize(NUM_GRASP_TYPES);
@@ -775,7 +616,6 @@ namespace vigir_grasp_controller_old{
 
         ROS_INFO(" Done setting intital and final poses");
 
-        // Initialize states and control values
         active_state_.grasp_state.data = (TEMPLATE_GRASP_MODE << 4) + GRASP_STATE_NONE; // Nothing is specified until we get a grasp command AND template pose
         grasp_id_       = -1 ;
         template_id_    = -1 ;
@@ -789,7 +629,8 @@ namespace vigir_grasp_controller_old{
         grasp_status_.status  = RobotStatusCodes::GRASP_CONTROLLER_OK;
         grasp_status_code_    = RobotStatusCodes::GRASP_CONTROLLER_OK;
         grasp_status_severity_= RobotStatusCodes::OK;
-        ROS_INFO(" Done initializing grasp library! ");
+
+        ROS_INFO(" Done initializing states and control values");
 
     }
 
