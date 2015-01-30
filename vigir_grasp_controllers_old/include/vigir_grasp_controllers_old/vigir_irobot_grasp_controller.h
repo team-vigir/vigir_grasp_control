@@ -55,7 +55,7 @@
 #include <moveit_msgs/AttachedCollisionObject.h>
 #include <moveit_msgs/PlanningScene.h>
 
-namespace vigir_grasp_controller_old{
+namespace vigir_grasp_controllers_old{
 
   /**
     * This class defines the wrapper for the Grasp Controller Plugin
@@ -133,7 +133,7 @@ namespace vigir_grasp_controller_old{
         void setHandSurroundingData( )                     ;
         void setHandGraspingData(const double& grasp_fraction, const int8_t finger_effort[])   ;
         void setAttachingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data) ;
-        void setDetachingObject( )                     ;
+        void setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data  )                     ;
         void setHandMonitoringData(const double& grasp_effort, const int8_t finger_effort[])   ;
         void setHandOpeningData(const double& grasp_fraction)    ;
 

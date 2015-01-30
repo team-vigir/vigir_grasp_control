@@ -36,7 +36,7 @@
 #include <vigir_grasp_controllers_old/vigir_hook_grasp_controller.h>
 
 
-namespace vigir_grasp_controller_old{
+namespace vigir_grasp_controllers_old{
 
 
     VigirHookGraspController::VigirHookGraspController()
@@ -174,7 +174,7 @@ namespace vigir_grasp_controller_old{
     {
     }
 
-    void VigirHookGraspController::setDetachingObject( )
+    void VigirHookGraspController::setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data  )
     {
     }
 

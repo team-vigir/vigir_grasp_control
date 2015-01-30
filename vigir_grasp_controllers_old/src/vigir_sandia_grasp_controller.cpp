@@ -35,7 +35,7 @@
 #include <sandia_hand_msgs/RawFingerState.h>
 #include <vigir_grasp_controllers_old/vigir_sandia_grasp_controller.h>
 
-namespace vigir_grasp_controller_old{
+namespace vigir_grasp_controllers_old{
 
 
     VigirSandiaGraspController::VigirSandiaGraspController()
@@ -329,7 +329,7 @@ namespace vigir_grasp_controller_old{
     {
     }
 
-    void VigirSandiaGraspController::setDetachingObject( )
+    void VigirSandiaGraspController::setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data  )
     {
     }
 

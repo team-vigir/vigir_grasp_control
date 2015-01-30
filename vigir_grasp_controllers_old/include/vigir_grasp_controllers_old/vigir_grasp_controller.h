@@ -81,7 +81,7 @@
 
 #define FINGER_EFFORTS 4
 
-namespace vigir_grasp_controller_old {
+namespace vigir_grasp_controllers_old {
 
 typedef actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> TrajectoryActionClient;
 
@@ -176,7 +176,7 @@ struct VigirGraspSpecification
       virtual void setHandSurroundingData( )                      = 0;
       virtual void setHandGraspingData(const double& grasp_fraction, const int8_t finger_effort[])    = 0;
       virtual void setAttachingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data)  = 0 ;
-      virtual void setDetachingObject( )                      = 0;
+      virtual void setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data)   = 0;
       virtual void setHandMonitoringData(const double& grasp_effort, const int8_t finger_effort[])    = 0;
       virtual void setHandOpeningData(const double& grasp_fraction)     = 0;
 

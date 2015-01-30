@@ -93,7 +93,7 @@ find_package(Boost REQUIRED system filesystem date_time thread)
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS src
+  INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS actionlib atlas_msgs control_msgs flor_control_msgs flor_grasp_msgs flor_ocs_msgs geometric_shapes handle_msgs moveit_core moveit_msgs osrf_msgs robotiq_s_model_control roscpp tf trajectory_msgs vigir_object_template_msgs
 #  DEPENDS system_lib
@@ -106,7 +106,7 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN_INCLUDE_DIRS})
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${catkin_INCLUDE_DIRS} src)
 link_directories(${catkin_LIBRARY_DIRS})
 
 ## Declare a cpp library

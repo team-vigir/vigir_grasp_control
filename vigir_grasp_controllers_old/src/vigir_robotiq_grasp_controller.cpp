@@ -44,7 +44,7 @@
 #define SPR_CLOSE      SPREAD_RAD-SPR_OFFSET
 #define PER_TO_BYTE    2.55
 
-namespace vigir_grasp_controller_old{
+namespace vigir_grasp_controllers_old{
 
 
     VigirRobotiqGraspController::VigirRobotiqGraspController()
@@ -82,6 +82,7 @@ namespace vigir_grasp_controller_old{
       tactile_feedback_pub_ = nh.advertise<flor_grasp_msgs::LinkState>("robotiq_states", 1, true);      
 
       aco_pub_                  = nh.advertise<moveit_msgs::AttachedCollisionObject>("/attached_collision_object", 1, true);
+      co_pub_                   = nh.advertise<moveit_msgs::CollisionObject>("/collision_object", 1, true);
 
       // Load the hand specific grasping database
       initializeEigenGrasps();
@@ -257,6 +258,17 @@ namespace vigir_grasp_controller_old{
     void VigirRobotiqGraspController::setAttachingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data){
         //Add collision object with template pose and bounding box
 
+        ROS_INFO("Removing collision object :%s started",(boost::to_string(int16_t(last_template_data.template_id.data))).c_str());
+        /* First, define the REMOVE object message*/
+        moveit_msgs::CollisionObject remove_object;
+        remove_object.id = boost::to_string(int16_t(last_template_data.template_id.data));
+        remove_object.header.frame_id = "world";
+        remove_object.operation = remove_object.REMOVE;
+
+        ROS_INFO("Collision object :%s removed",remove_object.id.c_str());
+
+        co_pub_.publish(remove_object);
+
         ROS_INFO("Attach template started... ");
 
         // Define the attached object message
@@ -269,7 +281,7 @@ namespace vigir_grasp_controller_old{
         /* The header must contain a valid TF frame*/
         attached_object.object.header.frame_id = this->hand_name_;
         /* The id of the object */
-        attached_object.object.id = "box";
+        attached_object.object.id = boost::to_string(int16_t(last_template_data.template_id.data));
 
         /* A default pose */
         geometry_msgs::Pose pose;
@@ -332,11 +344,11 @@ namespace vigir_grasp_controller_old{
         aco_pub_.publish(attached_object);
     }
 
-    void VigirRobotiqGraspController::setDetachingObject( )
+    void VigirRobotiqGraspController::setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data )
     {
         /* First, define the DETACH object message*/
         moveit_msgs::AttachedCollisionObject detach_object;
-        detach_object.object.id = "box";
+        detach_object.object.id = boost::to_string(int16_t(last_template_data.template_id.data));
         detach_object.link_name = this->hand_name_;
         detach_object.object.operation = detach_object.object.REMOVE;
 

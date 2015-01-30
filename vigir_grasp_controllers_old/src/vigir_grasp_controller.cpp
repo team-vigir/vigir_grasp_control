@@ -39,7 +39,7 @@
 #include <flor_control_msgs/FlorControlModeCommand.h>
 
 //#include<trajectory.h>
-#include<trajectory_msgs/JointTrajectory.h>
+#include <trajectory_msgs/JointTrajectory.h>
 #include <moveit_msgs/CollisionObject.h>
 #include <moveit_msgs/AttachedCollisionObject.h>
 #include <moveit_msgs/PlanningScene.h>
@@ -54,7 +54,7 @@
 
 
 
-namespace vigir_grasp_controller_old{
+namespace vigir_grasp_controllers_old{
 
 
 VigirGraspController::VigirGraspController():
@@ -852,7 +852,7 @@ void VigirGraspController::controllerLoop()
 
                    setInitialJointToCurrentPositions();
 
-                   this->setDetachingObject();
+                   this->setDetachingObject(last_template_data);
 
                }
 
@@ -1178,7 +1178,7 @@ void VigirGraspController::controllerLoop()
                        close_percentage = uint8_t(100.0*grasp_fraction);
                        grip_percentage  = uint8_t(grasp_effort);
                        hand_T_template = hand_T_template_;
-                       //this->setAttachingObject(hand_T_template, last_template_data); //Attaching collision object to robot
+                       this->setAttachingObject(hand_T_template, last_template_data); //Attaching collision object to robot
                    }
                    if (!start_grasp_flag)
                        ROS_WARN("Logic error in %s - ready to monitor but not started grasp flag", hand_name_.c_str());
