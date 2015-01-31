@@ -261,7 +261,7 @@ namespace vigir_grasp_controllers_old{
         ROS_INFO("Removing collision object :%s started",(boost::to_string(int16_t(last_template_data.template_id.data))).c_str());
         /* First, define the REMOVE object message*/
         moveit_msgs::CollisionObject remove_object;
-        remove_object.id = boost::to_string(int16_t(last_template_data.template_id.data));
+        remove_object.id = boost::to_string(int16_t(last_template_data.template_id.data)); //FIX TO USE CORRECT ID
         remove_object.header.frame_id = "world";
         remove_object.operation = remove_object.REMOVE;
 
