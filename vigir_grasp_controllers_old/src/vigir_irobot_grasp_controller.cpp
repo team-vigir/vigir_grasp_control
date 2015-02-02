@@ -668,6 +668,10 @@ namespace vigir_grasp_controllers_old{
     {
     }
 
+    void VigirIRobotGraspController::setStitchingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data)
+    {
+    }
+
     void VigirIRobotGraspController::setHandNoneData( )
     {
         for(unsigned int i = 0; i < NUM_IROBOT_FINGER_JOINTS; ++i)

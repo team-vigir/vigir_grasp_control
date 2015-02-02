@@ -356,6 +356,36 @@ namespace vigir_grasp_controllers_old{
         aco_pub_.publish(detach_object);
     }
 
+    void VigirRobotiqGraspController::setStitchingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data)
+    {
+        ROS_INFO("Stitching template started... ");
+        moveit_msgs::AttachedCollisionObject attached_object;
+        attached_object.link_name = this->hand_name_;
+        /* The header must contain a valid TF frame*/
+        attached_object.object.header.frame_id = this->hand_name_;
+        /* The id of the object */
+        attached_object.object.id = boost::to_string(int16_t(last_template_data.template_id.data));
+
+        /* A default pose */
+        geometry_msgs::Pose pose;
+        pose.position.x    = hand_T_template.getOrigin().getX();
+        pose.position.y    = hand_T_template.getOrigin().getY();
+        pose.position.z    = hand_T_template.getOrigin().getZ();
+        pose.orientation.w = hand_T_template.getRotation().getW();
+        pose.orientation.x = hand_T_template.getRotation().getX();
+        pose.orientation.y = hand_T_template.getRotation().getY();
+        pose.orientation.z = hand_T_template.getRotation().getZ();
+
+        attached_object.object.primitive_poses.push_back(pose);
+
+        // Note that attaching an object to the robot requires
+        // the corresponding operation to be specified as an ADD operation
+        attached_object.object.operation = attached_object.object.MOVE;
+
+        ROS_INFO("Stitching the object to the %s wrist", this->hand_name_.c_str());
+        aco_pub_.publish(attached_object);
+    }
+
     void VigirRobotiqGraspController::setInitialFingerPoses(const uint8_t& grasp_type)
     {
         if (grasp_type < this->initial_finger_poses_.size())

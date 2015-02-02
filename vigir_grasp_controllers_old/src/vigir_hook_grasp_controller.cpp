@@ -178,6 +178,10 @@ namespace vigir_grasp_controllers_old{
     {
     }
 
+    void VigirHookGraspController::setStitchingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data)
+    {
+    }
+
     void VigirHookGraspController::setHandEfforts(const double& grasp_effort, const double finger_effort[])
     {
     }

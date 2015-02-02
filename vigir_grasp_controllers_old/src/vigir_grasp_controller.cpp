@@ -311,6 +311,13 @@ void VigirGraspController::templateStitchCallback(const flor_grasp_msgs::Templat
     //Publish to OCS
     if (template_stitch_pose_pub_)
     {
+        tf::Transform hand_T_template;
+        hand_T_template.setIdentity();
+        hand_T_template = hand_T_template_;
+        flor_grasp_msgs::TemplateSelection last_template_data;
+        last_template_data = this->last_template_msg_;
+        this->setStitchingObject(hand_T_template, last_template_data); //Stitching collision object to robot
+
         geometry_msgs::PoseStamped stitch_template_pose;
         stitch_template_pose.header.frame_id = template_pose.pose.header.frame_id;
         stitch_template_pose.header.seq++;
