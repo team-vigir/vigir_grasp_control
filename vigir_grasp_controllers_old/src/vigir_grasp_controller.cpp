@@ -215,6 +215,10 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
 
      template_info_client_       = nh.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
 
+     attach_object_client_       = nh.serviceClient<vigir_object_template_msgs::SetAttachedObjectTemplate>("/attach_object_template");
+     stitch_object_client_       = nh.serviceClient<vigir_object_template_msgs::SetStitchedObjectTemplate>("/stitch_object_template");
+     detach_object_client_       = nh.serviceClient<vigir_object_template_msgs::DetachObjectTemplate>(     "/detach_object_template");
+
      //Stitch template to hand transformation initialization
      this->stitch_template_pose_.setIdentity();
 
@@ -311,12 +315,9 @@ void VigirGraspController::templateStitchCallback(const flor_grasp_msgs::Templat
     //Publish to OCS
     if (template_stitch_pose_pub_)
     {
-        tf::Transform hand_T_template;
-        hand_T_template.setIdentity();
-        hand_T_template = hand_T_template_;
         flor_grasp_msgs::TemplateSelection last_template_data;
         last_template_data = this->last_template_msg_;
-        this->setStitchingObject(hand_T_template, last_template_data); //Stitching collision object to robot
+        this->setStitchingObject(last_template_data); //Stitching collision object to robot
 
         geometry_msgs::PoseStamped stitch_template_pose;
         stitch_template_pose.header.frame_id = template_pose.pose.header.frame_id;
@@ -1184,8 +1185,7 @@ void VigirGraspController::controllerLoop()
                        grasp_fraction = 1.0;
                        close_percentage = uint8_t(100.0*grasp_fraction);
                        grip_percentage  = uint8_t(grasp_effort);
-                       hand_T_template = hand_T_template_;
-                       this->setAttachingObject(hand_T_template, last_template_data); //Attaching collision object to robot
+                       this->setAttachingObject(last_template_data); //Attaching collision object to robot
                    }
                    if (!start_grasp_flag)
                        ROS_WARN("Logic error in %s - ready to monitor but not started grasp flag", hand_name_.c_str());
@@ -1416,6 +1416,40 @@ void VigirGraspController::requestTemplateService(const uint16_t& requested_temp
         ROS_ERROR("Failed to call service request grasp info");
     }
     last_template_res_ = srv.response;
+}
+
+void VigirGraspController::setAttachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data){
+    //Add collision object with template pose and bounding box
+
+    ROS_INFO("Attaching collision object :%s started",(boost::to_string(int16_t(last_template_data.template_id.data))).c_str());
+    vigir_object_template_msgs::SetAttachedObjectTemplate srv;
+    srv.request.template_id          = int16_t(last_template_data.template_id.data);
+    srv.request.pose                 = local_wrist_pose_msg_;
+    srv.request.pose.header.frame_id = this->hand_name_;
+    if (!attach_object_client_.call(srv))
+        ROS_ERROR("Failed to call service request SetAttachedObjectTemplate");
+}
+
+void VigirGraspController::setStitchingObject(const flor_grasp_msgs::TemplateSelection& last_template_data){
+    //Add collision object with template pose and bounding box
+
+    ROS_INFO("Stitching collision object :%s started",(boost::to_string(int16_t(last_template_data.template_id.data))).c_str());
+    vigir_object_template_msgs::SetStitchedObjectTemplate srv;
+    srv.request.template_id          = int16_t(last_template_data.template_id.data);
+    srv.request.pose                 = local_wrist_pose_msg_;
+    srv.request.pose.header.frame_id = this->hand_name_;
+    if (!stitch_object_client_.call(srv))
+        ROS_ERROR("Failed to call service request SetStitchedObjectTemplate");
+}
+
+void VigirGraspController::setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data){
+    //Add collision object with template pose and bounding box
+
+    ROS_INFO("Removing collision object :%s started",(boost::to_string(int16_t(last_template_data.template_id.data))).c_str());
+    vigir_object_template_msgs::DetachObjectTemplate srv;
+    srv.request.template_id          = int16_t(last_template_data.template_id.data);
+    if (!detach_object_client_.call(srv))
+        ROS_ERROR("Failed to call service request DetachObjectTemplate");
 }
 
 void VigirGraspController::gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans){

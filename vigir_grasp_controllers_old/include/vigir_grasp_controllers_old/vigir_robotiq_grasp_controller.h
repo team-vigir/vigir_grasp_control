@@ -51,10 +51,6 @@
 #include "geometric_shapes/shape_messages.h"
 #include "geometric_shapes/shape_operations.h"
 
-#include <moveit_msgs/CollisionObject.h>
-#include <moveit_msgs/AttachedCollisionObject.h>
-#include <moveit_msgs/PlanningScene.h>
-
 //#define NUM_ROBOTIQ_FINGER_JOINTS  11
 #define NUM_ROBOTIQ_PALM_JOINTS    4
 
@@ -143,9 +139,6 @@ namespace vigir_grasp_controllers_old{
         void setHandApproachingData(const double& grasp_fraction);
         void setHandSurroundingData( )                     ;
         void setHandGraspingData(const double& grasp_fraction, const int8_t finger_effort[])   ;
-        void setAttachingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data)      ;
-        void setStitchingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data)      ;
-        void setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data  )                     ;
         void setHandMonitoringData(const double& grasp_effort, const int8_t finger_effort[])   ;
         void setHandOpeningData(const double& grasp_fraction)    ;
 
@@ -186,8 +179,6 @@ namespace vigir_grasp_controllers_old{
 
         ros::Publisher  robotiq_states_pub_;
         ros::Publisher  robotiq_output_pub_;
-        ros::Publisher  aco_pub_;                    ///< Attached Collision Object Publisher
-        ros::Publisher  co_pub_;                    ///< Collision Object Publisher
         ros::Publisher  tactile_feedback_pub_;
         ros::Subscriber hand_status_sub_;
 

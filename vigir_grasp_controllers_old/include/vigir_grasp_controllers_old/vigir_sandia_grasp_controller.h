@@ -123,9 +123,6 @@ namespace vigir_grasp_controllers_old{
         void setHandApproachingData(const double& grasp_fraction);
         void setHandSurroundingData( )                     ;
         void setHandGraspingData(const double& grasp_fraction, const int8_t finger_effort[])   ;
-        void setAttachingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data) ;
-        void setStitchingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data)      ;
-        void setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data  )                     ;
         void setHandMonitoringData(const double& grasp_effort, const int8_t finger_effort[])   ;
         void setHandOpeningData(const double& grasp_fraction)    ;
 
