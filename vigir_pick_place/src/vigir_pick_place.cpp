@@ -53,13 +53,13 @@ void pick(moveit::planning_interface::MoveGroup &group)
 //  p.pose.orientation.z =  0.449446130412;
 //  p.pose.orientation.w =  0.530347504081;
 
-  p.pose.position.x    =  0.47417;
-  p.pose.position.y    =  0.21743;
-  p.pose.position.z    =  1.2511;
-  p.pose.orientation.x = -0.68684;
-  p.pose.orientation.y = -0.26322;
-  p.pose.orientation.z =  0.64401;
-  p.pose.orientation.w = -0.21027;
+  p.pose.position.x    =  0.49784;
+  p.pose.position.y    =  0.21317;
+  p.pose.position.z    =  1.2178;
+  p.pose.orientation.x = -0.68224;
+  p.pose.orientation.y = -0.12696;
+  p.pose.orientation.z =  0.65758;
+  p.pose.orientation.w = -0.29329;
 
   moveit_msgs::Grasp g;
   g.grasp_pose = p;
@@ -71,8 +71,8 @@ void pick(moveit::planning_interface::MoveGroup &group)
 
   g.post_grasp_retreat.direction.header.frame_id = "world";
   g.post_grasp_retreat.direction.vector.z = 1.0;
-  g.post_grasp_retreat.min_distance = 0.05;
-  g.post_grasp_retreat.desired_distance = 0.1;
+  g.post_grasp_retreat.min_distance = 0.005;
+  g.post_grasp_retreat.desired_distance = 0.01;
 
   g.pre_grasp_posture.joint_names.resize(11);
   g.pre_grasp_posture.joint_names[0]  = "left_f0_j1";
