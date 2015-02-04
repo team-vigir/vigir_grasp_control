@@ -8,7 +8,7 @@ def generate_grasp_params(gmodel, mesh_and_bounds_msg):
 	params = get_params(gmodel)
 
 	#filtered_ray_idxs = filter_approach_rays(params['approachrays'], mesh_and_bounds_msg, num_return_rays=0)
-	params['rolls'] = limit_wrist_rolling()
+	params['rolls'] = limit_wrist_rolling() #Forrest, please replace this!
 	params['preshapes'] = set_preshape(gmodel)
 	params['manipulatordirections'] = set_manip_approach_direction(gmodel)
 	#params['approachrays'] = gmodel.computeBoxApproachRays()
@@ -122,8 +122,47 @@ def get_plane_dist(pt, plane_coefficient_list):
 #	??What is this relative to? Current position?
 def limit_wrist_rolling():
 	wrist_orientations = linspace(-math.pi / 2, math.pi / 2, num=5)
-	#wrist_orientations = linspace(math.pi/2, math.pi/2, num=1)
 	print "wrist orientations: ", wrist_orientations
+	return wrist_orientations
+## Here is the function to replace...
+## Recall that atlas_and_ik.py has functions to reorient the palm to the approach, so that we
+## Input->	angle_check: angle interval at which to check for intersection with object
+## Output->	wrist_orientations: array of wrist orientations to check (in radians)
+def limit_wrist_rolling_circle(angle_check, approach_rays):
+	if 180 % angle_check != 0:
+		print "ERROR: Invalid angle input. Please choose an angle that is a factor of 180 degrees."
+		return
+	
+	angle_check_radians = (angle_check/360) * 2*math.pi
+	angle_check_radians_fingers = arange(0, math.pi, angle_check_radians)
+	#angle_check_radians_thumb = arange(math.pi, 2*math.pi, angle_check_radians)
+
+	reach = 0.1524 #open hand reach in meters
+	#angle_check_radians_pairs = zip(angle_check_radians_fingers, angle_check_radians_thumb)
+	
+	#Using one array of angles
+	for approach_ray in approach_rays:
+		for angle in angle_check_radians_fingers:
+			##Calculate points 180 degrees from each other to check for collisions
+			unit_vector = [math.cos(angle_check_radians[angle]), 0, math.sin(angle_check_radians_fingers)]/(sqrt(math.cos(angle_check_radians[angle])^2 + math.sin(angle_check_radians_fingers)^2))
+			##First direction
+			direction_vector_1 = reach * unit_vector
+			check_ray_pos_1[0:3] = approach_ray[0:3] + direction_vector_1
+			check_ray_1[0:3] = check_ray_pos_1
+			check_ray_1[3:6] = approach_ray[3:6]
+			##Second direction
+			direction_vector_2 = reach * -unit_vector
+			check_ray_pos_2[0:3] = approach_ray[0:3] + direction_vector_2
+			check_ray_2[0:3] = check_ray_pos_2
+			check_ray_2[3:6] = approach_ray[3:6]
+			##Check for collisions
+			if(env.CheckCollisionRays(check_ray_1, grasping_object) and env.CheckCollisionRays(check_ray_2, grasping_object)): ##grasping object needs to be defined
+				wrist_orientations.append(angle)
+	#Using two arrays of angles
+	#for approach_ray in approach_rays:
+		#for angle_pair in angle_check_radians_pairs:
+			#unit_vector = 
+			#if angle_check_radians_pairs[0] and angle_check_radians_pairs[1] ##add requirement that they dont intersect object
 	return wrist_orientations
 
 #Get an initial state for the fingers.
