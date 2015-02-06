@@ -79,9 +79,7 @@ namespace vigir_grasp_controllers_old{
       robotiqJointStates_sub_ = nh.subscribe(robotiqJointStatesSo);
 
       hand_status_sub_ = nh.subscribe("/grasp_control/" + hand_name_ + "/hand_status",       1, &VigirRobotiqGraspController::handStatusCallback,  this);
-      tactile_feedback_pub_ = nh.advertise<flor_grasp_msgs::LinkState>("robotiq_states", 1, true);      
-
-      co_pub_                   = nh.advertise<moveit_msgs::CollisionObject>("/collision_object", 1, true);
+      tactile_feedback_pub_ = nh.advertise<flor_grasp_msgs::LinkState>("robotiq_states", 1, true);
 
       // Load the hand specific grasping database
       initializeEigenGrasps();
