@@ -34,7 +34,7 @@ world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
-num_addtl_processes = 1
+num_addtl_processes = 0
 MAX_SOCKET_PAYLOAD = 10*1024*1024
 
 #Environment var name->[file_name, name_in_system]
