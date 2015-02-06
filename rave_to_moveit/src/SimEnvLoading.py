@@ -14,6 +14,9 @@ from numpy import hstack, vstack, mat, array, arange, fabs, zeros
 import math
 import random
 import copy
+import pickle
+import socket
+import sys
 
 from multiprocessing import Process, Queue
 
@@ -31,12 +34,21 @@ world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
-num_addtl_processes = 0
+num_addtl_processes = 1
+MAX_SOCKET_PAYLOAD = 10*1024*1024
 
 #Environment var name->[file_name, name_in_system]
 FILE_PATH = 0
 ENV_NAME = 1
 loaded_hands = {"l_robotiq":['robots/robotiq.dae', '']}
+
+class grasp_params:
+	def __init__(self):
+		return 1
+
+	def __init__(self, convex_hull, openrave_params):
+		self.convex_hull = convex_hull
+		self.openrave_params = openrave_params
 
 def set_openrave_logging():
 	misc.InitOpenRAVELogging()	#Sync python logging
@@ -85,6 +97,16 @@ def build_environment():
 
 	return env, robot, target
 
+def build_environment_subprocess():
+	env = Environment()
+	atlas_and_ik.load_atlas(env)
+	robot = get_robot(env)
+
+	env.Load('scenes/grasp_target.env.xml')
+	target = get_grasp_target(env)
+
+	return env, robot, target
+
 def get_robot(env):
 	using_atlas = rospy.get_param("convex_hull/using_atlas", True)
 	robot = None
@@ -102,7 +124,7 @@ def get_grasp_target(env):
 	target = env.GetKinBody(grasp_target_name)
 	if target == None:
 		print "Could not obtain grasping target. Is it in the envionment?"
-		exit(1)
+		sys.exit(1)
 
 	return target
 
@@ -147,7 +169,11 @@ def draw_world_axes(robot):
 #			print "Loaded ", loaded_hands[hand_name][ENV_NAME]
 
 def get_final_pose_frame():
-	final_pose_frame = rospy.get_param("convex_hull/output_pose_frame")
+	try:
+		final_pose_frame = rospy.get_param("convex_hull/output_pose_frame")
+	except KeyError:
+		rospy.logfatal("Parameter convex_hull/output_pose_frame could not be found. Are you using the standard launch files?")
+		sys.exit(1)
 
 	print "Output frame for poses: ", final_pose_frame
 	return final_pose_frame
@@ -181,17 +207,86 @@ class VigirGrasper:
 		self.num_addtl_processes = num_addtl_processes
 		self.init_subprocesses()
 
+	def __del__(self):
+		# Close the sockets to kill subprocesses
+		self.close_sockets_and_kill_subprocesses()
+
+	def __exit__(self, type, value, traceback):
+		self.close_sockets_and_kill_subprocesses()
+
+	def close_sockets_and_kill_subprocesses(self):
+		for idx, process in enumerate(self.processes):
+			process[1].shutdown()
+			os.wait()
+
 	def init_subprocesses(self):
 		print "Initalizing process pool. ", self.num_addtl_processes, " additional processes"
+		self.process_controller_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.process_controller_socket.bind(('127.0.0.1', 0))
+		self.process_controller_socket.listen(5)
+		self.process_socket_addr = self.process_controller_socket.getsockname()
+		print "OpenRAVE process controller socket initialized. Address: ", self.process_socket_addr
 		self.grasp_task_msgs = []
 		self.processes = []
 		for i in range(self.num_addtl_processes):		
 			self.grasp_task_msgs.append(process_pool.grasp_params(None, None))
-			cloned_env = env.CloneSelf(openravepy_int.CloningOptions.Bodies | openravepy_int.CloningOptions.Modules)
-			self.processes.append(graspProcess(process_pool.process_loop, cloned_env, Queue(), Queue()))
+			#cloned_env = env.CloneSelf(openravepy_int.CloningOptions.Bodies | openravepy_int.CloningOptions.Modules | openravepy_int.CloningOptions.Simulation | openravepy_int.CloningOptions.RealControllers)
+			#self.processes.append(graspProcess(process_pool.process_loop, cloned_env, Queue(), Queue()))
+			is_not_child = os.fork()
+			if is_not_child:
+				print "Started subprocess PID: ", is_not_child, ". Waiting for socket connection."
+				subprocess_sock_and_addr = self.process_controller_socket.accept()
+				self.processes.append([is_not_child, subprocess_sock_and_addr[0]])
+				print "Connection achieved"
+				
+			else:
+				print "\tSubprocess online!"
+				self.process_loop()
 
 	def set_io(self, io_obj):
 		self.raveio = io_obj
+
+	def process_loop(self):
+		global MAX_SOCKET_PAYLOAD
+		#self.env = env.CloneSelf(openravepy_int.CloningOptions.Bodies | openravepy_int.CloningOptions.Modules | openravepy_int.CloningOptions.Simulation | openravepy_int.CloningOptions.RealControllers)
+		self.env, self.robot, self.target = build_environment_subprocess()
+		self.gmodel = grasping.GraspingModel(self.robot, self.target)
+		cli_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		cli_socket.connect(self.process_socket_addr)
+		if cli_socket is not None:
+			print "\tConnection to parent process achieved. Socket: ", cli_socket.getsockname()
+
+		while True:
+			#Get the grasping params with blocking IO
+			print "\tListening..."
+			try:
+				new_grasping_task_str = cli_socket.recv(MAX_SOCKET_PAYLOAD)
+			except:
+				rospy.loginfo("Subprocess param socket threw exception. If main process just closed, it is normal")
+				sys.exit(1)
+			
+			print "Length of parameters: ", len(new_grasping_task_str)
+			if len(new_grasping_task_str) <= 0:
+				rospy.loginfo("Exiting OpenRAVE subprocess. Empty socket recv() implies socket has closed")
+				sys.exit(1)
+
+			
+			new_grasping_task = pickle.loads(new_grasping_task_str)
+			print "\tAbout to replace target!!"
+			self.replace_target(new_grasping_task.convex_hull)
+			print "\tTarget hash in subprocess: ", target.GetKinematicsGeometryHash()
+
+			# Evaluate the grasps and report
+			print "\tBefore generation in subprocess"
+			self.gmodel.generate(**new_grasping_task.openrave_params)
+			print "\tPlaced the results in the output queue."
+			result_string = pickle.dumps(self.gmodel.grasps)
+		 	if len(result_string) > MAX_SOCKET_PAYLOAD:
+				rospy.logfatal("Pickled grasp results from subprocess exceed max socket payload length: %d", len(result_string))
+				sys.exit(1)
+
+			cli_socket.send(result_string)
+			print "\tFinished evaluating grasps. Good grasp count: ", len(gmodel.grasps)
 
 	def update_process_targets(self, convex_hull):		
 		# Add to all process targets
@@ -199,27 +294,23 @@ class VigirGrasper:
 			self.grasp_task_msgs[i].convex_hull = convex_hull
 
 		# Update myself
-		process_pool.replace_target(self.env, convex_hull)		
+		self.replace_target(convex_hull)		
 
-	#def replace_target(self, convex_hull):
-	#	new_mesh = TriMesh()
-	#	new_mesh.vertices = []
-	#	for vertex in convex_hull.vertices:
-	#		new_mesh.vertices.append([vertex.x, vertex.y, vertex.z])
-		#print "convex_hull indices: ", convex_hull.triangles
-	#	new_mesh.indices = []
-	#	for triangle_mesh in convex_hull.triangles:
-	#		new_mesh.indices.append(list(triangle_mesh.vertex_indices))
+	def replace_target(self, convex_hull):
+		new_mesh = TriMesh()
+		new_mesh.vertices = []
+		for vertex in convex_hull.vertices:
+			new_mesh.vertices.append([vertex.x, vertex.y, vertex.z])
+	
+		new_mesh.indices = []
+		for triangle_mesh in convex_hull.triangles:
+			new_mesh.indices.append(list(triangle_mesh.vertex_indices))
 
-		#print new_mesh.indices
-		#print new_mesh.vertices
-		#print dir(new_mesh)
-	#	grasp_target = self.env.GetKinBody('grasp_target')
-	#	self.env.RemoveKinBody(grasp_target)
-	#	grasp_target.InitFromTrimesh(new_mesh, True)
-	#	self.env.AddKinBody(grasp_target)
-
-		#lol = raw_input("Pausing...")
+		grasp_target = get_grasp_target(self.env)
+		self.env.RemoveKinBody(grasp_target)
+	
+		grasp_target.InitFromTrimesh(new_mesh, True)
+		self.env.AddKinBody(grasp_target)
 
 	def find_grasps(self, mesh_and_bounds_msg): 
 		global ikmodel
@@ -229,7 +320,7 @@ class VigirGrasper:
 
 		params = plane_filters.generate_grasp_params(self.gmodel, mesh_and_bounds_msg)
 		params['approachrays'] = view_filter.directional_filter(params['approachrays'], mesh_and_bounds_msg.mesh_centroid, raveio.pelvis_listener, 140)
-		params['checkgraspfn'] = self.check_grasp_fn;
+		params['checkgraspfn'] = check_grasp_fn;
 
 		raveio.enable_moveit_octomap_updating(False)
 		
@@ -295,34 +386,65 @@ class VigirGrasper:
 		#		return grasps
 		
 		# Dispatch the subprocesses
+		params['remaininggrasps'] = -1	# Run through all grasps, no limit
 		for idx, process in enumerate(self.processes):
+			global MAX_SOCKET_PAYLOAD
 			self.grasp_task_msgs[idx].openrave_params = params
 			self.grasp_task_msgs[idx].openrave_params['approachrays'] = partitioned_rays[idx]
-			self.processes[idx].evaluate_grasps(self.grasp_task_msgs[idx])
+			grasp_eval_request_string = pickle.dumps(self.grasp_task_msgs[idx])		
+			if len(grasp_eval_request_string) > MAX_SOCKET_PAYLOAD:
+				rospy.logfatal("Grasp parameters to send to OpenRAVE subprocesses exceeds maximum socket payload: %d", len(grasp_eval_request_string))
+				sys.exit(1)
+
+			#for key in self.grasp_task_msgs[0].openrave_params:
+			#	print "Pickling key: ", key
+			#	print pickle.dumps(self.grasp_task_msgs[0].openrave_params[key])
+			#self.processes[idx].evaluate_grasps(self.grasp_task_msgs[idx])
+			num_bytes_sent = self.processes[idx][1].send(grasp_eval_request_string, socket.MSG_DONTWAIT)	# Request non-blocking IO
+			if num_bytes_sent != len(grasp_eval_request_string):
+				print "Could not send all grasp evaluation parameters to the subprocess ", self.processes[idx][0]
+				print "Sent ", num_bytes_sent, " out of ", len(grasp_eval_request_string)
+			else:
+				print "Grasp request sent!"
 
 		# Get results on the local process
-		params['remaininggrasps'] = -1	# Run through all grasps, no limit
+		#print "Env: ", self.env
+		raw_input("Is the other process running?")
 		params['approachrays'] = partitioned_rays[-1]
 		self.gmodel.generate(**params)
 		grasps.extend(self.gmodel.grasps)
 
 		# Collect results
+		#collect_subprocess_results()
+		print "Awaiting results from subprocesses."
+		result_buffer = self.processes[idx][1].recv(MAX_SOCKET_PAYLOAD) # 10mb limit.
+		print "Results from subprocess received. Length of string: ", result_buffer
+		subprocess_grasps = pickle.loads(result_buffer)
+		print "Number of grasps received: ", len(subprocess_grasps)
+
+
+		return grasps
+		
+	def collect_subprocess_results(self):
 		outstanding_results = range(self.num_addtl_processes)
-		while len(outstanding_results) != 0:
+		timeout = 5
+		while len(outstanding_results) != 0 and timeout > 0:
+			print "Awaiting results from processes: "
+			for process in self.processes:
+				print process[0], " ",
+
 			for i in outstanding_results:
-				if not self.processes[i].result_queue.empty():
+				result_str = self.processes[i][1].empty()
+				if result_str == None or result_str == "":
 					print "Got results from process ", i
 					grasps.extend(self.processes[i].result_queue.get())
 					del outstanding_results[i]
 			rospy.sleep(0.1)
+			timeout -= 0.1
 
-		return grasps
+		if timeout <= 0:
+			print "Timeout exceeded"
 	
-	def check_grasp_fn(self,contacts,finalconfig,grasp,analysis):
-		if analysis['volume'] > 1e-6:
-			return True
-		else:
-			return False
 
 	# The approach_vector must be the direction the hand moves toward the object!
 	def get_pregrasp_pose(self, final_pose_stamped, approach_vec, offset):
@@ -429,8 +551,14 @@ def partition_rays_for_processes(approach_rays, total_num_evaluators):
 		numpy.append(partition[i], approach_rays[-1 - i])
 
 	print "Partition: ", partition
-	raw_input("How does that partition look?")
 	return partition
+	
+def check_grasp_fn(contacts,finalconfig,grasp,analysis):
+	if analysis['volume'] > 1e-6:
+		return True
+	else:
+		return False
+
 
 def listen_for_LR_hand():
 	return rospy.Subscriber("grasping_hand_selection", String, set_hand_callback)
