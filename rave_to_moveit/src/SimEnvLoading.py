@@ -14,11 +14,12 @@ from numpy import hstack, vstack, mat, array, arange, fabs, zeros
 import math
 import random
 import copy
-import pickle
+import cPickle as pickle
 import socket
 import sys
 
 from multiprocessing import Process, Queue
+import paramiko	## SSH Client for distributed computation
 
 import grasping
 import plane_filters
@@ -34,7 +35,13 @@ world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
-num_addtl_processes = 0
+# num_addtl_processes = 1
+# tuple of hostname/ip, user, and number of processes to start
+#	Note: The computers must already have exchanged public keys.
+addtl_process_locations = [
+	('atlas', 'atlas', 1)
+]
+
 MAX_SOCKET_PAYLOAD = 10*1024*1024
 
 #Environment var name->[file_name, name_in_system]
@@ -178,6 +185,19 @@ def get_final_pose_frame():
 	print "Output frame for poses: ", final_pose_frame
 	return final_pose_frame
 
+def get_master_uri(local_host_ip):
+	raw_uri = os.environ['ROS_MASTER_URI']
+	addr_port = raw_uri.split('/')[2]
+	hostname_port = addr_port.split(':')
+
+	print "ROS_MASTER hostname: ", hostname_port[0]
+	if hostname_port[0] == "localhost" or hostname_port[0] == "127.0.0.1":
+		hostname_port[0] = local_host_ip
+		print "Changed hostname to ", hostname_port[0]
+
+	return 'http://' + hostname_port[0] + ':' + hostname_port[1]
+		
+
 class graspProcess:
 	def __init__(self):
 		print "Default constructor called for graspProcess"
@@ -215,6 +235,7 @@ class VigirGrasper:
 		self.close_sockets_and_kill_subprocesses()
 
 	def close_sockets_and_kill_subprocesses(self):
+		rospy.logwarn("Killing subprocesses on cleanup.")
 		for idx, process in enumerate(self.processes):
 			process[1].shutdown()
 			os.wait()
@@ -222,35 +243,64 @@ class VigirGrasper:
 	def init_subprocesses(self):
 		print "Initalizing process pool. ", self.num_addtl_processes, " additional processes"
 		self.process_controller_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.process_controller_socket.bind(('127.0.0.1', 0))
+		self.process_controller_socket.bind(('0.0.0.0', 0))
 		self.process_controller_socket.listen(5)
 		self.process_socket_addr = self.process_controller_socket.getsockname()
 		print "OpenRAVE process controller socket initialized. Address: ", self.process_socket_addr
+		
+		master_uri = get_master_uri()
+
 		self.grasp_task_msgs = []
-		self.processes = []
-		for i in range(self.num_addtl_processes):		
-			self.grasp_task_msgs.append(process_pool.grasp_params(None, None))
+		self.processes = {}
+		for host in addtl_process_locations:
+			self.processes[host[0]] = []
+			for proc_idx in range(host[1]):
+				new_process_info = {}
+				ssh_client = paramiko.SSHClient()
+				ssh_client.load_system_host_keys()
+				
+				ssh_client.set_missing_host_key_policy(paramiko.client.WarningPolicy())
+				try:
+					ssh_client.connect(host[0], username=host[1])
+
+					stdin, stdout, stderr = ssh_client.exec_command("$(rospack find rave_to_moveit)/src/SimEnvLoading.py --ip=" + self.process_socket_addr[0] + " --port=" + self.process_socket_addr[1]);
+					subprocess_sock_and_addr = self.process_controller_socket.accept()
+					new_process_info['ssh_conn'] = ssh_client
+					new_process_info['channel'] = subprocess_sock_and_addr
+					new_process_info['stdout'] = stdout
+					new_process_info['stdin'] = stdin
+					new_process_info['stderr'] = stderr
+					self.processes[host[0]].append(new_process_info)
+
+				except SSHException e:
+					print "Could not run SimEnvLoading on ", host[0], " process ", proc_idx, " What: ", e.what()
+		
+		print "Master's connection table: ", self.processes
+		## Old (2/7/2015) multiprocessing scheme. Fork doesn't copy threads, children hang when grasps requests are made.
+		#for i in range(self.num_addtl_processes):		
+		#	self.grasp_task_msgs.append(process_pool.grasp_params(None, None))
 			#cloned_env = env.CloneSelf(openravepy_int.CloningOptions.Bodies | openravepy_int.CloningOptions.Modules | openravepy_int.CloningOptions.Simulation | openravepy_int.CloningOptions.RealControllers)
 			#self.processes.append(graspProcess(process_pool.process_loop, cloned_env, Queue(), Queue()))
-			is_not_child = os.fork()
-			if is_not_child:
-				print "Started subprocess PID: ", is_not_child, ". Waiting for socket connection."
-				subprocess_sock_and_addr = self.process_controller_socket.accept()
-				self.processes.append([is_not_child, subprocess_sock_and_addr[0]])
-				print "Connection achieved"
+		#	is_not_child = os.fork()
+		#	if is_not_child:
+		#		print "Started subprocess PID: ", is_not_child, ". Waiting for socket connection."
+		#		subprocess_sock_and_addr = self.process_controller_socket.accept()
+		#		self.processes.append([is_not_child, subprocess_sock_and_addr[0]])
+		#		print "Connection achieved"
 				
-			else:
-				print "\tSubprocess online!"
-				self.process_loop()
+		#	else:
+		#		print "\tSubprocess online!"
+		#		self.process_loop()
 
 	def set_io(self, io_obj):
 		self.raveio = io_obj
 
 	def process_loop(self):
 		global MAX_SOCKET_PAYLOAD
-		#self.env = env.CloneSelf(openravepy_int.CloningOptions.Bodies | openravepy_int.CloningOptions.Modules | openravepy_int.CloningOptions.Simulation | openravepy_int.CloningOptions.RealControllers)
+		RaveInitialize(True)
 		self.env, self.robot, self.target = build_environment_subprocess()
 		self.gmodel = grasping.GraspingModel(self.robot, self.target)
+		self.raveio = None
 		cli_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		cli_socket.connect(self.process_socket_addr)
 		if cli_socket is not None:
@@ -280,7 +330,7 @@ class VigirGrasper:
 			print "\tBefore generation in subprocess"
 			self.gmodel.generate(**new_grasping_task.openrave_params)
 			print "\tPlaced the results in the output queue."
-			result_string = pickle.dumps(self.gmodel.grasps)
+			result_string = pickle.dumps(self.gmodel.grasps, pickle.HIGHEST_PROTOCOL)
 		 	if len(result_string) > MAX_SOCKET_PAYLOAD:
 				rospy.logfatal("Pickled grasp results from subprocess exceed max socket payload length: %d", len(result_string))
 				sys.exit(1)
@@ -391,14 +441,14 @@ class VigirGrasper:
 			global MAX_SOCKET_PAYLOAD
 			self.grasp_task_msgs[idx].openrave_params = params
 			self.grasp_task_msgs[idx].openrave_params['approachrays'] = partitioned_rays[idx]
-			grasp_eval_request_string = pickle.dumps(self.grasp_task_msgs[idx])		
+			grasp_eval_request_string = pickle.dumps(self.grasp_task_msgs[idx], pickle.HIGHEST_PROTOCOL)		
 			if len(grasp_eval_request_string) > MAX_SOCKET_PAYLOAD:
 				rospy.logfatal("Grasp parameters to send to OpenRAVE subprocesses exceeds maximum socket payload: %d", len(grasp_eval_request_string))
 				sys.exit(1)
 
 			#for key in self.grasp_task_msgs[0].openrave_params:
 			#	print "Pickling key: ", key
-			#	print pickle.dumps(self.grasp_task_msgs[0].openrave_params[key])
+			#	print pickle.dumps(self.grasp_task_msgs[0].openrave_params[key], pickle.HIGHEST_PROTOCOL)
 			#self.processes[idx].evaluate_grasps(self.grasp_task_msgs[idx])
 			num_bytes_sent = self.processes[idx][1].send(grasp_eval_request_string, socket.MSG_DONTWAIT)	# Request non-blocking IO
 			if num_bytes_sent != len(grasp_eval_request_string):

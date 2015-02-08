@@ -9,8 +9,8 @@ def generate_grasp_params(gmodel, mesh_and_bounds_msg):
 	params = get_params(gmodel)
 
 	#filtered_ray_idxs = filter_approach_rays(params['approachrays'], mesh_and_bounds_msg, num_return_rays=0)
-	#params['rolls'] = limit_wrist_rolling() #Forrest, please replace this!
-	params['rolls'] = limit_wrist_rolling_circle(30, params['approachrays'], gmodel.target, gmodel.env)
+	params['rolls'] = limit_wrist_rolling() #Forrest, please replace this!
+	#params['rolls'] = limit_wrist_rolling_circle(30, params['approachrays'], gmodel.target, gmodel.env)
 	params['preshapes'] = set_preshape(gmodel)
 	params['manipulatordirections'] = set_manip_approach_direction(gmodel)
 	#params['approachrays'] = gmodel.computeBoxApproachRays()
