@@ -79,7 +79,6 @@
 
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
-#include <vigir_object_template_msgs/SetStitchedObjectTemplate.h>
 #include <vigir_object_template_msgs/DetachObjectTemplate.h>
 
 #define FINGER_EFFORTS 4
