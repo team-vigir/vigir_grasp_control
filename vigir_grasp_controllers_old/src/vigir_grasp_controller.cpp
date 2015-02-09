@@ -216,7 +216,7 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
      template_info_client_       = nh.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
 
      attach_object_client_       = nh.serviceClient<vigir_object_template_msgs::SetAttachedObjectTemplate>("/attach_object_template");
-     stitch_object_client_       = nh.serviceClient<vigir_object_template_msgs::SetStitchedObjectTemplate>("/stitch_object_template");
+     stitch_object_client_       = nh.serviceClient<vigir_object_template_msgs::SetAttachedObjectTemplate>("/stitch_object_template");
      detach_object_client_       = nh.serviceClient<vigir_object_template_msgs::DetachObjectTemplate>(     "/detach_object_template");
 
      //Stitch template to hand transformation initialization
@@ -1434,7 +1434,7 @@ void VigirGraspController::setStitchingObject(const flor_grasp_msgs::TemplateSel
     //Add collision object with template pose and bounding box
 
     ROS_INFO("Stitching collision object :%s started",(boost::to_string(int16_t(last_template_data.template_id.data))).c_str());
-    vigir_object_template_msgs::SetStitchedObjectTemplate srv;
+    vigir_object_template_msgs::SetAttachedObjectTemplate srv;
     srv.request.template_id          = int16_t(last_template_data.template_id.data);
     srv.request.pose                 = local_wrist_pose_msg_;
     srv.request.pose.header.frame_id = this->hand_name_;
