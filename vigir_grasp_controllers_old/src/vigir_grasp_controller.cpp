@@ -127,17 +127,6 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
         ROS_WARN(" Did not find HAND parameter - using right hand as default");
     }
 
-    // which file are we reading
-    if (!nhp.hasParam("filename"))
-    {
-        ROS_WARN(" Did not find FILENAME parameter - using \"/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/grasp_library.grasp\" as default");
-    }
-
-    nhp.param<std::string>("filename", this->filename,  "/opt/vigir/rosbuild_ws/vigir_control/vigir_grasping/templates/grasp_library.grasp");
-    nhp.param<std::string>("hand", this->hand_name_,"r_hand");
-
-    ROS_INFO("Hand parameters received, hand: %s, filename: %s", this->hand_name_.c_str(), this->filename.c_str());
-
     this->hand_id_   = 1;
     this->hand_side_ = "right";
     if ("l_hand" == this->hand_name_){
@@ -167,8 +156,6 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
         nh.getParam("/l_hand_tf/hand_T_palm", hand_T_palm);
         ROS_INFO("Transformations selected for left");
     }
-
-
 
     gp_T_hand_.setOrigin(tf::Vector3(static_cast<double>(gp_T_hand[0]),static_cast<double>(gp_T_hand[1]),static_cast<double>(gp_T_hand[2])));
     gp_T_hand_.setRotation(tf::Quaternion(static_cast<double>(gp_T_hand[3]),static_cast<double>(gp_T_hand[4]),static_cast<double>(gp_T_hand[5]),static_cast<double>(gp_T_hand[6])));
