@@ -19,17 +19,12 @@ import socket
 import sys
 import argparse
 
-#from multiprocessing import Process, Queue
-#import paramiko	## SSH Client for distributed computation
-
 import grasping
 import plane_filters
 import atlas_and_ik
 import openraveIO
 import view_filter
 import process_pool
-#import check_initial_collisions as collision_test
-#import plugin_mods_verification
 
 gt = None
 world_axes = None
@@ -37,11 +32,6 @@ cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
 num_addtl_processes = 1
-# tuple of hostname/ip, user, and number of processes to start
-#	Note: The computers must already have exchanged public keys.
-#addtl_process_locations = [
-#	('atlas', 'atlas', 1)
-#]
 
 MAX_SOCKET_PAYLOAD = 10*1024*1024
 
@@ -186,36 +176,6 @@ def get_final_pose_frame():
 	print "Output frame for poses: ", final_pose_frame
 	return final_pose_frame
 
-## as of 2/10/2014, get_master_uri is not functional:
-##	it remains largely untested. And the given hostname
-##	is often the wildcard address
-#def get_master_uri(local_host_ip):
-#	raw_uri = os.environ['ROS_MASTER_URI']
-#	addr_port = raw_uri.split('/')[2]
-#	hostname_port = addr_port.split(':')
-#
-#	print "ROS_MASTER hostname: ", hostname_port[0]
-#	if hostname_port[0] == "localhost" or hostname_port[0] == "127.0.0.1":
-#		hostname_port[0] = local_host_ip
-#		print "Changed hostname to ", hostname_port[0]
-#
-#	return 'http://' + hostname_port[0] + ':' + hostname_port[1]
-		
-
-#class graspProcess:
-#	def __init__(self):
-#		print "Default constructor called for graspProcess"
-#	def __init__(self, funct, env_copy, param_pipe, result_queue):
-#		args = (env_copy, param_pipe, result_queue, )		
-#		self.process = Process(target=funct, args=args)
-#		self.param_pipe = param_pipe
-#		self.result_queue = result_queue
-#
-#		self.process.start()
-#	
-#	def evaluate_grasps(self, params):
-#		self.param_pipe.put(params)
-
 class VigirGrasper:
 	def __init__(self, env, robot, target):
 		print "Making grasper"
@@ -255,35 +215,6 @@ class VigirGrasper:
 		if self.num_addtl_processes > max_conn_count:
 			rospy.logwarn("Requested process count is greater than the max connection count allowed for listen(). Reducing subprocess count to " + str(max_conn_count))
 			self.num_addtl_processes = max_conn_count
-
-		#master_uri = get_master_uri(self.process_socket_addr[0])
-		#return
-
-		#self.grasp_task_msgs = []
-		#self.processes = {}
-		#for host in addtl_process_locations:
-		#	self.processes[host[0]] = []
-		#	for proc_idx in range(host[1]):
-		#		new_process_info = {}
-				#ssh_client = paramiko.SSHClient()
-				#ssh_client.load_system_host_keys()
-				
-				#ssh_client.set_missing_host_key_policy(paramiko.client.WarningPolicy())
-				#try:
-				#	ssh_client.connect(host[0], username=host[1])
-				#
-				#	stdin, stdout, stderr = ssh_client.exec_command("rosrun rave_to_moveit SimEnvLoading.py --ip=" + self.process_socket_addr[0] + " --port=" + self.process_socket_addr[1]);
-				#	subprocess_sock_and_addr = self.process_controller_socket.accept()
-				#	new_process_info['ssh_conn'] = ssh_client
-				#	new_process_info['channel'] = subprocess_sock_and_addr
-				#	new_process_info['stdout'] = stdout
-				#	new_process_info['stdin'] = stdin
-				#	new_process_info['stderr'] = stderr
-				#	self.processes[host[0]].append(new_process_info)
-
-				#except SSHException as e:
-				#	print "Could not run SimEnvLoading on ", host[0], " process ", proc_idx, " What: ", e.what()
-		
 
 		self.processes = []
 		self.grasp_task_msgs = []
