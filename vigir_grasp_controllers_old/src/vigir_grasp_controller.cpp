@@ -127,6 +127,10 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
         ROS_WARN(" Did not find HAND parameter - using right hand as default");
     }
 
+    nhp.param<std::string>("hand", this->hand_name_,"r_hand");
+
+    ROS_INFO("Hand parameters received, hand: %s, filename: %s", this->hand_name_.c_str(), this->filename.c_str());
+
     this->hand_id_   = 1;
     this->hand_side_ = "right";
     if ("l_hand" == this->hand_name_){
