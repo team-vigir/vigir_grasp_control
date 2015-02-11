@@ -254,9 +254,7 @@ class GraspingModel(DatabaseGenerator):
     def getversion(self):
         return 7
     def init(self,friction,avoidlinks,plannername=None):
-        print "Setting up basemanip"
 	self.basemanip = interfaces.BaseManipulation(self.robot,maxvelmult=self.maxvelmult)
-        print "Setting up grasper"
 	self.grasper = interfaces.Grasper(self.robot,friction=friction,avoidlinks=avoidlinks,plannername=plannername)
         self.grasps = []
     def load(self):
