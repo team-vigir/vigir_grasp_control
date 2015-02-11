@@ -17,6 +17,7 @@ import copy
 import cPickle as pickle
 import socket
 import sys
+import argparse
 
 from multiprocessing import Process, Queue
 import paramiko	## SSH Client for distributed computation
@@ -35,7 +36,7 @@ world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
-# num_addtl_processes = 1
+num_addtl_processes = 1
 # tuple of hostname/ip, user, and number of processes to start
 #	Note: The computers must already have exchanged public keys.
 addtl_process_locations = [
@@ -225,7 +226,6 @@ class VigirGrasper:
 		self.grasp_returnnum = rospy.get_param("/convex_hull/openrave_grasp_count_goal", 20);
 
 		self.num_addtl_processes = num_addtl_processes
-		self.init_subprocesses()
 
 	def __del__(self):
 		# Close the sockets to kill subprocesses
@@ -248,63 +248,71 @@ class VigirGrasper:
 		self.process_socket_addr = self.process_controller_socket.getsockname()
 		print "OpenRAVE process controller socket initialized. Address: ", self.process_socket_addr
 		
-		master_uri = get_master_uri()
+		master_uri = get_master_uri(self.process_socket_addr[0])
+		#return
 
-		self.grasp_task_msgs = []
-		self.processes = {}
-		for host in addtl_process_locations:
-			self.processes[host[0]] = []
-			for proc_idx in range(host[1]):
-				new_process_info = {}
-				ssh_client = paramiko.SSHClient()
-				ssh_client.load_system_host_keys()
+		#self.grasp_task_msgs = []
+		#self.processes = {}
+		#for host in addtl_process_locations:
+		#	self.processes[host[0]] = []
+		#	for proc_idx in range(host[1]):
+		#		new_process_info = {}
+				#ssh_client = paramiko.SSHClient()
+				#ssh_client.load_system_host_keys()
 				
-				ssh_client.set_missing_host_key_policy(paramiko.client.WarningPolicy())
-				try:
-					ssh_client.connect(host[0], username=host[1])
+				#ssh_client.set_missing_host_key_policy(paramiko.client.WarningPolicy())
+				#try:
+				#	ssh_client.connect(host[0], username=host[1])
+				#
+				#	stdin, stdout, stderr = ssh_client.exec_command("rosrun rave_to_moveit SimEnvLoading.py --ip=" + self.process_socket_addr[0] + " --port=" + self.process_socket_addr[1]);
+				#	subprocess_sock_and_addr = self.process_controller_socket.accept()
+				#	new_process_info['ssh_conn'] = ssh_client
+				#	new_process_info['channel'] = subprocess_sock_and_addr
+				#	new_process_info['stdout'] = stdout
+				#	new_process_info['stdin'] = stdin
+				#	new_process_info['stderr'] = stderr
+				#	self.processes[host[0]].append(new_process_info)
 
-					stdin, stdout, stderr = ssh_client.exec_command("$(rospack find rave_to_moveit)/src/SimEnvLoading.py --ip=" + self.process_socket_addr[0] + " --port=" + self.process_socket_addr[1]);
-					subprocess_sock_and_addr = self.process_controller_socket.accept()
-					new_process_info['ssh_conn'] = ssh_client
-					new_process_info['channel'] = subprocess_sock_and_addr
-					new_process_info['stdout'] = stdout
-					new_process_info['stdin'] = stdin
-					new_process_info['stderr'] = stderr
-					self.processes[host[0]].append(new_process_info)
+				#except SSHException as e:
+				#	print "Could not run SimEnvLoading on ", host[0], " process ", proc_idx, " What: ", e.what()
+		
 
-				except SSHException e:
-					print "Could not run SimEnvLoading on ", host[0], " process ", proc_idx, " What: ", e.what()
+		## Old (2/7/2015) multiprocessing scheme. Fork doesn't copy threads, children hang when grasps requests are made.
+		self.processes = []
+		self.grasp_task_msgs = []
+		for i in range(self.num_addtl_processes):		
+			self.grasp_task_msgs.append(process_pool.grasp_params(None, None))
+			is_not_child = os.fork()
+			if is_not_child:
+				print "Started subprocess PID: ", is_not_child, ". Waiting for socket connection."
+				subprocess_sock_and_addr = self.process_controller_socket.accept()
+				self.processes.append([is_not_child, subprocess_sock_and_addr[0]])
+				print "Connection achieved"
+				
+			else:
+				rospy.logerr("NOTE: the communication sockets between processes use the local loopback address, this will not work on a larger network.")
+				subprocess_cmd_str = "rosrun rave_to_moveit SimEnvLoading.py --ip=" + str("127.0.0.1") + " --port=" + str(self.process_socket_addr[1])
+				os.system(subprocess_cmd_str)
+				sys.exit(1)
 		
 		print "Master's connection table: ", self.processes
-		## Old (2/7/2015) multiprocessing scheme. Fork doesn't copy threads, children hang when grasps requests are made.
-		#for i in range(self.num_addtl_processes):		
-		#	self.grasp_task_msgs.append(process_pool.grasp_params(None, None))
-			#cloned_env = env.CloneSelf(openravepy_int.CloningOptions.Bodies | openravepy_int.CloningOptions.Modules | openravepy_int.CloningOptions.Simulation | openravepy_int.CloningOptions.RealControllers)
-			#self.processes.append(graspProcess(process_pool.process_loop, cloned_env, Queue(), Queue()))
-		#	is_not_child = os.fork()
-		#	if is_not_child:
-		#		print "Started subprocess PID: ", is_not_child, ". Waiting for socket connection."
-		#		subprocess_sock_and_addr = self.process_controller_socket.accept()
-		#		self.processes.append([is_not_child, subprocess_sock_and_addr[0]])
-		#		print "Connection achieved"
-				
-		#	else:
-		#		print "\tSubprocess online!"
-		#		self.process_loop()
 
 	def set_io(self, io_obj):
 		self.raveio = io_obj
 
-	def process_loop(self):
+	def process_loop(self, master_addr):
 		global MAX_SOCKET_PAYLOAD
-		RaveInitialize(True)
-		self.env, self.robot, self.target = build_environment_subprocess()
-		self.gmodel = grasping.GraspingModel(self.robot, self.target)
+		#RaveInitialize(True)
+		#self.env, self.robot, self.target = build_environment_subprocess()
+		#self.gmodel = grasping.GraspingModel(self.robot, self.target)
 		self.raveio = None
 		cli_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		cli_socket.connect(self.process_socket_addr)
+		cli_socket.connect(master_addr)
 		if cli_socket is not None:
 			print "\tConnection to parent process achieved. Socket: ", cli_socket.getsockname()
+		else:
+			rospy.logfatal("Connection to master grasping process not achieved. Terminating...")
+			sys.exit(1)
 
 		while True:
 			#Get the grasping params with blocking IO
@@ -336,7 +344,7 @@ class VigirGrasper:
 				sys.exit(1)
 
 			cli_socket.send(result_string)
-			print "\tFinished evaluating grasps. Good grasp count: ", len(gmodel.grasps)
+			print "\tFinished evaluating grasps. Good grasp count: ", len(self.gmodel.grasps)
 
 	def update_process_targets(self, convex_hull):		
 		# Add to all process targets
@@ -637,21 +645,54 @@ def set_hand_callback(msg):
 	
 
 
+def parse_args():
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--ip", type=str, help="If the instantiated process is a subprocess, this argument specifies the ip address of the master process.", default="0.0.0.0")
+	parser.add_argument("--port", type=int, help="This option comes with the --ip option. It specifies the port of the master process.", default=0)
+	#parser.add_argument("--masteruri", type=str, help="Specifies the master URI to connect to.", default="0")	
+
+	args = parser.parse_args()
+	ret_tuple = None
+	if args.ip != "0.0.0.0" and args.port != 0:
+		ret_tuple = (True, args.ip, args.port, "")
+	elif args.ip != "0.0.0.0":
+		print "Non-trivial ip specified with port 0, is this is a master process or a slave process?? Port:", args.port, " ip: ", args.ip, " Terminiating..."
+		sys.exit(1)
+	elif args.port != 0:
+		print "Non-trivial port specified with wildcard ip. Is this a master process or a slave process?? Terminating..."
+		sys.exit(1)
+	else:
+		ret_tuple = (False, "0.0.0.0", 0)
+		
+	return ret_tuple
+
+
 if __name__ == '__main__':
-	rospy.init_node('SimEnvLoading', anonymous=False)
+	args = parse_args()
+	if args[0] == True:
+		# This is a slave process
+		#sys.stdout = open("/home/eva/openrave_subprocess_log", "w")
+		rospy.init_node('SimEnvLoading', anonymous=True)
+		env, robot, target = build_environment_subprocess()
+		grasper_clone = VigirGrasper(env, robot, target)
+		grasper_clone.process_loop((args[1], args[2]))
+	else:
+		# This is the master process
+		rospy.init_node('SimEnvLoading', anonymous=False)
 
-	set_openrave_logging()
-	set_openrave_environment_vars()
-	env, robot, target = build_environment()
-	grasper = VigirGrasper(env, robot, target)
+		set_openrave_logging()
+		set_openrave_environment_vars()
+		env, robot, target = build_environment()
+		grasper = VigirGrasper(env, robot, target)
+		grasper.init_subprocesses()
+
+		final_pose_frame = get_final_pose_frame()
+		mesh_ref_frame = rospy.get_param("convex_hull/mesh_ref_frame")
+		raveio = openraveIO.openraveIO(grasper, final_pose_frame, mesh_ref_frame)
 	
-	final_pose_frame = get_final_pose_frame()
-	mesh_ref_frame = rospy.get_param("convex_hull/mesh_ref_frame")
-	raveio = openraveIO.openraveIO(grasper, final_pose_frame, mesh_ref_frame)
-	
-	grasper.set_io(raveio)
+		grasper.set_io(raveio)
 
-	hand_subscriber = listen_for_LR_hand()
+		hand_subscriber = listen_for_LR_hand()
 
-	print "Awaiting hulls..."
-	rospy.spin()
+		print "Awaiting hulls..."
+		rospy.spin()
