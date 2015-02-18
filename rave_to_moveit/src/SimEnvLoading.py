@@ -14,8 +14,6 @@ from numpy import hstack, vstack, mat, array, arange, fabs, zeros
 import math
 import random
 import copy
-import cPickle as pickle
-import socket
 import sys
 import argparse
 
@@ -25,6 +23,7 @@ import atlas_and_ik
 import openraveIO
 import view_filter
 import process_pool
+import subprocess_comm
 
 gt = None
 world_axes = None
@@ -32,8 +31,6 @@ cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
 num_addtl_processes = 1
-
-MAX_SOCKET_PAYLOAD = 10*1024*1024
 
 #Environment var name->[file_name, name_in_system]
 FILE_PATH = 0
@@ -205,13 +202,15 @@ class VigirGrasper:
 
 	def init_subprocesses(self):
 		print "Initalizing process pool. ", self.num_addtl_processes, " additional processes"
-		max_conn_count = 128
-		self.process_controller_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.process_controller_socket.bind(('0.0.0.0', 0))
-		self.process_controller_socket.listen(max_conn_count)
-		self.process_socket_addr = self.process_controller_socket.getsockname()
-		print "OpenRAVE process controller socket initialized. Address: ", self.process_socket_addr
-		
+		#max_conn_count = 128
+		#self.process_controller_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		#self.process_controller_socket.bind(('0.0.0.0', 0))
+		#self.process_controller_socket.listen(max_conn_count)
+		#self.process_socket_addr = self.process_controller_socket.getsockname()
+		#print "OpenRAVE process controller socket initialized. Address: ", self.process_socket_addr
+		max_conn_count = 128		
+		self.process_controller_socket, self.process_socket_addr = subprocess_comm.start_master_socket(max_conn_count)		
+
 		if self.num_addtl_processes > max_conn_count:
 			rospy.logwarn("Requested process count is greater than the max connection count allowed for listen(). Reducing subprocess count to " + str(max_conn_count))
 			self.num_addtl_processes = max_conn_count
@@ -239,10 +238,13 @@ class VigirGrasper:
 		
 		# Collect connections
 		for i in range(self.num_addtl_processes):
-			subprocess_sock_and_addr = self.process_controller_socket.accept()
-			child_pid = int(subprocess_sock_and_addr[0].recv(100))
-			self.processes.append([child_pid, subprocess_sock_and_addr[0]])
-			print "Connection achieved: ", subprocess_sock_and_addr[1]
+			#subprocess_sock_and_addr = self.process_controller_socket.accept()
+			#child_pid = int(subprocess_sock_and_addr[0].recv(100))
+			#self.processes.append([child_pid, subprocess_sock_and_addr[0]])
+			cur_conn = subprocess_comm.subprocess_comm_master(self.process_controller_socket)
+			child_pid = int(cur_conn.read_max_payload())
+			self.processes.append([child_pid, cur_conn])		
+			print "Connection achieved: ", cur_conn.child_sock_addr[1]
 			
 		print "Master's connection table: ", self.processes
 
@@ -250,53 +252,31 @@ class VigirGrasper:
 		self.raveio = io_obj
 
 	def process_loop(self, master_addr):
-		global MAX_SOCKET_PAYLOAD
+		#global MAX_SOCKET_PAYLOAD
 		self.raveio = None
-		pid = os.getpid()
-		cli_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		cli_socket.connect(master_addr)
-		if cli_socket is not None:
-			print "\tConnection to parent process achieved. Socket: ", cli_socket.getsockname()
-			cli_socket.send(str(pid))
-		else:
-			rospy.logfatal("Connection to master grasping process not achieved. Terminating...")
-			sys.exit(1)
+		#pid = os.getpid()
+		#cli_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		#cli_socket.connect(master_addr)
+		#if cli_socket is not None:
+		#	print "\tConnection to parent process achieved. Socket: ", cli_socket.getsockname()
+		#	cli_socket.send(str(pid))
+		#else:
+		#	rospy.logfatal("Connection to master grasping process not achieved. Terminating...")
+		#	sys.exit(1)
+		self.master_conn = subprocess_comm.subprocess_comm_slave(master_addr)
 
 		while True:
 			#Get the grasping params with blocking IO
 			print "\tListening..."
-			try:
-				new_grasping_task_str = cli_socket.recv(MAX_SOCKET_PAYLOAD)
-			except:
-				rospy.loginfo("Subprocess param socket threw exception. If main process just closed, it is normal")
-				sys.exit(1)
-			
-			print "Length of parameters: ", len(new_grasping_task_str)
-			if len(new_grasping_task_str) <= 0:
-				rospy.loginfo("Exiting OpenRAVE subprocess. Empty socket recv() implies socket has closed")
-				sys.exit(1)
-
-			try:
-				new_grasping_task = pickle.loads(new_grasping_task_str)
-			except:
-				rospy.logerr("Could not unpickle grasp params appropriately. Writing data to file. Skipping evaluation...")
-				rospack = rospkg.RosPack()
-				rave_to_moveit_path = rospack.get_path('rave_to_moveit')
-				err_file = open(rave_to_moveit_path + "/logs/unpickleable_data.pkl", "w")
-				err_file.write(new_grasping_task_str)
-				err_file.close()
+			new_grasping_task = self.master_conn.listen_for_grasp_request()
+			if new_grasping_task == None:
 				continue
 
 			self.replace_target(new_grasping_task.convex_hull)
 
 			# Evaluate the grasps and report
 			self.gmodel.generate(**new_grasping_task.openrave_params)
-			result_string = pickle.dumps(self.gmodel.grasps, pickle.HIGHEST_PROTOCOL)
-		 	if len(result_string) > MAX_SOCKET_PAYLOAD:
-				rospy.logfatal("Pickled grasp results from subprocess exceed max socket payload length: %d", len(result_string))
-				sys.exit(1)
-
-			cli_socket.send(result_string)
+			master_conn.send_results(self.gmodel.grasps)
 			print "\tFinished evaluating grasps. Good grasp count: ", len(self.gmodel.grasps)
 
 	def update_process_targets(self, convex_hull):		
@@ -373,7 +353,6 @@ class VigirGrasper:
 			self.show_ik_on_request()
 
 	def get_grasps(self, mesh_and_bounds_msg, params, gt, returnnum=5):
-		global MAX_SOCKET_PAYLOAD
 		grasps = []
 		partitioned_rays = partition_rays_for_processes(params['approachrays'], self.num_addtl_processes + 1)
 		
@@ -387,18 +366,28 @@ class VigirGrasper:
 		for idx, process in enumerate(self.processes):
 			self.grasp_task_msgs[idx].openrave_params = params
 			self.grasp_task_msgs[idx].openrave_params['approachrays'] = partitioned_rays[idx]
-			grasp_eval_request_string = pickle.dumps(self.grasp_task_msgs[idx], pickle.HIGHEST_PROTOCOL)		
-			if len(grasp_eval_request_string) > MAX_SOCKET_PAYLOAD:
-				rospy.logfatal("Grasp parameters to send to OpenRAVE subprocesses exceeds maximum socket payload: %d", len(grasp_eval_request_string))
-				self.close_sockets_and_kill_subprocesses()
-				sys.exit(1)
-
-			num_bytes_sent = self.processes[idx][1].send(grasp_eval_request_string, socket.MSG_DONTWAIT)	# Request non-blocking IO
-			if num_bytes_sent != len(grasp_eval_request_string):
-				print "Could not send all grasp evaluation parameters to the subprocess ", self.processes[idx][0]
-				print "Sent ", num_bytes_sent, " out of ", len(grasp_eval_request_string)
+			if (self.processes[idx][1].send_grasping_request(self.grasp_task_msgs[idx])):
+				print "Process ", self.processes[idx][0], " was sent grasping parameters."
 			else:
-				print "Grasp request sent!"
+				rospy.logerr("Could not send parameters to subprocess. Ignoring...")
+
+			#grasp_eval_request_string = pickle.dumps(self.grasp_task_msgs[idx], pickle.HIGHEST_PROTOCOL)		
+			#if len(grasp_eval_request_string) > MAX_SOCKET_PAYLOAD:
+			#	rospy.logfatal("Grasp parameters to send to OpenRAVE subprocesses exceeds maximum socket payload: %d", len(grasp_eval_request_string))
+			#	self.close_sockets_and_kill_subprocesses()
+			#	sys.exit(1)
+
+			# Send the size of the message with a small header.
+			#msg_size = len(grasp_eval_request_string)
+			#msg_size_np_str = picke.dumps(numpy.uint32(msg_size), pickle.HIGHEST_PROTOCOL)
+			#self.processes[idx][1].send(length_msg_str + msg_size_np_str, socket.MSG_DONTWAIT)
+
+			#num_bytes_sent = self.processes[idx][1].send(grasp_eval_request_string, socket.MSG_DONTWAIT)	# Request non-blocking IO
+			#if num_bytes_sent != len(grasp_eval_request_string):
+			#	print "Could not send all grasp evaluation parameters to the subprocess ", self.processes[idx][0]
+			#	print "Sent ", num_bytes_sent, " out of ", len(grasp_eval_request_string)
+			#else:
+			#	print "Grasp request sent!"
 
 		# Get results on the local process
 		raw_input("Is the other process running?")
@@ -407,12 +396,12 @@ class VigirGrasper:
 		grasps.extend(self.gmodel.grasps)
 
 		# Collect results
-		#collect_subprocess_results()
-		print "Awaiting results from subprocesses."
-		result_buffer = self.processes[idx][1].recv(MAX_SOCKET_PAYLOAD) # 10mb limit.
-		print "Results from subprocess received. Length of string: ", result_buffer
-		subprocess_grasps = pickle.loads(result_buffer)
-		print "Number of grasps received: ", len(subprocess_grasps)
+		collect_subprocess_results()
+		#print "Awaiting results from subprocesses."
+		#result_buffer = self.processes[idx][1].recv(MAX_SOCKET_PAYLOAD) # 10mb limit.
+		#print "Results from subprocess received. Length of string: ", result_buffer
+		#subprocess_grasps = pickle.loads(result_buffer)
+		#print "Number of grasps received: ", len(subprocess_grasps)
 
 
 		return grasps
@@ -425,17 +414,32 @@ class VigirGrasper:
 			for process in self.processes:
 				print process[0], " ",
 
-			for i in outstanding_results:
-				result_str = self.processes[i][1].empty()
-				if result_str == None or result_str == "":
+			for i in outstanding_results[::-1]:
+				if not self.processes[i][1].is_empty():
 					print "Got results from process ", i
-					grasps.extend(self.processes[i].result_queue.get())
-					del outstanding_results[i]
+					results = self.processes[i][1].get_results()
+					if results is not None:					
+						grasps.extend(results)
+						del outstanding_results[i]
+					else:
+						rospy.logerr("Ignoring grasping results.")
 			rospy.sleep(0.1)
 			timeout -= 0.1
 
 		if timeout <= 0:
-			print "Timeout exceeded"
+			rospy.logwarn("Timeout exceeded for receiving grasps from some processes.")
+
+		if len(outstanding_results) > 0:
+			id_result_str = ""
+			for idx in outstanding_results:
+				id_result_str += str(idx) + "  "
+				self.processes[i].shutdown()
+			rospy.logerr("Could not receieve results from: " + id_result_str)
+			rospy.logerr("Closing connections.")
+
+			for idx, process in enumerate(self.processes[::-1]):
+				self.num_addtl_processes -= 1
+				del self.processes[idx]
 	
 
 	# The approach_vector must be the direction the hand moves toward the object!
