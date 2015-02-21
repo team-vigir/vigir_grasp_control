@@ -10,20 +10,30 @@ pickle_protocol = pickle.HIGHEST_PROTOCOL
 length_msg_str = "len:"
 len_type = numpy.uint32
 msg_size_pickle_str_len = len(pickle.dumps(len_type(0), pickle.HIGHEST_PROTOCOL))
+GOOD = 0
+UNRESPONSIVE = 1
 
 class subprocess_comm_master:
 	def __init__(self, master_socket):
+		global GOOD
 		self.establish_child_connection(master_socket)
+		self.conn_state = GOOD
 
 	def establish_child_connection(self, master_socket):
 		subprocess_sock_and_addr = master_socket.accept()
-		self.child_sock = subprocess_sock_and_addr[0]
-		self.child_sock_addr = subprocess_sock_and_addr[1]
+		self.pipe_to_child = subprocess_sock_and_addr[0]
+		self.pipe_to_child_addr = subprocess_sock_and_addr[1]
+	
+	def get_child_addr(self):
+		return self.pipe_to_child_addr
+	
+	def get_sock(self):
+		return self.pipe_to_child
 
 	def read_max_payload(self):
 		global MAX_SOCKET_PAYLOAD
-		bytes = self.child_sock.recv(MAX_SOCKET_PAYLOAD)
-		return bytes
+		payload = self.pipe_to_child.recv(MAX_SOCKET_PAYLOAD)
+		return payload
 
 	# Returns: False on failure and True on success
 	def send_grasping_request(self, grasp_params):
@@ -37,10 +47,19 @@ class subprocess_comm_master:
 				return False
 
 		msg_size = len(grasp_eval_request_string)
-		write_msg_len(self.child_sock, msg_size)
+		try:
+			write_msg_len(self.pipe_to_child, msg_size)
+		except:
+			rospy.logerr("Cannot write length message to child in send_grasping_request.")
+			return False
 
 		# Write the message
-		num_bytes_sent = self.child_sock.send(grasp_eval_request_string, socket.MSG_DONTWAIT)	# Request non-blocking IO
+		try:
+			num_bytes_sent = self.pipe_to_child.send(grasp_eval_request_string, socket.MSG_DONTWAIT)	# Request non-blocking IO
+		except:
+			rospy.logerr("Cannot write grasp param message to child in send_grasping_request.")
+			return False
+
 		if num_bytes_sent != len(grasp_eval_request_string):
 			print "Could not send all grasp evaluation parameters to the subprocess ", self.processes[idx][0]
 			print "Sent ", num_bytes_sent, " out of ", len(grasp_eval_request_string)
@@ -49,39 +68,65 @@ class subprocess_comm_master:
 			print "Grasp request sent!"
 		return True
 
-	def is_empty(self):
-		result_str = self.child_sock.empty()
-		if result_str == None or result_str == "":
-			return True
-		else:
-			return False
+	#def is_empty(self):
+	#	result_str = self.pipe_to_child.empty()
+	#	if result_str == None or result_str == "":
+	#		return True
+	#	else:
+	#		return False
 
 	def get_results(self):
 		global pickle_protocol		
-		msg_len = read_msg_len(self.child_sock)
 		try:
-			grasp_results = self.child_sock.recv(msg_len, socket.MSG_WAITALL)
-			if len(grasp_results) != msg_len:
-				rospy.logerr("Received %d bytes when expecting %d bytes.", len(grasp_results), msg_len)
+			msg_len = read_msg_len(self.pipe_to_child)
+			grasp_results_str = self.pipe_to_child.recv(msg_len, socket.MSG_WAITALL)
+			if len(grasp_results_str) != msg_len:
+				rospy.logerr("Received %d bytes when expecting %d bytes.", len(grasp_results_str), msg_len)
 				return None
 		except:
 			rospy.logerr("Reading results from subprocess grasp evaluation yielded exception.")
 			return None
 
-		grasp_results = pickle.loads(result_buffer)
+		grasp_results = pickle.loads(grasp_results_str)
 		return grasp_results
 
+	def dump_buffer(self):
+		global pickle_protocol
+		global MAX_SOCKET_PAYLOAD
+		try:
+			msg_len = read_msg_len(self.pipe_to_child)
+			msg = self.pipe_to_child.recv(MAX_SOCKET_PAYLOAD, socket.MSG_DONTWAIT)
+			if len(msg) != msg_len:
+				rospy.logerr("Subprocess sent incomplete grasping results. Possibly died.")
+				return None
+		except:
+			rospy.logerr("Trouble child connection. Socket should be closed.")
+			return None
+
+		return True
+
+
+
+	def set_state(self, state):
+		self.conn_state = state
+
+	def get_state(self):
+		return self.conn_state
+
 	def shutdown(self):
-		self.child_sock.shutdown()
+		try:
+			self.pipe_to_child.shutdown(socket.SHUT_RDWR)
+		except:
+			rospy.loginfo("Exception thrown in master to child socket shutdown. Probably trouble on the child side.")
 
 class subprocess_comm_slave:
 	def __init__(self, master_addr):
-		self.child_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		self.child_sock.connect(master_addr)
-		if self.child_sock is not None:
-			print "\tConnection to parent process achieved. Socket: ", self.child_sock.getsockname()
+		self.pipe_to_parent = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		self.pipe_to_parent.connect(master_addr)
+		if self.pipe_to_parent is not None:
+			print "\tConnection to parent process achieved. Socket: ", self.pipe_to_parent.getsockname()
 			pid = os.getpid()			
-			self.child_sock.send(str(pid))
+			self.pipe_to_parent.send(str(pid))
 		else:
 			rospy.logfatal("Connection to master grasping process not achieved. Terminating...")
 			sys.exit(1)
@@ -89,9 +134,9 @@ class subprocess_comm_slave:
 	# Assumptions: The grasp request coming through the socket
 	#	will not exceed the maximum payload specified.
 	def listen_for_grasp_request(self):
-		msg_len = read_msg_len(self.child_sock)	
+		msg_len = read_msg_len(self.pipe_to_parent)	
 		try:
-			new_grasping_task_str = self.child_sock.recv(msg_len, socket.MSG_WAITALL)
+			new_grasping_task_str = self.pipe_to_parent.recv(msg_len, socket.MSG_WAITALL)
 			if len(new_grasping_task_str) != msg_len:
 				rospy.logerr("Expected message of length %d, but got %d.", msg_len, len(new_grasping_task_str))
 				sys.exit(1)
@@ -125,9 +170,9 @@ class subprocess_comm_slave:
 			rospy.logfatal("Pickled grasp results from subprocess exceed max socket payload length: %d", num_bytes_to_send)
 			sys.exit(1)
 
-		write_msg_len(self.child_sock, num_bytes_to_send)
+		write_msg_len(self.pipe_to_parent, num_bytes_to_send)
 	
-		num_bytes_sent = cli_socket.send(result_string)
+		num_bytes_sent = self.pipe_to_parent.send(result_string)
 		if num_bytes_sent != num_bytes_to_send:
 			rospy.logerr("Could not send all result bytes through the socket (%d/%d).", num_bytes_sent, num_bytes_to_send)
 			sys.exit(1)
