@@ -97,6 +97,20 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
         throw std::invalid_argument(sensor_param);
     }
 
+    robotiq_activation_time_ = 17.0;
+
+    // which file are we reading
+
+    if (private_nh.hasParam("robotiq_activation_time"))
+        private_nh.param<double>("robotiq_activation_time", robotiq_activation_time_, 16);
+    else
+    {
+        ROS_ERROR("Parameter robotiq_activation_time not set, shutting down node...");
+        throw std::invalid_argument("robotiq_activation_time");
+    }
+
+    ROS_INFO("Robotiq Hand will activate in %f seconds", robotiq_activation_time_);
+
     //Hand Status Initialization
     hand_status_.joint_states.name.resize(joint_names_xmlrpc.size());
     hand_status_.joint_states.position.resize(joint_names_xmlrpc.size());
@@ -215,7 +229,7 @@ void RobotiqHardwareInterface::InitializeRobotiq(){
 
     ROS_WARN("ACTIVATING %s Robotiq... ",hand_side_.c_str() );
 
-    ros::Duration(16.0).sleep(); //SLEEP WAITING FOR THE HAND TO ACTIVATE
+    ros::Duration(robotiq_activation_time_).sleep(); //SLEEP WAITING FOR THE HAND TO ACTIVATE
 
     ROS_WARN("%s Robotiq ACTIVATED",hand_side_.c_str() );
 
