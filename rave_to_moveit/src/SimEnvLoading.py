@@ -31,7 +31,7 @@ world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
-num_addtl_processes = 0
+num_addtl_processes = 3
 
 #Environment var name->[file_name, name_in_system]
 FILE_PATH = 0
