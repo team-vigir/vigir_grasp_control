@@ -31,7 +31,7 @@ world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
-num_addtl_processes = 2
+num_addtl_processes = 0
 
 #Environment var name->[file_name, name_in_system]
 FILE_PATH = 0
@@ -67,6 +67,19 @@ def set_openrave_environment_vars():
 		os.environ["OPENRAVE_PLUGINS"] = rave_to_moveit_path + "/plugins"
 	#print "Plugin path: ", os.environ["OPENRAVE_PLUGINS"]
 
+def verify_custom_plugin_load(env):
+	proper_plugin_name = "libgrasper_mod.so"
+	g = RaveCreateModule(env, "Grasper")
+	#print g.GetPluginName()
+	#raw_input("Does that look like our custom plugin's path?")
+	plugin_file_name = g.GetPluginName().split('/')[-1]
+	if plugin_file_name != proper_plugin_name:
+		rospy.logfatal("OpenRAVE loaded the plugin %s, when it should have loaded %s. Grasp planning would not have worked properly. Is %s file in rave_to_moveit/plugins?", plugin_file_name, proper_plugin_name, plugin_file_name)
+		sys.exit(1)
+	else:
+		rospy.logdebug("OpenRAVE loaded modified Grasper plugin.")
+
+
 #def load_modified_grasper_plugin(env):
 	#plugin  = RaveLoadPlugin('grasper_mod')
 #	plugin = RaveCreateModule(env,'Grasper')
@@ -91,6 +104,8 @@ def build_environment():
 	if not show_atlas:
 		disable_atlas_visiblity(robot)
 
+	verify_custom_plugin_load(env)
+
 	return env, robot, target
 
 def build_environment_subprocess():
@@ -100,6 +115,8 @@ def build_environment_subprocess():
 
 	env.Load('scenes/grasp_target.env.xml')
 	target = get_grasp_target(env)
+
+	verify_custom_plugin_load(env)
 
 	return env, robot, target
 
@@ -608,6 +625,9 @@ def parse_args():
 		
 	return ret_tuple
 
+def common_init():
+	set_openrave_environment_vars()
+	set_openrave_logging()
 
 if __name__ == '__main__':
 	args = parse_args()
@@ -615,6 +635,7 @@ if __name__ == '__main__':
 		# This is a slave process
 		#sys.stdout = open("/home/eva/openrave_subprocess_log", "w")
 		rospy.init_node('SimEnvLoading', anonymous=True)
+		common_init()
 		env, robot, target = build_environment_subprocess()
 		grasper_clone = VigirGrasper(env, robot, target)
 		grasper_clone.process_loop((args[1], args[2]))
@@ -622,8 +643,7 @@ if __name__ == '__main__':
 		# This is the master process
 		rospy.init_node('SimEnvLoading', anonymous=False)
 
-		set_openrave_logging()
-		set_openrave_environment_vars()
+		common_init()
 		env, robot, target = build_environment()
 		grasper = VigirGrasper(env, robot, target)
 		grasper.init_subprocesses()

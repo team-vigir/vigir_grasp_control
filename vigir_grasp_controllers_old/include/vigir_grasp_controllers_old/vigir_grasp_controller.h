@@ -75,10 +75,15 @@
 #include "geometric_shapes/shapes.h"
 #include "geometric_shapes/shape_messages.h"
 #include "geometric_shapes/shape_operations.h"
+#include <moveit_msgs/GripperTranslation.h>
+
+#include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
+#include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
+#include <vigir_object_template_msgs/DetachObjectTemplate.h>
 
 #define FINGER_EFFORTS 4
 
-namespace vigir_grasp_controller_old {
+namespace vigir_grasp_controllers_old {
 
 typedef actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> TrajectoryActionClient;
 
@@ -172,8 +177,6 @@ struct VigirGraspSpecification
       virtual void setHandApproachingData(const double& grasp_fraction) = 0;
       virtual void setHandSurroundingData( )                      = 0;
       virtual void setHandGraspingData(const double& grasp_fraction, const int8_t finger_effort[])    = 0;
-      virtual void setAttachingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data)  = 0 ;
-      virtual void setDetachingObject( )                      = 0;
       virtual void setHandMonitoringData(const double& grasp_effort, const int8_t finger_effort[])    = 0;
       virtual void setHandOpeningData(const double& grasp_fraction)     = 0;
 
@@ -228,9 +231,13 @@ struct VigirGraspSpecification
 
      void updateHandMass(); // call to publish latest grasp data
 
-     void attachCollisionObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data); //Attach a collision object to the hand
+     void gripperTranslationToPreGraspPose(geometry_msgs::Pose& pose, moveit_msgs::GripperTranslation& trans);
 
+     void requestTemplateService(const uint16_t& requested_template_type);
 
+     void setAttachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data);
+     void setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data);
+     void setStitchingObject(const flor_grasp_msgs::TemplateSelection& last_template_data);
 
 
   protected:
@@ -309,7 +316,9 @@ struct VigirGraspSpecification
     ros::Time                               within_range_time;
     int16_t                                 finger_close_scale_;
 
+
     // Internal variables used by active controllers
+    vigir_object_template_msgs::GetTemplateStateAndTypeInfoResponse last_template_res_;
     geometry_msgs::Pose                     final_wrist_pose_;
     geometry_msgs::Pose                     pregrasp_wrist_pose_;
     tf::Transform                           stitch_template_pose_;
@@ -321,7 +330,6 @@ struct VigirGraspSpecification
     flor_planning_msgs::PlanRequest         wrist_target_pose_;
     flor_atlas_msgs::AtlasHandMass          hand_mass_msg_;
     geometry_msgs::PoseStamped              com_;
-    shape_msgs::Mesh                        mesh_;
     flor_grasp_msgs::GraspState             active_state_;
 
     // Internal variables used to store grasp mappings
@@ -389,6 +397,12 @@ struct VigirGraspSpecification
     ros::Subscriber planner_status_sub_;        ///< Planner status (for reporting bundled error messages)
     ros::Subscriber controller_mode_sub_;       ///< Controller mode (verify we can control appendages)
     ros::Subscriber grasp_planning_group_sub_;
+
+
+    ros::ServiceClient template_info_client_;
+    ros::ServiceClient attach_object_client_;
+    ros::ServiceClient stitch_object_client_;
+    ros::ServiceClient detach_object_client_;
 
 
     // called from within main loop to invoke handle updating of sensor data

@@ -38,6 +38,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <vector>
+#include <string>
 
 #include <atlas_msgs/ForceTorqueSensors.h>
 #include <sensor_msgs/JointState.h>
@@ -50,15 +51,10 @@
 #include "geometric_shapes/shape_messages.h"
 #include "geometric_shapes/shape_operations.h"
 
-
-#include <moveit_msgs/CollisionObject.h>
-#include <moveit_msgs/AttachedCollisionObject.h>
-#include <moveit_msgs/PlanningScene.h>
-
 //#define NUM_ROBOTIQ_FINGER_JOINTS  11
 #define NUM_ROBOTIQ_PALM_JOINTS    4
 
-namespace vigir_grasp_controller_old{
+namespace vigir_grasp_controllers_old{
 
   /**
     * This class defines the wrapper for the Grasp Controller Plugin
@@ -143,8 +139,6 @@ namespace vigir_grasp_controller_old{
         void setHandApproachingData(const double& grasp_fraction);
         void setHandSurroundingData( )                     ;
         void setHandGraspingData(const double& grasp_fraction, const int8_t finger_effort[])   ;
-        void setAttachingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data)      ;
-        void setDetachingObject( )                     ;
         void setHandMonitoringData(const double& grasp_effort, const int8_t finger_effort[])   ;
         void setHandOpeningData(const double& grasp_fraction)    ;
 
@@ -164,7 +158,6 @@ namespace vigir_grasp_controller_old{
         flor_grasp_msgs::HandStatus                  local_hand_status_msg_;
 
         VigirRobotiqFingerPoses                       finger_poses_;
-        std::vector< VigirRobotiqGraspSpecification>  potential_grasps_;
         std::vector< VigirRobotiqFingerPoses>         initial_finger_poses_; // cylindrical,prismatic, spherical
         std::vector< VigirRobotiqFingerPoses>         final_finger_poses_;   // cylindrical,prismatic, spherical
         VigirRobotiqFingerPoses                       current_finger_poses_;
@@ -178,7 +171,7 @@ namespace vigir_grasp_controller_old{
 
     private:
 
-        void loadRobotiqGraspDatabase(std::string& file_name);
+        void initializeEigenGrasps();
         int staticTransform(geometry_msgs::Pose& palm_pose);
         void trajectoryActiveCB();
         void trajectoryFeedbackCB(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback);
@@ -186,7 +179,6 @@ namespace vigir_grasp_controller_old{
 
         ros::Publisher  robotiq_states_pub_;
         ros::Publisher  robotiq_output_pub_;
-        ros::Publisher  aco_pub_;                    ///< Attached Collision Object Publisher
         ros::Publisher  tactile_feedback_pub_;
         ros::Subscriber hand_status_sub_;
 

@@ -43,7 +43,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
   ros::NodeHandle nhp("~");
 
-  vigir_grasp_controller_old::VigirSandiaGraspController sandia_controller;
+  vigir_grasp_controllers_old::VigirSandiaGraspController sandia_controller;
 
   ROS_WARN(" Initialize the Sandia hand grasp controller ...");
   sandia_controller.initializeSandiaGraspController(nh, nhp);

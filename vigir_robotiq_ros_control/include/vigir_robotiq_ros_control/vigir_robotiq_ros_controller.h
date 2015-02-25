@@ -106,6 +106,8 @@ private:
   std::string                                   hand_side_;
   std::string                                   hand_name_;
   std::vector<std::string>                      joint_names_;
+
+  double                                           robotiq_activation_time_;
 };
 
 } //end of namespace RobotiqHardwareInterface
