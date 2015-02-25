@@ -1,0 +1,5 @@
+<?xml version="1.0" ?>
+<launch>
+	<machine name="pi" address="vigir-pi" user="pi" env-loader="~/env.sh"/>
+	<!--<machine name="main_comp" address="krishna" default="true" />-->
+</launch>
