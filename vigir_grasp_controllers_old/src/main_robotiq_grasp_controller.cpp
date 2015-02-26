@@ -44,7 +44,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
   ros::NodeHandle nhp("~");
 
-  vigir_grasp_controller_old::VigirRobotiqGraspController robotiq_controller;
+  vigir_grasp_controllers_old::VigirRobotiqGraspController robotiq_controller;
 
   ROS_WARN(" Initialize the Robotiq hand grasp controller ...");
   robotiq_controller.initializeRobotiqGraspController(nh, nhp);
