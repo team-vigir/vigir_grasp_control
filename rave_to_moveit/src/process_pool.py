@@ -20,12 +20,16 @@ def process_loop(env, param_pipe, result_queue):
 
 	while True:
 		#Get the grasping params with blocking IO
+		print "Listening..."
 		new_grasping_task = param_pipe.get(block=True, timeout=None)
+		print "About to replace target!!"
 		replace_target(env, new_grasping_task.convex_hull)
 		print "\tTarget hash in subprocess: ", target.GetKinematicsGeometryHash()
 
 		# Evaluate the grasps and report
+		print "Before generation in subprocess"
 		gmodel.generate(**new_grasping_task.openrave_params)
+		print "\tPlaced the results in the output queue."
 		result_queue.put(gmodel.grasps)
 		print "\tFinished evaluating grasps. Good grasp count: ", len(gmodel.grasps)
 
