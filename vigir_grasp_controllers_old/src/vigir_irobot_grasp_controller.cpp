@@ -36,7 +36,7 @@
 #include <vigir_grasp_controllers_old/vigir_irobot_grasp_controller.h>
 #include <handle_msgs/Finger.h>
 
-namespace vigir_grasp_controller_old{
+namespace vigir_grasp_controllers_old{
 
 
 
@@ -658,14 +658,6 @@ namespace vigir_grasp_controller_old{
            }
 
         }
-    }
-
-    void VigirIRobotGraspController::setAttachingObject(const tf::Transform& hand_T_template, const flor_grasp_msgs::TemplateSelection& last_template_data)
-    {
-    }
-
-    void VigirIRobotGraspController::setDetachingObject( )
-    {
     }
 
     void VigirIRobotGraspController::setHandNoneData( )

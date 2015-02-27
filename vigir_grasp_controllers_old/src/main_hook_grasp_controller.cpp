@@ -43,7 +43,7 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
   ros::NodeHandle nhp("~");
 
-  vigir_grasp_controller_old::VigirHookGraspController hook_controller;
+  vigir_grasp_controllers_old::VigirHookGraspController hook_controller;
 
   ROS_WARN(" Initialize the Hook hand grasp controller ...");
   hook_controller.initializeHookGraspController(nh, nhp);

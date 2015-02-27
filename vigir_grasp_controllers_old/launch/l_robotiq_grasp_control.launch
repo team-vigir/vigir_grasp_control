@@ -8,7 +8,6 @@
 <node ns="left_grasp_controller" name="vigir_grasp_controller" pkg="vigir_grasp_controllers_old" type="robotiq_grasp_controller_old_node"    output="screen" respawn="true">launch-prefix="xterm -e gdb -ex r"
 
     <param name="hand" value="l_hand" />
-    <param name="filename" value="$(find vigir_template_library)/grasp_library_robotiq.grasp" />
 
     <remap from="template_selection" to="/template/l_hand_template_match_request" />
     <remap from="hand_offset"        to="/template/l_hand_template_offset" />
