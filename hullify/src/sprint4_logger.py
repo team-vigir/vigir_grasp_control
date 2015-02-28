@@ -52,7 +52,7 @@ cur_pose_selection = None
 cur_gp_contacts = None
 cur_takk_data = None
 cur_openrave_params = None
-trans_listener = tf.TransformListener()
+
 
 def openrave_grasps_cb(pose_list):
 	global cur_pose_list
@@ -161,7 +161,7 @@ def input_loop(using_palm, num_fingers):
 			grasp_num += 1
 			current_grasp.write_file(log_dir_path + "/")
 			current_grasp = GraspData(grasp_num)
-			rospy.logwarn("\tVerify that grasp %d is in the log directory." % grasp_num)
+			rospy.logwarn("\tVerify that grasp %d is in the log directory." % grasp_num - 1)
 
 		elif user_input.lower() == 'pr':
 			print "GraspStates: ", current_grasp.grasp_states.grasp_states
@@ -205,6 +205,7 @@ def init_subscribers():
 
 if __name__ == "__main__":
 	rospy.init_node("sprint4_logger")
+	trans_listener = tf.TransformListener()
 
 	using_palm, num_fingers = init_logger()
 	if using_palm:
