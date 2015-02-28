@@ -254,8 +254,8 @@ class GraspingModel(DatabaseGenerator):
     def getversion(self):
         return 7
     def init(self,friction,avoidlinks,plannername=None):
-        self.basemanip = interfaces.BaseManipulation(self.robot,maxvelmult=self.maxvelmult)
-        self.grasper = interfaces.Grasper(self.robot,friction=friction,avoidlinks=avoidlinks,plannername=plannername)
+	self.basemanip = interfaces.BaseManipulation(self.robot,maxvelmult=self.maxvelmult)
+	self.grasper = interfaces.Grasper(self.robot,friction=friction,avoidlinks=avoidlinks,plannername=plannername)
         self.grasps = []
     def load(self):
         filename = self.getfilename(True)
@@ -425,7 +425,9 @@ class GraspingModel(DatabaseGenerator):
             friction = 0.4
         if avoidlinks is None:
             avoidlinks = []
+	print "Before init"
         self.init(friction=friction,avoidlinks=avoidlinks,plannername=plannername)
+	print "After init"
         if approachrays is None:
             if boxdelta is not None:
                 approachrays = self.computeBoxApproachRays(delta=boxdelta,normalanglerange=normalanglerange)
@@ -435,7 +437,9 @@ class GraspingModel(DatabaseGenerator):
                 approachrays = self.computeBoxApproachRays(delta=0.02,normalanglerange=0)
         if preshapes is None:
             # should disable everything but the robot
-            with self.target:
+            print "Setting preshapes"
+	    with self.target:
+	    	print "Inside setting preshapes"
                 self.target.Enable(False)
                 # do not fill with plannername
                 taskmanip = interfaces.TaskManipulation(self.robot)
@@ -454,7 +458,9 @@ class GraspingModel(DatabaseGenerator):
         self.finestep = finestep
         time.sleep(0.1) # sleep or otherwise viewer might not load well
         N = approachrays.shape[0]
-        with self.env:
+        print "Before env lock"
+	with self.env:
+	    print "After env lock"
             Ttarget = self.target.GetTransform()
             Trobotorig = self.robot.GetTransform()
         # transform each ray into the global coordinate system in order to plot it

@@ -113,7 +113,7 @@ def filter_approach_rays_using_ik(approach_rays, rolls):
 	out_rays = []
 	for ray in approach_rays:
 		for roll in rolls:
-			transform = get_tranform_for_approach(ray[0:3], -ray[3:6], roll)
+			transform = get_transform_for_approach(ray[0:3], -ray[3:6], roll)
 			solutions = ikmodel.manip.FindIKSolutions(transform)
 			print "Solutions: ", solutions		
 			if solutions is not None:

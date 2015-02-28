@@ -4,6 +4,7 @@ from openravepy import *
 from openravepy.examples import tutorial_grasptransform
 import rospkg
 import os
+import select
 import numpy, time
 from std_msgs.msg import String
 from geometry_msgs.msg import PoseStamped, Pose
@@ -14,8 +15,8 @@ from numpy import hstack, vstack, mat, array, arange, fabs, zeros
 import math
 import random
 import copy
-
-from multiprocessing import Process, Queue
+import sys
+import argparse
 
 import grasping
 import plane_filters
@@ -23,20 +24,27 @@ import atlas_and_ik
 import openraveIO
 import view_filter
 import process_pool
-#import check_initial_collisions as collision_test
-#import plugin_mods_verification
+import subprocess_comm
 
 gt = None
 world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
-num_addtl_processes = 0
+num_addtl_processes = 3
 
 #Environment var name->[file_name, name_in_system]
 FILE_PATH = 0
 ENV_NAME = 1
 loaded_hands = {"l_robotiq":['robots/robotiq.dae', '']}
+
+class grasp_params:
+	def __init__(self):
+		return 1
+
+	def __init__(self, convex_hull, openrave_params):
+		self.convex_hull = convex_hull
+		self.openrave_params = openrave_params
 
 def set_openrave_logging():
 	misc.InitOpenRAVELogging()	#Sync python logging
@@ -58,6 +66,19 @@ def set_openrave_environment_vars():
 	else:
 		os.environ["OPENRAVE_PLUGINS"] = rave_to_moveit_path + "/plugins"
 	#print "Plugin path: ", os.environ["OPENRAVE_PLUGINS"]
+
+def verify_custom_plugin_load(env):
+	proper_plugin_name = "libgrasper_mod.so"
+	g = RaveCreateModule(env, "Grasper")
+	#print g.GetPluginName()
+	#raw_input("Does that look like our custom plugin's path?")
+	plugin_file_name = g.GetPluginName().split('/')[-1]
+	if plugin_file_name != proper_plugin_name:
+		rospy.logfatal("OpenRAVE loaded the plugin %s, when it should have loaded %s. Grasp planning would not have worked properly. Is %s file in rave_to_moveit/plugins?", plugin_file_name, proper_plugin_name, plugin_file_name)
+		sys.exit(1)
+	else:
+		rospy.logdebug("OpenRAVE loaded modified Grasper plugin.")
+
 
 #def load_modified_grasper_plugin(env):
 	#plugin  = RaveLoadPlugin('grasper_mod')
@@ -83,6 +104,20 @@ def build_environment():
 	if not show_atlas:
 		disable_atlas_visiblity(robot)
 
+	verify_custom_plugin_load(env)
+
+	return env, robot, target
+
+def build_environment_subprocess():
+	env = Environment()
+	atlas_and_ik.load_atlas(env)
+	robot = get_robot(env)
+
+	env.Load('scenes/grasp_target.env.xml')
+	target = get_grasp_target(env)
+
+	verify_custom_plugin_load(env)
+
 	return env, robot, target
 
 def get_robot(env):
@@ -102,7 +137,7 @@ def get_grasp_target(env):
 	target = env.GetKinBody(grasp_target_name)
 	if target == None:
 		print "Could not obtain grasping target. Is it in the envionment?"
-		exit(1)
+		sys.exit(1)
 
 	return target
 
@@ -147,24 +182,14 @@ def draw_world_axes(robot):
 #			print "Loaded ", loaded_hands[hand_name][ENV_NAME]
 
 def get_final_pose_frame():
-	final_pose_frame = rospy.get_param("convex_hull/output_pose_frame")
+	try:
+		final_pose_frame = rospy.get_param("convex_hull/output_pose_frame")
+	except KeyError:
+		rospy.logfatal("Parameter convex_hull/output_pose_frame could not be found. Are you using the standard launch files?")
+		sys.exit(1)
 
 	print "Output frame for poses: ", final_pose_frame
 	return final_pose_frame
-
-class graspProcess:
-	def __init__(self):
-		print "Default constructor called for graspProcess"
-	def __init__(self, funct, env_copy, param_pipe, result_queue):
-		args = (env_copy, param_pipe, result_queue, )		
-		self.process = Process(target=funct, args=args)
-		self.param_pipe = param_pipe
-		self.result_queue = result_queue
-
-		self.process.start()
-	
-	def evaluate_grasps(self, params):
-		self.param_pipe.put(params)
 
 class VigirGrasper:
 	def __init__(self, env, robot, target):
@@ -178,20 +203,96 @@ class VigirGrasper:
 		self.raveio = None
 		self.grasp_returnnum = rospy.get_param("/convex_hull/openrave_grasp_count_goal", 20);
 
-		self.num_addtl_processes = num_addtl_processes
-		self.init_subprocesses()
+		#self.num_addtl_processes = num_addtl_processes
+
+	def __del__(self):
+		# Close the sockets to kill subprocesses
+		self.close_sockets_and_kill_subprocesses()
+
+	def __exit__(self, type, value, traceback):
+		self.close_sockets_and_kill_subprocesses()
+
+	def close_sockets_and_kill_subprocesses(self):
+		rospy.logwarn("Killing subprocesses on cleanup.")
+		for idx, process in enumerate(self.processes):
+			process[1].shutdown()
+			os.wait()
 
 	def init_subprocesses(self):
-		print "Initalizing process pool. ", self.num_addtl_processes, " additional processes"
-		self.grasp_task_msgs = []
+		global num_addtl_processes
+		print "Initalizing process pool. ", num_addtl_processes, " additional processes"
+		#max_conn_count = 128
+		#self.process_controller_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+		#self.process_controller_socket.bind(('0.0.0.0', 0))
+		#self.process_controller_socket.listen(max_conn_count)
+		#self.process_socket_addr = self.process_controller_socket.getsockname()
+		#print "OpenRAVE process controller socket initialized. Address: ", self.process_socket_addr
+		max_conn_count = 128		
+		self.process_controller_socket, self.process_socket_addr = subprocess_comm.start_master_socket(max_conn_count)		
+
+		if num_addtl_processes > max_conn_count:
+			rospy.logwarn("Requested process count is greater than the max connection count allowed for listen(). Reducing subprocess count to " + str(max_conn_count))
+			num_addtl_processes = max_conn_count
+
 		self.processes = []
-		for i in range(self.num_addtl_processes):		
+		self.grasp_task_msgs = []
+
+		# Fire up the subprocesses using fork() and system()
+		for i in range(num_addtl_processes):	
 			self.grasp_task_msgs.append(process_pool.grasp_params(None, None))
-			cloned_env = env.CloneSelf(openravepy_int.CloningOptions.Bodies | openravepy_int.CloningOptions.Modules)
-			self.processes.append(graspProcess(process_pool.process_loop, cloned_env, Queue(), Queue()))
+			
+			fork_result = os.fork()
+			if fork_result == -1:
+				rospy.logerr("Fork() unsuccessful when creating OpenRAVE subprocesses.")
+				num_addtl_processes -= 1
+
+			elif fork_result != 0:
+				print "Started subprocess PID: ", fork_result, ". Waiting for socket connection."
+
+			else:
+				rospy.logerr("NOTE: the communication sockets between processes uses the local loopback address, this will not work on a larger network.")
+				subprocess_cmd_str = "rosrun rave_to_moveit SimEnvLoading.py --ip=" + str("127.0.0.1") + " --port=" + str(self.process_socket_addr[1])
+				os.system(subprocess_cmd_str)
+				sys.exit(1)
+		
+		# Collect connections
+		for i in range(num_addtl_processes):
+			#subprocess_sock_and_addr = self.process_controller_socket.accept()
+			#child_pid = int(subprocess_sock_and_addr[0].recv(100))
+			#self.processes.append([child_pid, subprocess_sock_and_addr[0]])
+			cur_conn = subprocess_comm.subprocess_comm_master(self.process_controller_socket)
+			cur_conn.set_state(subprocess_comm.GOOD)
+			child_pid = int(cur_conn.read_max_payload())
+			self.processes.append([child_pid, cur_conn])		
+			print "Connection achieved: ", cur_conn.get_child_addr()
+
+		print "Master's connection table: ", self.processes
+
+	# Abstracting away process count incase layout changes again.
+	def get_num_addtl_processes(self):
+		return len(self.processes)
 
 	def set_io(self, io_obj):
 		self.raveio = io_obj
+
+	def process_loop(self, master_addr):
+		#global MAX_SOCKET_PAYLOAD
+		self.raveio = None
+		self.master_conn = subprocess_comm.subprocess_comm_slave(master_addr)
+
+		while True:
+			#Get the grasping params with blocking IO
+			print "\tSubprocess Listening..."
+			new_grasping_task = self.master_conn.listen_for_grasp_request()
+			if new_grasping_task == None:
+				continue
+
+			self.replace_target(new_grasping_task.convex_hull)
+
+			# Evaluate the grasps and report
+			self.gmodel.generate(**new_grasping_task.openrave_params)
+			self.master_conn.send_results(self.gmodel.grasps)
+			print "\tFinished evaluating grasps. Good grasp count: ", len(self.gmodel.grasps)
 
 	def update_process_targets(self, convex_hull):		
 		# Add to all process targets
@@ -199,27 +300,23 @@ class VigirGrasper:
 			self.grasp_task_msgs[i].convex_hull = convex_hull
 
 		# Update myself
-		process_pool.replace_target(self.env, convex_hull)		
+		self.replace_target(convex_hull)		
 
-	#def replace_target(self, convex_hull):
-	#	new_mesh = TriMesh()
-	#	new_mesh.vertices = []
-	#	for vertex in convex_hull.vertices:
-	#		new_mesh.vertices.append([vertex.x, vertex.y, vertex.z])
-		#print "convex_hull indices: ", convex_hull.triangles
-	#	new_mesh.indices = []
-	#	for triangle_mesh in convex_hull.triangles:
-	#		new_mesh.indices.append(list(triangle_mesh.vertex_indices))
+	def replace_target(self, convex_hull):
+		new_mesh = TriMesh()
+		new_mesh.vertices = []
+		for vertex in convex_hull.vertices:
+			new_mesh.vertices.append([vertex.x, vertex.y, vertex.z])
+	
+		new_mesh.indices = []
+		for triangle_mesh in convex_hull.triangles:
+			new_mesh.indices.append(list(triangle_mesh.vertex_indices))
 
-		#print new_mesh.indices
-		#print new_mesh.vertices
-		#print dir(new_mesh)
-	#	grasp_target = self.env.GetKinBody('grasp_target')
-	#	self.env.RemoveKinBody(grasp_target)
-	#	grasp_target.InitFromTrimesh(new_mesh, True)
-	#	self.env.AddKinBody(grasp_target)
-
-		#lol = raw_input("Pausing...")
+		grasp_target = get_grasp_target(self.env)
+		self.env.RemoveKinBody(grasp_target)
+	
+		grasp_target.InitFromTrimesh(new_mesh, True)
+		self.env.AddKinBody(grasp_target)
 
 	def find_grasps(self, mesh_and_bounds_msg): 
 		global ikmodel
@@ -229,7 +326,7 @@ class VigirGrasper:
 
 		params = plane_filters.generate_grasp_params(self.gmodel, mesh_and_bounds_msg)
 		params['approachrays'] = view_filter.directional_filter(params['approachrays'], mesh_and_bounds_msg.mesh_centroid, raveio.pelvis_listener, 140)
-		params['checkgraspfn'] = self.check_grasp_fn;
+		params['checkgraspfn'] = check_grasp_fn;
 
 		raveio.enable_moveit_octomap_updating(False)
 		
@@ -272,57 +369,100 @@ class VigirGrasper:
 
 	def get_grasps(self, mesh_and_bounds_msg, params, gt, returnnum=5):
 		grasps = []
-		#partitioned_rays = partition_rays(mesh_and_bounds_msg, params['approachrays'])	#90 plane filtering
-		#partitioned_rays = [params['approachrays']]
-		partitioned_rays = partition_rays_for_processes(params['approachrays'], self.num_addtl_processes + 1)
+
+		# Clean up previous distribution
+		self.clear_subprocess_connections()
+
+		partitioned_rays = partition_rays_for_processes(params['approachrays'], self.get_num_addtl_processes() + 1)
 		
 		if sum([len(x) for x in partitioned_rays]) < 1:
-			print "Insufficient approach rays generated. How do the bounding/filtering planes look? Returning null pose."
+			print "Insufficient approach rays generated. How do the bounding/filtering planes look? Returning null grasp list."
 			return []
 
 
-		#for rays in partitioned_rays:
-		#	params['approachrays'] = rays
-		#	params['remaininggrasps'] = returnnum - len(grasps)
-			#atlas_and_ik.visualize_approaches(gt, params)
-			
-			#plugin_mods_verification.show_first_for_check_distance(params, gt)
-			
-		#	self.gmodel.generate(**params)
-		#	grasps.extend(self.gmodel.grasps)
-
-		#	if len(grasps) >= returnnum:
-		#		return grasps
-		
 		# Dispatch the subprocesses
+		params['remaininggrasps'] = -1	# Run through all grasps, no limit
+		outstanding_results = []
+		outstanding_processes = []
 		for idx, process in enumerate(self.processes):
 			self.grasp_task_msgs[idx].openrave_params = params
 			self.grasp_task_msgs[idx].openrave_params['approachrays'] = partitioned_rays[idx]
-			self.processes[idx].evaluate_grasps(self.grasp_task_msgs[idx])
+			if (self.processes[idx][1].send_grasping_request(self.grasp_task_msgs[idx])):
+				print "Process ", self.processes[idx][0], " was sent grasping parameters."
+				outstanding_results.append(process[1].get_sock())
+				outstanding_processes.append(idx)
+			else:
+				rospy.logerr("Could not send parameters to subprocess. Ignoring...")
+				self.processes[idx][1].set_state(subprocess_comm.UNRESPONSIVE)
+
 
 		# Get results on the local process
-		params['remaininggrasps'] = -1	# Run through all grasps, no limit
+		#raw_input("Is the other process running?")
 		params['approachrays'] = partitioned_rays[-1]
 		self.gmodel.generate(**params)
 		grasps.extend(self.gmodel.grasps)
 
 		# Collect results
-		outstanding_results = range(self.num_addtl_processes)
-		while len(outstanding_results) != 0:
-			for i in outstanding_results:
-				if not self.processes[i].result_queue.empty():
-					print "Got results from process ", i
-					grasps.extend(self.processes[i].result_queue.get())
-					del outstanding_results[i]
-			rospy.sleep(0.1)
+		grasps.extend(self.collect_subprocess_results(outstanding_results, outstanding_processes))
 
 		return grasps
 	
-	def check_grasp_fn(self,contacts,finalconfig,grasp,analysis):
-		if analysis['volume'] > 1e-6:
-			return True
-		else:
-			return False
+	def clear_subprocess_connections(self):
+		num_removed_processes = 0
+		for idx in range(len(self.processes)-1, -1, -1):
+			process = self.processes[idx]
+			if process[1].get_state() == subprocess_comm.UNRESPONSIVE:
+				socket_survived = process[1].get_results()
+				if socket_survived == None:
+					process[1].shutdown()
+					del(self.processes[idx])
+					num_removed_processes += 1
+
+		rospy.loginfo("Removed %d processes from master's process table.", num_removed_processes)
+
+
+	def collect_subprocess_results(self, outstanding_results, outstanding_processes):
+		subprocess_grasps = []
+		process_collected_cnt = 0
+		end_time = rospy.Time.now() + rospy.Duration(5)
+		while len(outstanding_results) > 0:
+			cur_time = rospy.Time.now()
+			remaining_time = end_time.to_sec() - cur_time.to_sec()
+			if remaining_time < 0:
+				break
+
+			rlist, wlist, xlist = select.select(outstanding_results, (), (), remaining_time)
+			if len(rlist) == 0:
+				# Timeout triggered this...
+				break
+			else:
+				for conn in rlist:
+					#print "conn: ", conn, " outstanding_results: ", outstanding_results
+					idx = outstanding_results.index(conn)
+					#print "idx: ", idx, " outstanding_processes: ", outstanding_processes
+					proc_idx = outstanding_processes[idx]
+					results = self.processes[proc_idx][1].get_results()
+					if results is not None:
+						process_collected_cnt += 1
+						subprocess_grasps.extend(results)
+					else:
+						rospy.logerr("Ignoring grasping results.")
+						ret = self.processes[proc_idx][1].dump_buffer()
+						if ret == None:
+							self.processes[proc_idx][1].set_state(subprocess_comm.UNRESPONSIVE)
+
+					try:
+						outstanding_results.remove(conn)
+						outstanding_processes.remove(proc_idx)
+					except ValueError as e:
+						rospy.logerr("Attempting to remove the connection given by proc_idx %d and idx %d. Error, no such value.", proc_idx, idx)
+		
+		for proc_idx in outstanding_processes:
+			self.processes[proc_idx][1].set_state(subprocess_comm.UNRESPONSIVE)
+
+		rospy.loginfo("Read results from %d of %d processes.", process_collected_cnt, self.get_num_addtl_processes())
+		rospy.loginfo("%d addtl grasps found by subprocesses.", len(subprocess_grasps))
+		return subprocess_grasps
 
 	# The approach_vector must be the direction the hand moves toward the object!
 	def get_pregrasp_pose(self, final_pose_stamped, approach_vec, offset):
@@ -429,8 +569,14 @@ def partition_rays_for_processes(approach_rays, total_num_evaluators):
 		numpy.append(partition[i], approach_rays[-1 - i])
 
 	print "Partition: ", partition
-	raw_input("How does that partition look?")
 	return partition
+	
+def check_grasp_fn(contacts,finalconfig,grasp,analysis):
+	if analysis['volume'] > 1e-6:
+		return True
+	else:
+		return False
+
 
 def listen_for_LR_hand():
 	return rospy.Subscriber("grasping_hand_selection", String, set_hand_callback)
@@ -459,21 +605,56 @@ def set_hand_callback(msg):
 	
 
 
-if __name__ == '__main__':
-	rospy.init_node('SimEnvLoading', anonymous=False)
+def parse_args():
+	parser = argparse.ArgumentParser()
+	parser.add_argument("--ip", type=str, help="If the instantiated process is a subprocess, this argument specifies the ip address of the master process.", default="0.0.0.0")
+	parser.add_argument("--port", type=int, help="This option comes with the --ip option. It specifies the port of the master process.", default=0)
 
-	set_openrave_logging()
+	args = parser.parse_args()
+	ret_tuple = None
+	if args.ip != "0.0.0.0" and args.port != 0:
+		ret_tuple = (True, args.ip, args.port, "")
+	elif args.ip != "0.0.0.0":
+		print "Non-trivial ip specified with port 0, is this is a master process or a slave process?? Port:", args.port, " ip: ", args.ip, " Terminiating..."
+		sys.exit(1)
+	elif args.port != 0:
+		print "Non-trivial port specified with wildcard ip. Is this a master process or a slave process?? Terminating..."
+		sys.exit(1)
+	else:
+		ret_tuple = (False, "0.0.0.0", 0)
+		
+	return ret_tuple
+
+def common_init():
 	set_openrave_environment_vars()
-	env, robot, target = build_environment()
-	grasper = VigirGrasper(env, robot, target)
-	
-	final_pose_frame = get_final_pose_frame()
-	mesh_ref_frame = rospy.get_param("convex_hull/mesh_ref_frame")
-	raveio = openraveIO.openraveIO(grasper, final_pose_frame, mesh_ref_frame)
-	
-	grasper.set_io(raveio)
+	set_openrave_logging()
 
-	hand_subscriber = listen_for_LR_hand()
+if __name__ == '__main__':
+	args = parse_args()
+	if args[0] == True:
+		# This is a slave process
+		#sys.stdout = open("/home/eva/openrave_subprocess_log", "w")
+		rospy.init_node('SimEnvLoading', anonymous=True)
+		common_init()
+		env, robot, target = build_environment_subprocess()
+		grasper_clone = VigirGrasper(env, robot, target)
+		grasper_clone.process_loop((args[1], args[2]))
+	else:
+		# This is the master process
+		rospy.init_node('SimEnvLoading', anonymous=False)
 
-	print "Awaiting hulls..."
-	rospy.spin()
+		common_init()
+		env, robot, target = build_environment()
+		grasper = VigirGrasper(env, robot, target)
+		grasper.init_subprocesses()
+
+		final_pose_frame = get_final_pose_frame()
+		mesh_ref_frame = rospy.get_param("convex_hull/mesh_ref_frame")
+		raveio = openraveIO.openraveIO(grasper, final_pose_frame, mesh_ref_frame)
+	
+		grasper.set_io(raveio)
+
+		hand_subscriber = listen_for_LR_hand()
+
+		print "Awaiting hulls..."
+		rospy.spin()

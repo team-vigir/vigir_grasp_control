@@ -9,3 +9,4 @@ qtcreator-build
 *~
 *.user
 libgrasper_mod.so
+*.pyc
