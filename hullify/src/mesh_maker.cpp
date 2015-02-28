@@ -197,7 +197,12 @@ void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 	    	return;
 	}
 
-	intermediate_cloud = isolate_hull_cluster(intermediate_cloud, target_point);
+	try {
+		intermediate_cloud = isolate_hull_cluster(intermediate_cloud, target_point);
+	} catch (...){
+		//Segmentation failure. Could be density of cloud
+		return;
+	}
 
 	//Run qhull externally (or see comments just below)
 	pcl::PolygonMesh::Ptr convex_hull = qhull.mk_mesh(intermediate_cloud);
