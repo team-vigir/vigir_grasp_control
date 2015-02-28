@@ -30,9 +30,11 @@ class GraspData:
 		self.grasp_states = GraspStates()
 		self.final_pose = PoseStamped()
 		self.pose_to_world_transform = None
+		self.mesh_to_world_transform = None
 		self.trimesh = None
 		self.stl_mesh_file = ""
 		self.gp_results = [0,0]
+		self.success = 0
 
 	# Takes the directory in which to store this grasp
 	#	needs a slash at the end.
@@ -50,6 +52,7 @@ cur_pose_selection = None
 cur_gp_contacts = None
 cur_takk_data = None
 cur_openrave_params = None
+trans_listener = tf.TransformListener()
 
 def openrave_grasps_cb(pose_list):
 	global cur_pose_list
@@ -60,6 +63,33 @@ def selected_grasp_cb(msg):
 	global cur_pose_selection
 	cur_pose_selection = copy(msg.grasp_id)
 	print "selected grasp id", cur_pose_selection
+
+	get_grasp_transforms()
+
+def get_grasp_transforms():
+	global current_grasp
+	global cur_pose_list
+	global cur_pose_selection
+	mesh_ref_frame = rospy.get_param("convex_hull/mesh_ref_frame")
+	pose_ref_frame = cur_pose_list[cur_pose_selection].header.frame_id
+
+	print "mesh_ref_frame: ", mesh_ref_frame
+	print "pose_ref_frame: ", pose_ref_frame
+
+	current_grasp.mesh_to_world_transform = get_world_transform(mesh_ref_frame)
+	current_grasp.pose_to_world_transform = get_world_transform(pose_ref_frame)
+
+def get_world_transform(src_frame):
+	global trans_listener
+	freq = rospy.Rate(10)
+	while not rospy.is_shutdown():
+		try:
+			(trans, rot) = trans_listener.lookupTransform(src_frame, "/world", rospy.Time(0))
+			break
+		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+			print "Lookup exception handled..."
+			freq.sleep()
+	return trans, rot	
 
 def gp_data_cb(msg):
 	global cur_gp_contacts
@@ -75,6 +105,9 @@ def gp_called_cb(msg):
 
 	current_grasp.grasp_states.add_state("closed", gp_data, cur_takk_data)
 	current_grasp.gp_results = msg.pressure[8:]
+
+	success = raw_input("Was grasp successful (1/0): ")
+	current_grasp.success = success
 
 def takk_data_cb(msg):
 	global cur_takk_data
