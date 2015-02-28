@@ -31,7 +31,7 @@ world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
-num_addtl_processes = 3
+num_addtl_processes = 0
 
 #Environment var name->[file_name, name_in_system]
 FILE_PATH = 0
@@ -609,7 +609,8 @@ def parse_args():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--ip", type=str, help="If the instantiated process is a subprocess, this argument specifies the ip address of the master process.", default="0.0.0.0")
 	parser.add_argument("--port", type=int, help="This option comes with the --ip option. It specifies the port of the master process.", default=0)
-
+	parser.add_argument("__name", type=str)
+	parser.add_argument("__log", type=str)
 	args = parser.parse_args()
 	ret_tuple = None
 	if args.ip != "0.0.0.0" and args.port != 0:

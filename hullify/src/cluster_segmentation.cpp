@@ -63,7 +63,9 @@ vector<Plane> find_all_planes(pcl::PointCloud<pcl::PointXYZ>::Ptr &full_cloud)
 		cur_plane.pts = cloud_p;
 		all_planes.push_back(cur_plane);
 	}
-
+	
+	ROS_INFO_STREAM("\tFiltered " << all_planes.size()  << " planes.");
+	
 	// pcl::PointCloud<pcl::PointXYZ>::Ptr plane_cloud = extract_subcloud(full_cloud, *inliers);
 	//writer.write<pcl::PointXYZ> ("/home/eva/Desktop/plane_cluster1.pcd", *plane_cloud, false);
 	return all_planes;
@@ -87,7 +89,7 @@ pcl::PointIndices::Ptr planar_segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr f
 
 	if (inliers->indices.size () < 1500)
 	{
-		PCL_ERROR ("Could not estimate a planar model for the given dataset.");
+
 		inliers->indices.clear();
 		return inliers;
 	}
@@ -193,7 +195,7 @@ void stat_outlier_remove(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud)
 		}
 	}
 	if(index_tracker == -1 || point_tracker == -1) {
-		cout << "Error, could not determine largest plane... now exiting function";
+		cout << "\tError, could not determine largest plane... now exiting function" << endl;
 		return  pcl::PointCloud<pcl::PointXYZ>::Ptr(new  pcl::PointCloud<pcl::PointXYZ>);
 	}
 	pcl::PointCloud<pcl::PointXYZ>::Ptr plane_pts = plane_vector[index_tracker].pts;
@@ -217,13 +219,14 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr return_nearest_cluster(pcl::PointXYZ selecte
 {
 	double nearest_distance = 99999999999999999;
 	double cur_distance;
-	int idx = 0;
+	int idx = -1;
 	for(unsigned int i = 0; i < cluster_vector.size(); ++i) {
 		if((cur_distance = return_distance_nearest_point(cluster_vector[i], selected_point)) < nearest_distance) {
 			nearest_distance = cur_distance;
 			idx = i;
 		}
 	}
+
 	return cluster_vector[idx];
 }
 
@@ -258,7 +261,6 @@ double return_distance_nearest_point(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
 	return pointNKNSquaredDistance[0];
 }
 
-//THIS IS THE ONE FUNCITON TO RULE THEM ALL (UNTESTED CURRENTLY)
 //need to change PCD file load to a more flexible path or ask for user designated path
 //should consider putting limits on "remove_largest_plane()" so that it does not remove the target object
 /*ex: in "remove_largest_plane()", if "return_distance_nearest_point()" returns a point on the largest
@@ -296,23 +298,29 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::Po
 
 	stat_outlier_remove(full_cloud);
 	
-	cout << "Cloud size after stat outlier removal: " << full_cloud->points.size() << endl;
+	cout << "\tCloud size after stat outlier removal: " << full_cloud->points.size() << endl;
 	vector<Plane> all_planes;
 	all_planes = find_all_planes(full_cloud);
 	remainder = full_cloud;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr largest_plane = remove_largest_plane(all_planes);
 	
-	cout << "Remainder has " << remainder->points.size() << " points." << endl;
+	cout << "\tRemainder has " << remainder->points.size() << " points." << endl;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud;
 	combined_cloud = combine_cloud_and_planes(all_planes, remainder);
 
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> separated_clusters;
 	separated_clusters = get_clusters(combined_cloud);
 
-	cout << "Num clusters: " << separated_clusters.size() << endl;
+	cout << "\tNum clusters (no plane): " << separated_clusters.size() << endl;
 	separated_clusters.push_back(largest_plane);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr isolated_cluster;
-	isolated_cluster = return_nearest_cluster(selected_point, separated_clusters);
+	
+	if (separated_clusters.size() == 1 && largest_plane->size() < 50) {
+		ROS_ERROR("No convex hull can be perceived from pointcloud. How is the density of the cloud?");
+		throw string("No hull.");
+	} else {
+		isolated_cluster = return_nearest_cluster(selected_point, separated_clusters);
+	}
 
 /*string input;
 	cout << "How does that look?" << endl;
