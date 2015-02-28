@@ -10,6 +10,7 @@ from copy import deepcopy as copy
 import tf
 from tf import transformations
 
+import pickle
 import os
 import rospkg
 rospack = rospkg.RosPack()
@@ -17,7 +18,7 @@ hullify_base_path = rospack.get_path("hullify")
 
 
 class GraspStates:
-	def __init_(self):
+	def __init__(self):
 		self.grasp_states = []
 	
 	def add_state(self, state_str, gp_contacts, takk_data):
@@ -31,10 +32,11 @@ class GraspData:
 		self.pose_to_world_transform = None
 		self.trimesh = None
 		self.stl_mesh_file = ""
+		self.gp_results = [0,0]
 
 	# Takes the directory in which to store this grasp
 	#	needs a slash at the end.
-	def write_file(dir_path):
+	def write_file(self,dir_path):
 		filename = dir_path + "grasp_" + str(self.grasp_num)
 		out_file = open(filename, "w")
 
@@ -62,19 +64,22 @@ def selected_grasp_cb(msg):
 def gp_data_cb(msg):
 	global cur_gp_contacts
 	cur_gp_contacts = copy(msg.pressure)
-	print "cur_gp_contacts: ", cur_gp_contacts
+	#print "cur_gp_contacts: ", cur_gp_contacts
 
 def gp_called_cb(msg):
 	global current_grasp
 	global curr_takk_data
 	rospy.loginfo("GP has been run. Recording gp contact data as grasp state.")
 
-	current_grasp.grasp_states.add_state("closed", msg, cur_takk_data)
+	gp_data = msg.pressure[0:8]
+
+	current_grasp.grasp_states.add_state("closed", gp_data, cur_takk_data)
+	current_grasp.gp_results = msg.pressure[8:]
 
 def takk_data_cb(msg):
 	global cur_takk_data
 	cur_takk_data = copy(msg.pressure)
-	print "Got takktile data: ", cur_takk_data
+	#print "Got takktile data: ", cur_takk_data
 
 def openrave_params_cb(msg):
 	global cur_openrave_params
@@ -112,18 +117,21 @@ def init_logger():
 def input_loop(using_palm, num_fingers):
 	global current_grasp
 	now = int(rospy.Time.now().to_sec())
-	log_dir_path = hullify_base_path + "/logs/" + str(now)
+	log_dir_path = hullify_base_path + "/logs/grasp" + str(now)
 
 	rospy.loginfo("log dir: %s" % log_dir_path)
 	output_dir = os.mkdir(log_dir_path)
 	grasp_num = 0
 	while True:
-		user_input = raw_input("Choose: n - next grasp, p - pregrasp state, m - manipulation state, f - finish testing: ")
+		user_input = raw_input("Choose: pr - print current state, n - next grasp, p - pregrasp state, m - manipulation state, f - finish testing: ")
 		if user_input.lower() == "n":
 			grasp_num += 1
 			current_grasp.write_file(log_dir_path + "/")
 			current_grasp = GraspData(grasp_num)
 			rospy.logwarn("\tVerify that grasp %d is in the log directory." % grasp_num)
+
+		elif user_input.lower() == 'pr':
+			print "GraspStates: ", current_grasp.grasp_states.grasp_states
 
 		elif user_input.lower() == 'p':
 			global cur_takk_data
@@ -139,6 +147,8 @@ def input_loop(using_palm, num_fingers):
 
 		elif user_input.lower() == "f":
 			rospy.loginfo("Finishing testing session.")
+			current_grasp.write_file(log_dir_path + "/")
+			break
 
 		else:
 			rospy.loginfo("Unsupported operation: %s" % user_input)
@@ -154,10 +164,11 @@ def init_subscribers():
 
 	gp_contacts_sub = rospy.Subscriber("/gp_contacts", Touch, gp_data_cb)
 
-	#gp_called_sub = rospy.Subscriber("/grasp_gp/logging", , gp_called_cb)
-	rospy.logwarn("gp_called sub not working yet, need to decide on a message type")
+	
+	gp_called_sub = rospy.Subscriber("/gp_logger", Touch, gp_called_cb)
+	#rospy.logwarn("gp_called sub not working yet, need to decide on a message type")
 
-	return [grasp_selection_sub, openrave_poses_sub, openrave_params_sub, takk_data_sub, gp_contacts_sub]
+	return [grasp_selection_sub, openrave_poses_sub, openrave_params_sub, takk_data_sub, gp_contacts_sub, gp_called_sub]
 
 if __name__ == "__main__":
 	rospy.init_node("sprint4_logger")
