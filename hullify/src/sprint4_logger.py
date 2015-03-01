@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import rospy
 from osu_grasp_msgs.msg import Mesh_and_bounds
+from shape_msgs.msg import Mesh
 from geometry_msgs.msg import PoseArray, Pose, PoseStamped
 from visualization_msgs.msg import Marker
 from takktile_ros.msg import Touch
@@ -29,10 +30,11 @@ class GraspData:
 		self.grasp_num = grasp_num
 		self.grasp_states = GraspStates()
 		self.final_pose = PoseStamped()
+		self.pregrasp_pose_offset = 0
 		self.pose_to_world_transform = None
 		self.mesh_to_world_transform = None
-		self.trimesh = None
-		self.stl_mesh_file = ""
+		self.mesh_msg = Mesh()
+		#self.stl_mesh_file = ""
 		self.gp_results = [0,0]
 		self.success = 0
 
@@ -44,11 +46,19 @@ class GraspData:
 
 		grasp_data = pickle.dumps(self, 0)
 		out_file.write(grasp_data)
+	def print_state(self):
+		print "\tGraspStates: ", self.grasp_states.grasp_states
+		print "\tPregrasp Pose Offset: ", self.pregrasp_pose_offset
+		print "\tFinal pose: ", self.final_pose
+		print "\tTransforms: \n\t\tpose_to_world: ", self.pose_to_world_transform, "\n\t\tmesh_to_world", self.mesh_to_world_transform
+		print "\tMesh num triangles: ", len(self.mesh_msg.triangles)
+		print "\tSuccess: ", self.success
+		print "\tGP_results: ", self.gp_results
 
 
 current_grasp = GraspData(0)
 cur_pose_list = None
-cur_pose_selection = None
+cur_pose = None
 cur_gp_contacts = None
 cur_takk_data = None
 cur_openrave_params = None
@@ -58,26 +68,38 @@ def openrave_grasps_cb(pose_list):
 	global cur_pose_list
 	cur_pose_list = copy(pose_list)
 	print "openrave grasps: ", cur_pose_list
+	print "num poses received: ", len(cur_pose_list.poses)
 
-def selected_grasp_cb(msg):
-	global cur_pose_selection
-	cur_pose_selection = copy(msg.grasp_id)
-	print "selected grasp id", cur_pose_selection
+def grasp_selected_cb(msg):
+	global cur_pose
+	cur_pose = copy(msg)
+	print "selected grasp \n", cur_pose
 
-	get_grasp_transforms()
+def grasp_executed_cb(msg):
+	# Record all parameter information
+	global current_grasp
+	global cur_pose
+	current_grasp.final_pose = cur_pose
+	mesh_T, final_grasp_T = get_grasp_transforms()
+	print "mesh and final_grasp transforms: ", mesh_T, final_grasp_T
+	current_grasp.pose_to_world_transform = final_grasp_T
+	current_grasp.mesh_to_world_transform = mesh_T
+	current_grasp.pregrasp_pose_offset = rospy.get_param("/convex_hull/pregrasp_offset")
 
 def get_grasp_transforms():
 	global current_grasp
 	global cur_pose_list
-	global cur_pose_selection
+	global cur_pose
 	mesh_ref_frame = rospy.get_param("convex_hull/mesh_ref_frame")
-	pose_ref_frame = cur_pose_list[cur_pose_selection].header.frame_id
+	pose_ref_frame = cur_pose.header.frame_id
 
 	print "mesh_ref_frame: ", mesh_ref_frame
 	print "pose_ref_frame: ", pose_ref_frame
 
-	current_grasp.mesh_to_world_transform = get_world_transform(mesh_ref_frame)
-	current_grasp.pose_to_world_transform = get_world_transform(pose_ref_frame)
+	mesh_trans, mesh_rot = current_grasp.mesh_to_world_transform = get_world_transform(mesh_ref_frame)
+	pose_trans, pose_rot = current_grasp.pose_to_world_transform = get_world_transform(pose_ref_frame)
+
+	return ((mesh_trans, mesh_rot), (pose_trans, pose_rot))
 
 def get_world_transform(src_frame):
 	global trans_listener
@@ -89,6 +111,8 @@ def get_world_transform(src_frame):
 		except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
 			print "Lookup exception handled..."
 			freq.sleep()
+		except:
+			print "Unexpected exception. Args: ", src_frame, " /world ", rospy.Time(0)
 	return trans, rot	
 
 def gp_data_cb(msg):
@@ -116,8 +140,10 @@ def takk_data_cb(msg):
 
 def openrave_params_cb(msg):
 	global cur_openrave_params
+	global current_grasp
 	cur_openrave_params = copy(msg)
 	print "openrave params: centroid - ", cur_openrave_params.mesh_centroid
+	current_grasp.mesh_msg = msg.convex_hull
 
 def init_logger():
 	palm_usage = False
@@ -149,6 +175,8 @@ def init_logger():
 	
 def input_loop(using_palm, num_fingers):
 	global current_grasp
+	global cur_takk_data
+	global cur_gp_contacts
 	now = int(rospy.Time.now().to_sec())
 	log_dir_path = hullify_base_path + "/logs/grasp" + str(now)
 
@@ -161,20 +189,16 @@ def input_loop(using_palm, num_fingers):
 			grasp_num += 1
 			current_grasp.write_file(log_dir_path + "/")
 			current_grasp = GraspData(grasp_num)
-			rospy.logwarn("\tVerify that grasp %d is in the log directory." % grasp_num - 1)
+			rospy.logwarn("\tVerify that grasp %d is in the log directory." % (grasp_num - 1))
 
 		elif user_input.lower() == 'pr':
-			print "GraspStates: ", current_grasp.grasp_states.grasp_states
+			current_grasp.print_state()
 
 		elif user_input.lower() == 'p':
-			global cur_takk_data
-			global cur_gp_contacts
 			current_grasp.grasp_states.add_state("pregrasp", cur_gp_contacts, cur_takk_data)
 			rospy.loginfo("\tAdding pregrasp grasping state to record")
 
 		elif user_input.lower() == "m":
-			global cur_takk_data
-			global cur_gp_contacts
 			current_grasp.grasp_states.add_state("manipulation", cur_gp_contacts, cur_takk_data)
 			rospy.loginfo("\tAdding manipluation grasping state to record")
 
@@ -187,7 +211,9 @@ def input_loop(using_palm, num_fingers):
 			rospy.loginfo("Unsupported operation: %s" % user_input)
 
 def init_subscribers():
-	grasp_selection_sub = rospy.Subscriber("/grasp_control/l_hand/grasp_selection", GraspSelection, selected_grasp_cb)
+	grasp_selected_sub = rospy.Subscriber("/convex_hull/grasp_select_logger", PoseStamped, grasp_selected_cb)
+	
+	grasp_executed_sub = rospy.Subscriber("/grasp_control/l_hand/grasp_selection", GraspSelection, grasp_executed_cb)
 
 	openrave_poses_sub = rospy.Subscriber("/convex_hull/openrave_grasps", PoseArray, openrave_grasps_cb)
 
@@ -201,7 +227,7 @@ def init_subscribers():
 	gp_called_sub = rospy.Subscriber("/gp_logger", Touch, gp_called_cb)
 	#rospy.logwarn("gp_called sub not working yet, need to decide on a message type")
 
-	return [grasp_selection_sub, openrave_poses_sub, openrave_params_sub, takk_data_sub, gp_contacts_sub, gp_called_sub]
+	return [grasp_selected_sub, grasp_executed_sub, openrave_poses_sub, openrave_params_sub, takk_data_sub, gp_contacts_sub, gp_called_sub]
 
 if __name__ == "__main__":
 	rospy.init_node("sprint4_logger")
