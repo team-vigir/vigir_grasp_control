@@ -31,7 +31,7 @@ world_axes = None
 cur_hand = "l_robotiq"
 arm_type = "L"
 grasp_target_name = "grasp_target"
-num_addtl_processes = 3
+num_addtl_processes = 0
 
 #Environment var name->[file_name, name_in_system]
 FILE_PATH = 0
@@ -364,7 +364,7 @@ class VigirGrasper:
 		if rospy.get_param("convex_hull/openrave_show_grasps"):
 			self.show_selected_grasps(self.totalgrasps)
 
-		if not rospy.get_param("convex_hull/openrave_show_ik"):
+		if rospy.get_param("convex_hull/openrave_show_ik"):
 			self.show_ik_on_request()
 
 	def get_grasps(self, mesh_and_bounds_msg, params, gt, returnnum=5):
@@ -514,7 +514,7 @@ class VigirGrasper:
 			#transform = self.gmodel.getGlobalGraspTransform(self.totalgrasps[int(res)],collisionfree=True)
 			#atlas_and_ik.visualize_ik_solution(self.env, transform)
 
-		#atlas_and_ik.display_moveitik_results(self.raveio.ikresults, self.robot)
+		atlas_and_ik.display_moveitik_results(self.raveio.ikresults, self.robot)
 		self.raveio.ikresults = []
 	
 
@@ -609,7 +609,8 @@ def parse_args():
 	parser = argparse.ArgumentParser()
 	parser.add_argument("--ip", type=str, help="If the instantiated process is a subprocess, this argument specifies the ip address of the master process.", default="0.0.0.0")
 	parser.add_argument("--port", type=int, help="This option comes with the --ip option. It specifies the port of the master process.", default=0)
-
+	parser.add_argument("__name", type=str)
+	parser.add_argument("__log", type=str)
 	args = parser.parse_args()
 	ret_tuple = None
 	if args.ip != "0.0.0.0" and args.port != 0:

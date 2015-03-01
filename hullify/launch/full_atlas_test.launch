@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <launch>
 	<param name = "convex_hull/reference_frame" type = "string" value = "/world" />
-	<param name = "convex_hull/openrave_show_grasps" type = "bool" value = "false" />
+	<param name = "convex_hull/openrave_show_grasps" type = "bool" value = "true" />
 	<param name = "convex_hull/openrave_show_ik" type = "bool" value = "true" />
 	<param name = "convex_hull/using_atlas" type = "bool" value = "true" />
 	<param name = "convex_hull/debug_and_logging" type = "string" value = "minimal" />

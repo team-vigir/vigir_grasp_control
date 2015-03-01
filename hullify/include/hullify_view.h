@@ -100,6 +100,7 @@ class Hullify_View {
 		ros::NodeHandle n;
 		string prefix;
 		string* visualization_ref_frame;
+		string mesh_ref_frame;
 		string mesh_folder_path;
 		visualization_msgs::Marker template_marker;
 		std::map <string, ros::Publisher, Key_Compare> topics;
