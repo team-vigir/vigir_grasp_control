@@ -164,7 +164,7 @@ bool Ros_Int::check_hand_position(TrajectoryBasePtr traj)
 	srv.hand_pose = ros_hand_pose;
 	srv.acceptable_dist = acceptable_dist;
 
-	check_client_validity(client);
+	//check_client_validity(client);
 	//cout << "Just before the call()" << endl;
 	if (client.call(srv, resp)){
 		//stall_after_grasp_dist_check(resp.within_acceptable_dist);
@@ -455,7 +455,7 @@ bool Ros_Int::analyze_moveit_error_code(int error_code)
 		ROS_ERROR_STREAM("Apparently the group name" << template_service_request.request.ik_request.group_name  << "is invalid. That is fixable... Is it because the service call reset it?");
 		break;
 	default:
-		ROS_WARN_STREAM("This IK error code is unexpected: code-" << error_code);
+		ROS_WARN_STREAM("This IK error code is unexpected: code " << error_code);
 
 	}
 

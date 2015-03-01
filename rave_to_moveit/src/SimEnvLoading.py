@@ -364,7 +364,7 @@ class VigirGrasper:
 		if rospy.get_param("convex_hull/openrave_show_grasps"):
 			self.show_selected_grasps(self.totalgrasps)
 
-		if not rospy.get_param("convex_hull/openrave_show_ik"):
+		if rospy.get_param("convex_hull/openrave_show_ik"):
 			self.show_ik_on_request()
 
 	def get_grasps(self, mesh_and_bounds_msg, params, gt, returnnum=5):
@@ -514,7 +514,7 @@ class VigirGrasper:
 			#transform = self.gmodel.getGlobalGraspTransform(self.totalgrasps[int(res)],collisionfree=True)
 			#atlas_and_ik.visualize_ik_solution(self.env, transform)
 
-		#atlas_and_ik.display_moveitik_results(self.raveio.ikresults, self.robot)
+		atlas_and_ik.display_moveitik_results(self.raveio.ikresults, self.robot)
 		self.raveio.ikresults = []
 	
 

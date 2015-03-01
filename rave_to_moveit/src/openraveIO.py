@@ -46,6 +46,8 @@ class openraveIO:
 		self.grasper.update_process_targets(msg.convex_hull)
 	
 		self.grasper.find_grasps(msg)
+		print "grasp_search completed."
+		return
 
 	def publish_poses(self, stamped_pose_array):
 		stamped_pose_array = self.change_poses_ref_frames(stamped_pose_array)
