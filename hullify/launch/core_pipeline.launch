@@ -1,0 +1,4 @@
+<launch>
+	<include file="$(find hullify)/launch/convex_hull_debug.launch" />
+	<node type = "SimEnvLoading.py" name = "SimEnvLoading" pkg = "rave_to_moveit" output = "screen" />
+</launch>

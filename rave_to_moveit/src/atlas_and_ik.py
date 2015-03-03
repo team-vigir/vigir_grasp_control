@@ -1,6 +1,7 @@
 from openravepy import *
 from openravepy import ikfast
 import openravepy
+import rospy
 
 from moveit_msgs.msg import RobotState
 
@@ -13,16 +14,27 @@ ikmodel = None
 
 def load_atlas(env):
 	#env.Load('robots/atlas/flor_atlas.dae')
-	env.Load('robots/atlas/atlas_setup.robot.xml')
-	atlas = env.GetRobot('atlas')
-	
+	using_atlas = rospy.get_param("convex_hull/using_atlas", True)
+	atlas = None
+	if using_atlas:
+		env.Load('robots/atlas/atlas_setup.robot.xml')
+		atlas = env.GetRobot('atlas')
+	else:
+		print "Loading Adept setup"
+		env.Load('robots/adept/adept_setup.robot.xml')
+		atlas = env.GetRobot('adept') #See name in adept_setup.robot.zml
+
+
 	if atlas is not None:
 		print "Initial Atlas Load successful."
 	else:
 		print "Atlas is None in load_atlas(). Load failed."
 		exit()
 
-	world_orientation = array([[1, 0, 0, 0], [0, 1, 0, 0,], [0, 0, 1, 0], [0, 0, 0, 1]])
+	world_orientation = array([	[1, 0, 0, 0], 
+					[0, 1, 0, 0], 
+					[0, 0, 1, 0], 
+					[0, 0, 0, 1]])
 	atlas.SetTransform(world_orientation)
 	
 	#set_atlas_manipulators(atlas)
@@ -67,12 +79,17 @@ def load_arm_ik(atlas, manip):
 	#open('ik.cpp', 'w').write(code)
 
 def display_moveitik_results(results, robot):
-	print "There are ", len(results), " results to choose from: "
+	print "There are ", len(results), " results to choose from (zero indexed): "
 	while True:
 		idx = raw_input("Please pick one (q to quit): ")
 		if idx == "q":
 			break
 
+		try:
+			idx = int(idx)
+		except:
+			rospy.loginfo("Input not an integer index")
+			continue
 		show_robot_state(results[int(idx)], robot)
 
 def show_robot_state(robot_state, atlas):
@@ -101,7 +118,7 @@ def filter_approach_rays_using_ik(approach_rays, rolls):
 	out_rays = []
 	for ray in approach_rays:
 		for roll in rolls:
-			transform = get_tranform_for_approach(ray[0:3], -ray[3:6], roll)
+			transform = get_transform_for_approach(ray[0:3], -ray[3:6], roll)
 			solutions = ikmodel.manip.FindIKSolutions(transform)
 			print "Solutions: ", solutions		
 			if solutions is not None:

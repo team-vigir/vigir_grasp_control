@@ -1,13 +1,16 @@
 Panels:
   - Class: rviz/Displays
-    Help Height: 84
+    Help Height: 78
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
+        - /MotionPlanning1
         - /MotionPlanning1/Scene Geometry1
         - /TF1/Frames1
+        - /DepthCloud1/Auto Size1
       Splitter Ratio: 0.74256
-    Tree Height: 266
+    Tree Height: 408
   - Class: rviz/Help
     Name: Help
   - Class: rviz/Views
@@ -38,7 +41,9 @@ Visualization Manager:
       Value: true
     - Class: moveit_rviz_plugin/MotionPlanning
       Enabled: true
+      Move Group Namespace: ""
       MoveIt_Goal_Tolerance: 0
+      MoveIt_Planning_Attempts: 10
       MoveIt_Planning_Time: 5
       MoveIt_Use_Constraint_Aware_IK: true
       MoveIt_Warehouse_Host: 127.0.0.1
@@ -46,11 +51,6 @@ Visualization Manager:
       Name: MotionPlanning
       Planned Path:
         Links:
-          Adept_Atlas_Connector:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           Adept_Viper_650_Interface_Plate:
             Alpha: 1
             Show Axes: false
@@ -96,67 +96,72 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_1_link_0:
+          hand_guard:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_1_link_1:
+          left_f0_link_0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_1_link_2:
+          left_f0_link_1:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_1_link_3:
+          left_f0_link_2:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_2_link_0:
+          left_f0_link_3:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_2_link_1:
+          left_f1_link_0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_2_link_2:
+          left_f1_link_1:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_2_link_3:
+          left_f1_link_2:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_middle_link_0:
+          left_f1_link_3:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_middle_link_1:
+          left_f2_link_0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_middle_link_2:
+          left_f2_link_1:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_middle_link_3:
+          left_f2_link_2:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          palm:
+          left_f2_link_3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_palm:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -182,7 +187,7 @@ Visualization Manager:
         Interactive Marker Size: 0
         Joint Violation Color: 255; 0; 255
         Planning Group: adept_arm
-        Query Goal State: true
+        Query Goal State: false
         Query Start State: false
         Show Workspace: false
         Start State Alpha: 1
@@ -193,17 +198,12 @@ Visualization Manager:
         Scene Alpha: 1
         Scene Color: 50; 230; 50
         Scene Display Time: 0.2
-        Show Scene Geometry: true
+        Show Scene Geometry: false
         Voxel Coloring: Z-Axis
         Voxel Rendering: Occupied Voxels
       Scene Robot:
         Attached Body Color: 150; 50; 150
         Links:
-          Adept_Atlas_Connector:
-            Alpha: 1
-            Show Axes: false
-            Show Trail: false
-            Value: true
           Adept_Viper_650_Interface_Plate:
             Alpha: 1
             Show Axes: false
@@ -249,67 +249,72 @@ Visualization Manager:
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_1_link_0:
+          hand_guard:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_1_link_1:
+          left_f0_link_0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_1_link_2:
+          left_f0_link_1:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_1_link_3:
+          left_f0_link_2:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_2_link_0:
+          left_f0_link_3:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_2_link_1:
+          left_f1_link_0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_2_link_2:
+          left_f1_link_1:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_2_link_3:
+          left_f1_link_2:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_middle_link_0:
+          left_f1_link_3:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_middle_link_1:
+          left_f2_link_0:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_middle_link_2:
+          left_f2_link_1:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          finger_middle_link_3:
+          left_f2_link_2:
             Alpha: 1
             Show Axes: false
             Show Trail: false
             Value: true
-          palm:
+          left_f2_link_3:
+            Alpha: 1
+            Show Axes: false
+            Show Trail: false
+            Value: true
+          left_palm:
             Alpha: 1
             Show Axes: false
             Show Trail: false
@@ -318,80 +323,6 @@ Visualization Manager:
         Show Robot Collision: false
         Show Robot Visual: true
       Value: true
-    - Class: rviz/Axes
-      Enabled: false
-      Length: 1
-      Name: Axes
-      Radius: 0.1
-      Reference Frame: <Fixed Frame>
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: RGB8
-      Decay Time: 0
-      Enabled: true
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 4096
-      Min Color: 0; 0; 0
-      Min Intensity: 0
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.01
-      Style: Flat Squares
-      Topic: /kinect/selected_cloud
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: true
-    - Class: rviz/Marker
-      Enabled: true
-      Marker Topic: /convex_hull/hull_mesh
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: true
-    - Alpha: 1
-      Axes Length: 1
-      Axes Radius: 0.1
-      Class: rviz/Pose
-      Color: 255; 25; 0
-      Enabled: true
-      Head Length: 0.3
-      Head Radius: 0.1
-      Name: Pose
-      Shaft Length: 1
-      Shaft Radius: 0.05
-      Shape: Axes
-      Topic: /convex_hull/adept_wrist_orientation
-      Value: true
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /convex_hull/camera_normal
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
-    - Class: rviz/Marker
-      Enabled: false
-      Marker Topic: /convex_hull/original_third_component_axis
-      Name: Marker
-      Namespaces:
-        {}
-      Queue Size: 100
-      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -431,9 +362,38 @@ Visualization Manager:
       Channel Name: intensity
       Class: rviz/PointCloud2
       Color: 255; 255; 255
+      Color Transformer: RGB8
+      Decay Time: 0
+      Enabled: false
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: PointCloud2
+      Position Transformer: XYZ
+      Queue Size: 10
+      Selectable: true
+      Size (Pixels): 3
+      Size (m): 0.01
+      Style: Flat Squares
+      Topic: /kinect/selected_cloud
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: false
+    - Alpha: 1
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/PointCloud2
+      Color: 255; 255; 255
       Color Transformer: Intensity
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Max Intensity: 4096
@@ -449,7 +409,80 @@ Visualization Manager:
       Topic: /selected_points/transformed
       Use Fixed Frame: true
       Use rainbow: true
+      Value: false
+    - Alpha: 1
+      Axes Length: 0.3
+      Axes Radius: 0.03
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Shape: Axes
+      Topic: /convex_hull/adept_wrist_pose_input
       Value: true
+    - Alpha: 1
+      Axes Length: 0.2
+      Axes Radius: 0.06
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Shape: Axes
+      Topic: /convex_hull/adept_wrist_pose
+      Value: true
+    - Alpha: 1
+      Axes Length: 1
+      Axes Radius: 0.1
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.3
+      Head Radius: 0.1
+      Name: Pose
+      Shaft Length: 1
+      Shaft Radius: 0.05
+      Shape: Axes
+      Topic: /convex_hull/adept_wrist_orientation
+      Value: true
+    - Class: rviz/Axes
+      Enabled: false
+      Length: 1
+      Name: Axes
+      Radius: 0.1
+      Reference Frame: <Fixed Frame>
+      Value: false
+    - Class: rviz/Marker
+      Enabled: true
+      Marker Topic: /convex_hull/hull_mesh
+      Name: Marker
+      Namespaces:
+        plane_ns: true
+      Queue Size: 100
+      Value: true
+    - Class: rviz/Marker
+      Enabled: false
+      Marker Topic: /convex_hull/camera_normal
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
+    - Class: rviz/Marker
+      Enabled: false
+      Marker Topic: /convex_hull/original_third_component_axis
+      Name: Marker
+      Namespaces:
+        {}
+      Queue Size: 100
+      Value: false
     - Class: rviz/TF
       Enabled: false
       Frame Timeout: 15
@@ -464,6 +497,44 @@ Visualization Manager:
         {}
       Update Interval: 0
       Value: false
+    - Alpha: 1
+      Auto Size:
+        Auto Size Factor: 1
+        Value: true
+      Autocompute Intensity Bounds: true
+      Autocompute Value Bounds:
+        Max Value: 10
+        Min Value: -10
+        Value: true
+      Axis: Z
+      Channel Name: intensity
+      Class: rviz/DepthCloud
+      Color: 255; 255; 255
+      Color Image Topic: ""
+      Color Transformer: RGB8
+      Color Transport Hint: raw
+      Decay Time: 0
+      Depth Map Topic: /move_group/filtered_depth_cloud
+      Depth Map Transport Hint: raw
+      Enabled: true
+      Invert Rainbow: false
+      Max Color: 255; 255; 255
+      Max Intensity: 4096
+      Min Color: 0; 0; 0
+      Min Intensity: 0
+      Name: DepthCloud
+      Occlusion Compensation:
+        Occlusion Time-Out: 30
+        Value: false
+      Position Transformer: XYZ
+      Queue Size: 5
+      Selectable: true
+      Size (Pixels): 3
+      Style: Flat Squares
+      Topic Filter: true
+      Use Fixed Frame: true
+      Use rainbow: true
+      Value: true
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -479,37 +550,37 @@ Visualization Manager:
   Value: true
   Views:
     Current:
-      Class: rviz/XYOrbit
-      Distance: 1.12403
+      Class: rviz/Orbit
+      Distance: 1.87618
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.06
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 0.637958
-        Y: -0.268556
-        Z: 2.5332e-07
+        X: 0.639951
+        Y: -0.0329462
+        Z: -0.0232977
       Name: Current View
       Near Clip Distance: 0.01
-      Pitch: 1.2748
+      Pitch: 0.459795
       Target Frame: base_link
-      Value: XYOrbit (rviz)
-      Yaw: 5.93507
+      Value: Orbit (rviz)
+      Yaw: 4.56008
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 876
+  Height: 1021
   Help:
     collapsed: false
   Hide Left Dock: false
   Hide Right Dock: false
   Motion Planning:
     collapsed: false
-  QMainWindow State: 000000ff00000000fd0000000100000000000002a200000326fc0200000005fb000000100044006900730070006c00610079007301000000280000019f000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a0056006900650077007300000003b0000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000001cd000001810000017400ffffff000002b70000032600000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000100000000000002a2000003b7fc0200000005fb000000100044006900730070006c006100790073010000002800000227000000dd00fffffffb0000000800480065006c00700000000342000000bb0000007600fffffffb0000000a00560069006500770073000000010b000000b0000000b000fffffffb0000000c00430061006d00650072006100000002ff000001610000000000000000fb0000001e004d006f00740069006f006e00200050006c0061006e006e0069006e006701000002550000018a0000018a00ffffff000002b7000003b700000001000000020000000100000002fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Views:
     collapsed: false
   Width: 1375
-  X: 58
-  Y: 24
+  X: 85
+  Y: 82

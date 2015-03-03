@@ -174,6 +174,8 @@ from openravepy.misc import SpaceSamplerExtra
 from openravepy import interfaces
 from optparse import OptionParser
 
+from operator import attrgetter
+
 try:
     from itertools import product as iterproduct
 except:
@@ -210,7 +212,7 @@ class GraspingModel(DatabaseGenerator):
                 for link in self.robot.GetLinks():
                     if link not in self.manip.GetChildLinks():
                         for geom in link.GetGeometries():
-                            self.hiddengeoms.append((geom,geom.IsDraw()))
+                            self.hiddengeoms.append((geom,geom.IsVisible()))
                             geom.SetDraw(False)
         def __exit__(self,type,value,traceback):
             with self.robot.GetEnv():
@@ -252,8 +254,8 @@ class GraspingModel(DatabaseGenerator):
     def getversion(self):
         return 7
     def init(self,friction,avoidlinks,plannername=None):
-        self.basemanip = interfaces.BaseManipulation(self.robot,maxvelmult=self.maxvelmult)
-        self.grasper = interfaces.Grasper(self.robot,friction=friction,avoidlinks=avoidlinks,plannername=plannername)
+	self.basemanip = interfaces.BaseManipulation(self.robot,maxvelmult=self.maxvelmult)
+	self.grasper = interfaces.Grasper(self.robot,friction=friction,avoidlinks=avoidlinks,plannername=plannername)
         self.grasps = []
     def load(self):
         filename = self.getfilename(True)
@@ -399,10 +401,11 @@ class GraspingModel(DatabaseGenerator):
                         counter += 1
                         results = consumer(*work)
                         if len(results) > 0:
+			    #print "Results", results
 			    gatherer(*results)
-                            if len(self.grasps) >= self.remaininggrasps:
-				print "Reached requested number of grasps."
-				break #we're done here
+                            #if len(self.grasps) >= self.remaininggrasps:
+				#print "Reached requested number of grasps."
+				#break #we're done here
 
                     gatherer() # gather results
         finally:
@@ -422,7 +425,9 @@ class GraspingModel(DatabaseGenerator):
             friction = 0.4
         if avoidlinks is None:
             avoidlinks = []
+	print "Before init"
         self.init(friction=friction,avoidlinks=avoidlinks,plannername=plannername)
+	print "After init"
         if approachrays is None:
             if boxdelta is not None:
                 approachrays = self.computeBoxApproachRays(delta=boxdelta,normalanglerange=normalanglerange)
@@ -432,7 +437,9 @@ class GraspingModel(DatabaseGenerator):
                 approachrays = self.computeBoxApproachRays(delta=0.02,normalanglerange=0)
         if preshapes is None:
             # should disable everything but the robot
-            with self.target:
+            print "Setting preshapes"
+	    with self.target:
+	    	print "Inside setting preshapes"
                 self.target.Enable(False)
                 # do not fill with plannername
                 taskmanip = interfaces.TaskManipulation(self.robot)
@@ -451,7 +458,9 @@ class GraspingModel(DatabaseGenerator):
         self.finestep = finestep
         time.sleep(0.1) # sleep or otherwise viewer might not load well
         N = approachrays.shape[0]
-        with self.env:
+        print "Before env lock"
+	with self.env:
+	    print "After env lock"
             Ttarget = self.target.GetTransform()
             Trobotorig = self.robot.GetTransform()
         # transform each ray into the global coordinate system in order to plot it
@@ -511,26 +520,39 @@ class GraspingModel(DatabaseGenerator):
                 grasp[self.graspindices.get('grasptrans_nocol')] = reshape(transpose(Tlocalgrasp_nocol[0:3,0:4]),12)
                 grasp[self.graspindices.get('forceclosure')] = mindist if mindist is not None else 0
                 self.robot.SetTransform(Trobotorig) # transform back to original position for checkgraspfn
-                if not forceclosure or mindist >= forceclosurethreshold:
-		    try:
-                    	grasp[self.graspindices.get('performance')] = self._ComputeGraspPerformance(grasp, graspingnoise=graspingnoise,translate=True,forceclosure=False)
-		    except:
-			print "Handled an unexpected error while computing grasp performance!!"
-			return ()
-                    if checkgraspfn is None or checkgraspfn(contacts,finalconfig,grasp,{'mindist':mindist,'volume':volume}):
-                        print 'found good grasp'
-                        return grasp,
+                #if not forceclosure or mindist >= forceclosurethreshold:
+		#try:
+                #    grasp[self.graspindices.get('performance')] = self._ComputeGraspPerformance(grasp, graspingnoise=graspingnoise,translate=True,forceclosure=False)
+		
+		#except:
+		#    print "Handled an unexpected error while computing grasp performance!!"
+		#    return ()
+                if checkgraspfn is None or checkgraspfn(contacts,finalconfig,grasp,{'mindist':mindist,'volume':volume}):
+                    print '\t\x1b[32m Found good grasp \x1b[37m'
+                    #raw_input("Do we have an image? Compare it to the volume.")
+		    grasp[self.graspindices.get('performance')] = volume
+		    return grasp,
+		else:
+		    print '\t\x1b[33m Grasp Failed to meet minimum grasp metric\x1b[37m'
                     
                 return ()
 
         def gatherer(grasp=None):
             if grasp is not None:
                 self.grasps.append(grasp)
+		
+		#self.grasps = sorted(self.grasps, key=attrgetter('performance'), reverse=True) # Not the best, but it will do
+		#self.grasps = array(self.grasps)
+		#self.grasps = numpy.insert(self.grasps, 0, grasp)
+		#self.grasps = numpy.append(self.grasps, grasp)
+		#order = argsort(self.grasps[:, self.graspindices.get('performance')[0]])
+		#self.grasps = self.grasps[order]
             else:
                 self.grasps = array(self.grasps)
                 if len(self.grasps) > 1:
                     order = argsort(self.grasps[:,self.graspindices.get('performance')[0]])
                     self.grasps = self.grasps[order]
+		    self.grasps = self.grasps[::-1]
                 # force closing the handles
                 self.approachgraphs = None
                 self.contactgraph = None
@@ -682,7 +704,11 @@ class GraspingModel(DatabaseGenerator):
                     self.env.UpdatePublishedBodies()
                     # wait while environment is locked?
                     if delay is None:
-                        raw_input('press any key to continue: ')
+                        print "Grasp metric value: ", grasp[self.graspindices.get('performance')]
+			user_input = raw_input('press any key to continue: ')
+			#if user_input == "s" or user_input == "S":
+			#	openraveIO.save_grasp_screenshot(self.env)
+				
                     elif delay > 0:
                         time.sleep(delay)
     def testGrasp(self,graspingnoise=None,Ngraspingtries = 20,forceclosurethreshold=1e-9,**kwargs):

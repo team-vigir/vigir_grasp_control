@@ -30,6 +30,10 @@ void Hullify_View::common_constructor()
 	topics.clear();
 	init_template_marker();
 	get_mesh_folder_path();
+	if (!ros::param::get("/convex_hull/mesh_ref_frame", mesh_ref_frame)) {
+		ROS_ERROR("Could not get parameter /convex_hull/mesh_reference_frame from param server in hullify_view.");
+		exit(1);
+	}
 }
 
 void Hullify_View::get_mesh_folder_path()
@@ -138,8 +142,13 @@ void Hullify_View::rm_prev_mesh(map<string, string>::iterator& mesh_info)
 {
 	if (mesh_info->second != ""){
 		cout << "Deleting previous mesh: " << mesh_info->first << endl;
-		string command = "rm " + mesh_info->second;
-		system(command.c_str()); 
+		//string command = "rm " + mesh_info->second;
+		//system(command.c_str()); 
+		int ret = remove(mesh_info->second.c_str());
+		if (ret == -1) {
+			ROS_ERROR("Could not delete previous mesh");
+			perror("Remove call on line __LINE__ of __FILE__ failed");
+		}
 
 	} else {
 		cout << "No previous mesh to delete." << endl;
@@ -236,6 +245,7 @@ visualization_msgs::Marker Hullify_View::mk_mesh_msg(string location)
 {
 	visualization_msgs::Marker mesh_msg = template_marker;
 	mesh_msg.header.stamp = ros::Time::now();
+	mesh_msg.header.frame_id = mesh_ref_frame;
 	mesh_msg.mesh_resource = "file://" + location;
 
 	return mesh_msg;

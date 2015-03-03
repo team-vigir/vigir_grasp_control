@@ -71,103 +71,51 @@ MeshMaker::MeshMaker()
 
 void MeshMaker::init_reference_frame()
 {
-	string input;
-	while(1){
-		cout << "Please input the frame of reference for everything: "
-			<< "\n\t0 - new\n\t1 - /world (Atlas)"
-			<< "\n\t2 - /adept_combined: ";
-		cin >> input;
-
-		if (input == "0"){
-			cout << "Please input the reference frame (with leading slash): ";
-			cin >> visualization_ref_frame;
-
-		} else if (input == "1"){
-			visualization_ref_frame = "/world";
-
-		} else if (input == "2") {
-			visualization_ref_frame = "/adept_combined";
-		} else {
-			cout << "Invalid entry (must be 0, or 1)" << endl;
-			continue;
-		}
-
-		break;
+	if (!ros::param::get("/convex_hull/reference_frame", visualization_ref_frame)){
+		cout << "Missing /convex_hull/reference_frame parameter. Are you using a launch file?" << endl;
+		exit(1);
 	}
+	cout << "Visualization frame: " << visualization_ref_frame << endl;
 }
 
 void MeshMaker::init_input_topic()
 {
-	string input;
-	while(1){
-		cout << "What is the input pointcloud topic for this meshing node?"
-			<< "\n\t0 - new\n\t1 - (Atlas's multiple cloud topics)"
-			<< "\n\t2 - /testing/default"
-			<< "\n\t3 - /kinect/selected_cloud (manual box entry)"
-			<< "\n\t4 - /selected_points/transformed (plugin selection): ";
-		cin >> input;
-		
+	bool using_atlas;
+	if (!ros::param::get("/convex_hull/using_atlas", using_atlas)){
+		cout << "Missing /convex_hull/using_atlas parameter. Are you using the launch files?" << endl;
+		exit(1);
+	}
 		in_topic_name.reserve(3);
-		if (input == "0"){
-			cout << "Please input the topic name: ";
-			cin >> input;
-			in_topic_name.push_back(input);
-
-		} else if (input == "1"){
+		if (using_atlas){
 			in_topic_name.push_back("/flor/worldmodel/ocs/dist_query_pointcloud_result");
 			in_topic_name.push_back("/flor/worldmodel/ocs/stereo_cloud_result");
 			in_topic_name.push_back("/flor/worldmodel/ocs/cloud_result");
 
-		} else if (input == "2"){
-			in_topic_name.push_back("/testing/default");
-
-		} else if (input == "3"){
-			in_topic_name.push_back("/kinect/selected_cloud");
-
-		} else if (input == "4"){
-			in_topic_name.push_back("/selected_points/transformed");
-
 		} else {
-			cout << "Invalid entry (must be 0, 1, 2, 3, or 4)" << endl;
-			continue;
+			string cloud_topic;
+			if (!ros::param::get("/convex_hull/cloud_input_topic", cloud_topic)){
+				cout << "Could not find /convex_hull/cloud_input_topic paramter. Are you using launch files?" << endl;
+				exit(1);
+			}
+			in_topic_name.push_back(cloud_topic);
 		}
 
-		break;
-	}
+	cout << "The first input topic is " << in_topic_name[0] << endl;
 }
 
 void MeshMaker::init_mesh_ref_frame()
 {
-	string input;
-	cout << "Please input the reference frame for output meshes: "
-		<< "\n\t0 - new \n\t1 - /pelvis: ";
-	while(1){
-		cin >> input;
-		if (input == "0"){
-			cout << "Please input the reference frame: ";
-			cin >> mesh_ref_frame;
-
-		} else if (input == "1"){
-			mesh_ref_frame = "/pelvis";
-		} else {
-			continue;
-		}
-
-		break;
+	if (!ros::param::get("convex_hull/mesh_ref_frame", mesh_ref_frame)){
+		cout << "Could not find parameter convex_hull/mesh_ref_frame. Are you using the launch files?" << endl;
+		exit(1);
 	}
+	cout << "Reference frame for the output meshes: " << mesh_ref_frame << endl;
 }
 
 void MeshMaker::init_mesh_name()
 {
-	string input;
-	cout << "Please input the base output filename of the mesh (1 - hull_mesh): ";
-	cin >> input;
-	if (input == "1"){
-		mesh_base_name = "hull_mesh";
-
-	} else {
-		mesh_base_name = input;
-	}
+	mesh_base_name = "hull_mesh";
+	cout << "Base mesh name: " << mesh_base_name << endl;
 }
 
 MeshMaker::~MeshMaker()
@@ -249,7 +197,12 @@ void MeshMaker::convert_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg)
 	    	return;
 	}
 
-	intermediate_cloud = isolate_hull_cluster(intermediate_cloud, target_point);
+	try {
+		intermediate_cloud = isolate_hull_cluster(intermediate_cloud, target_point);
+	} catch (...){
+		//Segmentation failure. Could be density of cloud
+		return;
+	}
 
 	//Run qhull externally (or see comments just below)
 	pcl::PolygonMesh::Ptr convex_hull = qhull.mk_mesh(intermediate_cloud);
@@ -283,8 +236,10 @@ bool MeshMaker::get_cloud(const sensor_msgs::PointCloud2::ConstPtr& msg, pcl::Po
 	pcl::moveFromROSMsg(temp_cloud, *intermediate_cloud);
 
     if (!is_valid_cloud(intermediate_cloud)){       
-        return false;
+	return false;
     }
+
+
     return true;
 }
 
@@ -394,11 +349,17 @@ Eigen::Matrix3d MeshMaker::get_principal_axes(pcl::PointCloud<pcl::PointXYZ>::Pt
 void MeshMaker::send_hull_and_planes_to_openrave(string& mesh_full_abs_path, pcl::PolygonMesh::Ptr convex_hull, pcl::PointCloud<pcl::PointXYZ>::Ptr mesh_pts)
 {
 	osu_grasp_msgs::Mesh_and_bounds openrave_msg;
+	Eigen::Vector3d centroid = bounds->get_centroid();
+	geometry_msgs::Point ros_centroid;
+	ros_centroid.x = centroid[0];
+	ros_centroid.y = centroid[1];
+	ros_centroid.z = centroid[2];
 
 	openrave_msg.header.frame_id = visualization_ref_frame;
 	openrave_msg.header.stamp = ros::Time::now();
 	openrave_msg.full_abs_mesh_path = mesh_full_abs_path;
 	mk_mesh_msg(openrave_msg.convex_hull, convex_hull);
+	openrave_msg.mesh_centroid = ros_centroid;
 	set_bounding_planes(openrave_msg, mesh_pts);
 
 	view->publish("openrave_params", openrave_msg);

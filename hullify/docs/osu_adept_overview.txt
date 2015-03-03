@@ -1,0 +1,64 @@
+#### Adept Overview
+
+Introduction:
+	The idea should be fairly simple: use a program to generate potential/likely graspable approaches to an object, evaluate their effectiveness, and then execute the ones which look most promising. We are plumbers, as Ravi mentioned earlier; much of the system has aready been generously writen by others. We are responsible for hooking it up, refining it, and tuning it precisely to our needs.
+	OpenRAVE (our grasp generator and evaluator) existed prior to the conception of this project. Qhull (our convex hull generator) existed before the DRC. People have been hacking the kinect as long as it has existed (freenect_launch and ar_track_alvar; our calibrated/reoriented pointcloud sources). And, last but not least, Moveit (our motion planner and collision checker) is as old as ROS.
+	The above was a brief overview of the tools we use. To effectively use them, Forrest and myself have written interfaces between them and to existing libraries to perform additional operations which were not natively supported (that we know of). This includes pointcloud selection (filtering a 30cmx 30cm x 30cm box based on the point you click in Rviz; yeah, that's what you're doing to start the pipeline), object segmentation (picking the block of wood apart from the table; still a work in progress), custom grasp evaluation (favoring palm proximity to the object, reachability checking), and pregrasp pose functionality.
+	Given the fact that we are building the system to two robots, we have needed to make things interchangeable and easily configurable. For this, we load specific parameters to ROS's built-in information server called the parameter server (look it up if you don't know). So, as the system runs and reaches points where Atlas behavior diverges from Adept behavior, it queries the parameter server for instructions. You can view these settings by opening hullify/launch/kinect_params.launch; you can change them too, but use rosparam, DO NOT MODIFY THEM IN THE TEXT FILE UNLESS YOU'VE CONSUTED JACKSON.
+
+	So that's the very very brief overview of our tools and the pipeline.
+
+The Pipeline: A paragraph per piece
+	While the pipeline is running, view the system with: rosrun rqt_graph rqt_graph
+	Everything starts in the cloud... well, in one of the clouds... from the kinect. Once connection has been established to the device, the clouds are pumped out at 30hz in full color and in 3d space, as you've seen. The clouds are published relative to the kinect's rgb frame (rostopic echo the pointcloud topics to see this). Calibration (ar_track_alvar) is responsible for transforming these points to the main, common reference frame (/world) so that the robot can understand where they are.
+	The points are shown in Rviz, where an operator picks one and triggers the pipeline. This selected point is stored for later object segmentation (see below), but is immediately used to select a 30cm x 30cm x 30cm box of the entire cloud with that point as its center. This is the job of the ocs_listener node. The results of this selection are then piped to a transformer (selected_points_transformer), which changes them to the /world reference frame and gives them to the core pipeline.
+	ALL the above is started by the command "roslaunch hullify kinect.launch"
+	The first (of only two; don't worry, I know it's long already) stages in the pipeline takes a raw pointcloud, possiby with other objects in the scene, and attemts to clean it: anything that looks too large and table-like to grip is removed and the remaining groups of pointclouds are clustered. This usually results in sets of points that are distinguishable objects. The operator's selection point is used to determine which cluster was intended by choosing the nearest point to the selection point in the scene.
+	After picking out the object (segmentation), the resultant points are converted to a convex hull using qhull (hence the package name "hullify"). This convex hull is the smallest polyhedra that contains all the input points. It has no indents and flat faces between points. This mesh/hull is then sent to a bounding plane creator which attempts to determine how much of the object the robot really "knows" and from where it can reliably grasp. If the robot were allowed, it might try to grasp from the back where the object might have features that it can't see. The mesh and bounding planes are then sent to the grasp generator/evaluator OpenRAVE.
+	You might want to take a break and look at the packages in the Locations section below. Become familiar with the code's location and the package names. 
+
+Act II:
+	The second core piece of the pipeline is OpenRAVE. At the heart of this piece is a python-powered, brute force attempt to find grasps on an object: (as given by the OpenRAVE grasping module documentation on openrave.org) OpenRAVE draws a large box around the mesh you give it and then paints evenly spaced points on the surface of the box. Imagine, then, drawing an arrow between each point on the box and the center of the box: these are your grasp approaches. 
+	Remember the screen vomit in the one terminal? Yeah, that's here: OpenRAVE, through its C++ grasper plugin (which we have substantially modified), places the palm of the hand at those points on the box and motions toward the figure. (This is still one place for performance improving; it takes a while and we dont exactly know what it does)
+	Once OpenRAVE finds contact, it is passed off to us: We use some services provided by Moveit to check reachability of the grasp and pregrasp poses, and we verify that the palm isn't too far away from the object for the grasp to be useless. Positive results are forwarded back to the python interface, which renders them for viewing and transforms them to their final reference frame for transmission.
+
+	The last pieces of the pipeline are Moveit and the Adept interface. We wrote a C++ interface that connects to Moveit using their Wiki. However, the wiki is outdated, and this could pertain to our code (we need to do more research). Our interface first loads a table as a collision object so that the robot doesn't hit the table. It then requests from moveit a motion plan to get from the initial (home) state of the robot to the requested grasp pose.
+	Moveit uses, by default, the OMPL planner, which randomly finds paths between one pose and another subject to constraints. I do not yet kow exactly hw to specify constraints, but we can use the core of the interface. Also, since the path finding is random, if you get a solution once, there's no real guarantee you'll get it again (although you often do). Once we have a motion plan, we pass it off to the Adept.
+	It is important to note that Moveit is separate from our interface. The interface lives in our moveit_int package, while the Moveit code itself is a debian installation on our computers. Moveit's core is the move_group ROS node which handles planning requests and manages other plugins (see the Moveit.org overview/concepts page). Additionally, Moveit loads a robot model to the ROS parameter server, handles the collision octomap and other collision objects and starts Rviz with custom settings to show planning paths. Try playing with the settings and seeing what each does, just don't save it =).
+	Hullify's osu_adept_common.launch starts all of this
+
+	The final component is simply a bridge between Moveit's trajectory (waypoints given by joint positions) and the Adepts interface. This was developed by senior undergraduates which are no longer a part of the lab. Their code appears to work, so we use it. All it does is it provides a service where you can specify joint angles (complete robot states) in an order and the robot controller finds a way between each.
+	The transmission medium for these messages is ethernet (hence the special AdeptRobotiq network), but enabling the robot is serial (minicom).
+
+Software Organization:
+	Kinect software: kinect_ptcloud_converter, freenect_launch, ar_track_alvar
+		- ar recognizer
+		- pointcloud publisher
+		- Kinect to world transformers
+		- World to robot transformers
+		- Frame conversion and publish rate throttling
+	
+	Core pipeline: hullify, rave_to_moveit, grasper_mod (not a ros package, it's in vigir_osu_experimentation)
+		- The convex hull creator (qhull_interface.cpp)
+		- The bounding plane creator (mesh_bound.cpp)
+		- Box selection (ocs_listener.cpp)
+		- Object Segmentation (cluster_segmentation.cpp)
+		- OpenRAVE python grasp generator (rave_to_moveit/SimEnvLoading.py)
+		- OpenRAVE C++ grasper evalutator (grasper_mod/mods)
+
+	Moveit: moveit_int, adept_moveit_connector
+		- Robot configuration (adept_moveit_connector)
+			* Models
+			* Collision checking
+			* Kinematic chains/groups (link and joint collections used by Moveit for motion planning)
+		- Motion planning (programmatic_moveit)
+
+	Adept:	osu_ros_adept, minicom (not a package)
+		- Sending joint commands to the robot.
+
+Launch files: Feel free to read them and trace them
+	Settings: hullify/kinect_params.launch
+	Kinect: hullify/kinect.launch
+	Core pipeline: hullify/osu_adept_common.launch
+	Moveit: hullify/osu_adept_common.launch
+	Adept: osu_ros_adept/start_basic_connection.launch

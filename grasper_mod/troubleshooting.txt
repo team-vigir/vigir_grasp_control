@@ -1,0 +1,3 @@
+## Troubleshooting the Grasping Mods:
+
+* If you do not see the modified grasping library in rave_to_moveit/plugins, then you probably didn't build with the --install option. Doing so will actually invoke the install directive and place the plugin properly.
