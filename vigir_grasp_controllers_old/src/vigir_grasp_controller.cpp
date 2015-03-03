@@ -33,6 +33,7 @@
 #include <boost/thread/locks.hpp>
 #include <fstream>
 
+//#include <vigir_grasp_control/vigir_grasp_controllers_old/include/vigir_grasp_controllers_old/vigir_grasp_controller.h>
 #include <vigir_grasp_controllers_old/vigir_grasp_controller.h>
 #include <flor_ocs_msgs/OCSGhostControl.h>
 
@@ -204,7 +205,7 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
      grasp_selection_sub_   = nh.subscribe("grasp_selection",    1, &VigirGraspController::graspSelectionCallback, this);
      grasp_planning_group_sub_   = nh.subscribe("/flor/ocs/ghost_ui_state",    1, &VigirGraspController::graspPlanningGroupCallback, this);
 
-     template_info_client_       = nh.serviceClient<vigir_object_template_msgs::GetTemplateStateAndTypeInfo>("/template_info");
+     grasp_info_client_       = nh.serviceClient<vigir_object_template_msgs::GetGraspInfo>("/grasp_info");
 
      attach_object_client_       = nh.serviceClient<vigir_object_template_msgs::SetAttachedObjectTemplate>("/attach_object_template");
      stitch_object_client_       = nh.serviceClient<vigir_object_template_msgs::SetAttachedObjectTemplate>("/stitch_object_template");
@@ -1400,13 +1401,13 @@ bool isIKSolutionCollisionFree()
 // Helper functions
 void VigirGraspController::requestTemplateService(const uint16_t& requested_template_type){
     //CALLING THE TEMPLATE SERVER
-    vigir_object_template_msgs::GetTemplateStateAndTypeInfo srv;
+    vigir_object_template_msgs::GetGraspInfo srv;
     srv.request.template_type = requested_template_type;
-    if (!template_info_client_.call(srv))
+    if (!grasp_info_client_.call(srv))
     {
         ROS_ERROR("Failed to call service request grasp info");
     }
-    last_template_res_ = srv.response;
+    last_grasp_res_ = srv.response;
 }
 
 void VigirGraspController::setAttachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data){

@@ -43,6 +43,7 @@
 #include <atlas_msgs/ForceTorqueSensors.h>
 #include <sensor_msgs/JointState.h>
 
+//#include <vigir_grasp_control/vigir_grasp_controllers_old/include/vigir_grasp_controllers_old/vigir_grasp_controller.h>
 #include <vigir_grasp_controllers_old/vigir_grasp_controller.h>
 
 #include "geometric_shapes/mesh_operations.h"

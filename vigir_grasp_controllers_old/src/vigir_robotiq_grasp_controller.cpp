@@ -32,6 +32,7 @@
 #include <message_filters/subscriber.h>
 #include <message_filters/time_synchronizer.h>
 
+//#include <vigir_grasp_control/vigir_grasp_controllers_old/include/vigir_grasp_controllers_old/vigir_robotiq_grasp_controller.h>
 #include <vigir_grasp_controllers_old/vigir_robotiq_grasp_controller.h>
 
 #define RAD_TO_BYTE    209.01638145
@@ -309,25 +310,25 @@ namespace vigir_grasp_controllers_old{
 
     void VigirRobotiqGraspController::updateGraspTemplate(const uint16_t& requested_grasp_id, const uint16_t& requested_template_id, const uint16_t& requested_template_type)
     {
-        for(int index = 0; index < last_template_res_.template_type_information.grasps.size(); index++)
+        for(int index = 0; index < last_grasp_res_.grasp_information.grasps.size(); index++)
         {
-            if(std::atoi(last_template_res_.template_type_information.grasps[index].id.c_str()) == requested_grasp_id){
+            if(std::atoi(last_grasp_res_.grasp_information.grasps[index].id.c_str()) == requested_grasp_id){
                 boost::lock_guard<boost::mutex> sensor_data_lock(this->write_data_mutex_);
                 this->grasp_id_            = requested_grasp_id;
                 this->template_type_       = requested_template_type;
                 this->template_id_         = requested_template_id;
                 this->grasp_type_          = GRASP_CYLINDRICAL;
 
-                this->finger_poses_.f0[0]  = last_template_res_.template_type_information.grasps[index].grasp_posture.points[0].positions[0];
-                this->finger_poses_.f0[1]  = last_template_res_.template_type_information.grasps[index].grasp_posture.points[0].positions[4];
-                this->finger_poses_.f0[2]  = last_template_res_.template_type_information.grasps[index].grasp_posture.points[0].positions[8];
-                this->finger_poses_.f0[3]  = last_template_res_.template_type_information.grasps[index].grasp_posture.points[0].positions[3];
+                this->finger_poses_.f0[0]  = last_grasp_res_.grasp_information.grasps[index].grasp_posture.points[0].positions[0];
+                this->finger_poses_.f0[1]  = last_grasp_res_.grasp_information.grasps[index].grasp_posture.points[0].positions[4];
+                this->finger_poses_.f0[2]  = last_grasp_res_.grasp_information.grasps[index].grasp_posture.points[0].positions[8];
+                this->finger_poses_.f0[3]  = last_grasp_res_.grasp_information.grasps[index].grasp_posture.points[0].positions[3];
 
-                this->final_wrist_pose_    = last_template_res_.template_type_information.grasps[index].grasp_pose.pose;
-                this->pregrasp_wrist_pose_ = last_template_res_.template_type_information.grasps[index].grasp_pose.pose;
+                this->final_wrist_pose_    = last_grasp_res_.grasp_information.grasps[index].grasp_pose.pose;
+                this->pregrasp_wrist_pose_ = last_grasp_res_.grasp_information.grasps[index].grasp_pose.pose;
                 staticTransform(this->final_wrist_pose_);
 
-                gripperTranslationToPreGraspPose(this->pregrasp_wrist_pose_,last_template_res_.template_type_information.grasps[index].pre_grasp_approach);
+                gripperTranslationToPreGraspPose(this->pregrasp_wrist_pose_,last_grasp_res_.grasp_information.grasps[index].pre_grasp_approach);
                 staticTransform(this->pregrasp_wrist_pose_);
 
                 // Force a new round of template match to be sure and get wrist pose

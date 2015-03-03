@@ -78,6 +78,7 @@
 #include <moveit_msgs/GripperTranslation.h>
 
 #include <vigir_object_template_msgs/GetTemplateStateAndTypeInfo.h>
+#include <vigir_object_template_msgs/GetGraspInfo.h>
 #include <vigir_object_template_msgs/SetAttachedObjectTemplate.h>
 #include <vigir_object_template_msgs/DetachObjectTemplate.h>
 
@@ -318,7 +319,7 @@ struct VigirGraspSpecification
 
 
     // Internal variables used by active controllers
-    vigir_object_template_msgs::GetTemplateStateAndTypeInfoResponse last_template_res_;
+    vigir_object_template_msgs::GetGraspInfoResponse last_grasp_res_;
     geometry_msgs::Pose                     final_wrist_pose_;
     geometry_msgs::Pose                     pregrasp_wrist_pose_;
     tf::Transform                           stitch_template_pose_;
@@ -399,7 +400,7 @@ struct VigirGraspSpecification
     ros::Subscriber grasp_planning_group_sub_;
 
 
-    ros::ServiceClient template_info_client_;
+    ros::ServiceClient grasp_info_client_;
     ros::ServiceClient attach_object_client_;
     ros::ServiceClient stitch_object_client_;
     ros::ServiceClient detach_object_client_;
