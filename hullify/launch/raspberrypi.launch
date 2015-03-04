@@ -7,8 +7,8 @@
 	<node name="image_view" type="image_view" pkg="image_view" args="image:=camera/image_decompressed"/>
 
 	<!-- Start up the raspberry pi's camera -->
-	<node machine="pi" name="raspicam_node" type="raspicam_node" pkg="raspicam" output="screen"/>
+<!--	<node machine="pi" name="raspicam_node" type="raspicam_node" pkg="raspicam" output="screen"/>-->
 
 	<!-- Start up the takktiles -->
-	<node machine="pi" name="takktile_node" type="takktile_node.py" pkg="takktile_ros" output="screen"/>
+	<!--<node machine="pi" name="takktile_node" type="takktile_node.py" pkg="takktile_ros" output="screen"/> -->
 </launch>
