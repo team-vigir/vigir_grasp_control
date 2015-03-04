@@ -327,9 +327,8 @@ namespace vigir_grasp_controllers_old{
                 this->final_wrist_pose_    = last_grasp_res_.grasp_information.grasps[index].grasp_pose.pose;
                 this->pregrasp_wrist_pose_ = last_grasp_res_.grasp_information.grasps[index].grasp_pose.pose;
                 staticTransform(this->final_wrist_pose_);
-
-                gripperTranslationToPreGraspPose(this->pregrasp_wrist_pose_,last_grasp_res_.grasp_information.grasps[index].pre_grasp_approach);
                 staticTransform(this->pregrasp_wrist_pose_);
+                gripperTranslationToPreGraspPose(this->pregrasp_wrist_pose_,last_grasp_res_.grasp_information.grasps[index].pre_grasp_approach);
 
                 // Force a new round of template match to be sure and get wrist pose
                 this->template_updated_    = false;

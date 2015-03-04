@@ -1460,8 +1460,8 @@ void VigirGraspController::gripperTranslationToPreGraspPose(geometry_msgs::Pose&
         direction.vector.z = 0 ;
     }
 
-    direction.vector.x *= hand_side_ == "left" ? -trans.desired_distance : trans.desired_distance;  //Change due to Atlas specifics, hand axis are reflected
-    direction.vector.y *= hand_side_ == "left" ? -trans.desired_distance : trans.desired_distance;  //Change due to Atlas specifics, hand axis are reflected
+    direction.vector.x *= -trans.desired_distance;
+    direction.vector.y *= -trans.desired_distance;
     direction.vector.z *= -trans.desired_distance;
 
     ROS_INFO("setting trans; dx: %f, dy: %f, dz: %f", direction.vector.x, direction.vector.y, direction.vector.z);
