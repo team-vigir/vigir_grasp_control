@@ -79,12 +79,17 @@ def load_arm_ik(atlas, manip):
 	#open('ik.cpp', 'w').write(code)
 
 def display_moveitik_results(results, robot):
-	print "There are ", len(results), " results to choose from: "
+	print "There are ", len(results), " results to choose from (zero indexed): "
 	while True:
 		idx = raw_input("Please pick one (q to quit): ")
 		if idx == "q":
 			break
 
+		try:
+			idx = int(idx)
+		except:
+			rospy.loginfo("Input not an integer index")
+			continue
 		show_robot_state(results[int(idx)], robot)
 
 def show_robot_state(robot_state, atlas):
