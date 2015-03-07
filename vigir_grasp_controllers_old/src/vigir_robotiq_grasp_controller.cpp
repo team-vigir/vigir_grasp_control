@@ -35,14 +35,16 @@
 //#include <vigir_grasp_control/vigir_grasp_controllers_old/include/vigir_grasp_controllers_old/vigir_robotiq_grasp_controller.h>
 #include <vigir_grasp_controllers_old/vigir_robotiq_grasp_controller.h>
 
-#define RAD_TO_BYTE    209.01638145
-#define RAD_BC_TO_BYTE 225.663693848
+#define FINGER_A_RAD   1.22
+#define FINGERS_BC_RAD 1.13
 #define SPREAD_RAD     0.28   //Radians range of the spread fingers
-#define BYTE_TO_SPR    (SPREAD_RAD/255.0)
-#define SPR_TO_BYTE    (1.0/BYTE_TO_SPR)
-#define SPR_OFFSET     (BYTE_TO_SPR * 137.0)
-#define SPR_OPEN       (-SPR_OFFSET)
-#define SPR_CLOSE      SPREAD_RAD-SPR_OFFSET
+#define A_TO_BYTE      (255/FINGER_A_RAD)
+#define BC_TO_BYTE     (255/FINGERS_BC_RAD)
+#define SPR_TO_BYTE    (255/SPREAD_RAD)     //910.7142
+#define BYTE_TO_SPR    (SPREAD_RAD/255.0)    //0.001098039
+#define SPR_OFFSET     (BYTE_TO_SPR * 137.0) //0.15043
+#define SPR_OPEN       (-SPR_OFFSET)         //-0.15043
+#define SPR_CLOSE      SPREAD_RAD-SPR_OFFSET //0.12957
 #define PER_TO_BYTE    2.55
 
 namespace vigir_grasp_controllers_old{
