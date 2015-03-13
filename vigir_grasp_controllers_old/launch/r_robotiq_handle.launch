@@ -1,5 +1,4 @@
-<launch>
-  
+<launch>  
   <!-- ATLAS RIGHT HAND IP = 10.66.171.23 -->
   <arg name="right_hand_name" default="192.168.121.101" />
 
