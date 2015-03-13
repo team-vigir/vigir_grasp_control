@@ -20,8 +20,8 @@
         pkg     = "controller_manager"
         type    = "spawner"
         ns      = "left_robotiq"
-        output  = "screen"
-        args    = "left_hand_traj_controller"/>
+        args    = "left_hand_traj_controller"/><!--
+        output  = "screen"-->
 
             
   <!-- load the controllers -->
@@ -35,8 +35,8 @@
   <node name    = "left_robotiq_ros_controller" 
         pkg     = "vigir_robotiq_ros_control" 
         type    = "vigir_robotiq_ros_controller_node" 
-        ns      = "left_robotiq"
-        output  = "screen">
+        ns      = "left_robotiq"><!--
+        output  = "screen"  -->
         <param name="hand_side" value="left" />
         <param name="hand_name" value="l_hand"/>
         <rosparam file    = "$(find vigir_robotiq_ros_control)/config/robotiq_joints.yaml" 
