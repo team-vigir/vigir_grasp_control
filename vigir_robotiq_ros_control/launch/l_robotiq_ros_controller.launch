@@ -32,6 +32,7 @@
         ns      = "left_robotiq" 
         output  = "screen"  
         args    = "joint_state_controller"/>  
+
   <node name    = "left_robotiq_ros_controller" 
         pkg     = "vigir_robotiq_ros_control" 
         type    = "vigir_robotiq_ros_controller_node" 
@@ -43,7 +44,8 @@
                   command = "load" />
   </node>
   
-  <arg name="input_joints"  default="/left_robotiq/joint_states" /> <!-- Relaying to /joint_states since namespace contained hand side: /left_robotiq/-->
+  <!-- Relaying to /joint_states since namespace contained hand side: /left_robotiq/-->
+  <arg name="input_joints"  default="/left_robotiq/joint_states" />
   <arg name="output_joints" default="/joint_states" />
   
   <node name    = "left_robotiq_republisher" 
