@@ -101,11 +101,11 @@ include_directories(
 link_directories(${catkin_LIBRARY_DIRS})
 
 SET(HEADERS
-include/${PROJECT_NAME}/vigir_robotiq_grasp_controller.h
+include/${PROJECT_NAME}/vigir_stump_grasp_controller.h
 )
 
 SET(SOURCE
-src/vigir_robotiq_grasp_controller.cpp
+src/vigir_stump_grasp_controller.cpp
 )
 
 ## Declare a cpp library

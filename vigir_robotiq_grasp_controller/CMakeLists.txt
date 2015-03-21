@@ -81,7 +81,7 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+  INCLUDE_DIRS include include/${PROJECT_NAME}
   LIBRARIES vigir_robotiq_grasp_controller
   CATKIN_DEPENDS roscpp rospy std_msgs vigir_manipulation_controller
 #  DEPENDS system_lib
@@ -96,6 +96,7 @@ catkin_package(
 # include_directories(include)
 include_directories(
   include
+  include/${PROJECT_NAME}
   ${catkin_INCLUDE_DIRS}
 )
 link_directories(${catkin_LIBRARY_DIRS})

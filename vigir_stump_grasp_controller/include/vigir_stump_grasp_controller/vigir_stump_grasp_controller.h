@@ -25,25 +25,25 @@
 // SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //=================================================================================================
 
-#ifndef VIGIR_ROBOTIQ_GRASP_CONTROLLER_H__
-#define VIGIR_ROBOTIQ_GRASP_CONTROLLER_H__
+#ifndef VIGIR_STUMP_GRASP_CONTROLLER_H__
+#define VIGIR_STUMP_GRASP_CONTROLLER_H__
 
 #include <vigir_manipulation_controller/vigir_manipulation_controller.h>
 
-namespace vigir_robotiq_grasp_controller{
+namespace vigir_stump_grasp_controller{
 
   //////////////////////////////////////////////////////////////////////////
-  // Defines the Robotiq class as a derived class of VigirManipulationController plus
-  // extra Robotiq hand specific info
+  // Defines the Stump class as a derived class of VigirManipulationController plus
+  // extra Stump hand specific info
   //////////////////////////////////////////////////////////////////////////
 
-  class VigirRobotiqGraspController: virtual public vigir_manipulation_controller::VigirManipulationController
+  class VigirStumpGraspController: virtual public vigir_manipulation_controller::VigirManipulationController
   {
     public:
 
-        VigirRobotiqGraspController();
-        ~VigirRobotiqGraspController();
-        void initializeRobotiqGraspController(ros::NodeHandle& nh, ros::NodeHandle& nhp);
+        VigirStumpGraspController();
+        ~VigirStumpGraspController();
+        void initializeStumpGraspController(ros::NodeHandle& nh, ros::NodeHandle& nhp);
 
     protected:
 
