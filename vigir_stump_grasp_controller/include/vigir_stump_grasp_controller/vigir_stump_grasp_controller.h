@@ -55,10 +55,6 @@ namespace vigir_stump_grasp_controller{
 
     private:
 
-//        void trajectoryActiveCB();
-//        void trajectoryFeedbackCB(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback);
-//        void trajectoryDoneCb(const actionlib::SimpleClientGoalState& state, const control_msgs::FollowJointTrajectoryResultConstPtr &result);
-
   };
 
 }

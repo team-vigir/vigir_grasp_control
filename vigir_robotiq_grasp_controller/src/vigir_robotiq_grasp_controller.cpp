@@ -51,12 +51,16 @@ namespace vigir_robotiq_grasp_controller{
       // Initialize the generic manipulation controller components
       initializeManipulationController(nh,nhp);
 
+      ROS_INFO("Initializing Robotic Grasp controller");
+
       //Initializing Trajectory action for fingers
       this->trajectory_action_.trajectory.joint_names.resize(hand_joint_names_.size());
       this->trajectory_action_.trajectory.points.resize(1);
       this->trajectory_action_.trajectory.points[0].positions.resize(hand_joint_names_.size());
       this->trajectory_action_.trajectory.points[0].time_from_start = ros::Duration(0.05);
       this->trajectory_action_.goal_time_tolerance                  = ros::Duration(5.0);
+
+      ROS_INFO("Trajectory action initialized");
 
       for(int i = 0; i < hand_joint_names_.size(); i++){
           ROS_INFO("Joint %d: %s",i,hand_joint_names_[i].c_str());
@@ -69,18 +73,21 @@ namespace vigir_robotiq_grasp_controller{
           this->trajectory_action_.trajectory.points[0].positions[3]  = 0.28;
       }
 
-      this->trajectory_client_ = new  vigir_manipulation_controller::TrajectoryActionClient("/"+this->hand_side_+"_robotiq/"+this->hand_side_+"_hand_traj_controller/follow_joint_trajectory", true);
+      ROS_INFO("Close joint positions initialized");
+
+      this->trajectory_client_ = new  vigir_robotiq_grasp_controller::TrajectoryActionClient("/"+this->hand_side_+"_robotiq/"+this->hand_side_+"_hand_traj_controller/follow_joint_trajectory", true);
       while(!this->trajectory_client_->waitForServer(ros::Duration(5.0)))
          ROS_INFO("Waititing for %s TrajectoryActionServer", this->hand_side_.c_str());
 
       //Sending Initial finger postions, MAX joint limit (CLOSE) from URDF
       if(this->trajectory_client_->isServerConnected())
       {
+          ROS_INFO("Sending trajectory action");
           this->trajectory_action_.trajectory.header.stamp = ros::Time::now();
           this->trajectory_client_->sendGoal(trajectory_action_,
-                                       boost::bind(&VigirManipulationController::trajectoryDoneCb, this, _1, _2),
-                                       boost::bind(&VigirManipulationController::trajectoryActiveCB, this),
-                                       boost::bind(&VigirManipulationController::trajectoryFeedbackCB, this, _1));
+                                       boost::bind(&VigirRobotiqGraspController::trajectoryDoneCb, this, _1, _2),
+                                       boost::bind(&VigirRobotiqGraspController::trajectoryActiveCB, this),
+                                       boost::bind(&VigirRobotiqGraspController::trajectoryFeedbackCB, this, _1));
       }
       else
       {
@@ -110,9 +117,9 @@ namespace vigir_robotiq_grasp_controller{
         {
             this->trajectory_action_.trajectory.header.stamp = ros::Time::now();
             this->trajectory_client_->sendGoal(trajectory_action_,
-                                         boost::bind(&VigirManipulationController::trajectoryDoneCb, this, _1, _2),
-                                         boost::bind(&VigirManipulationController::trajectoryActiveCB, this),
-                                         boost::bind(&VigirManipulationController::trajectoryFeedbackCB, this, _1));
+                                         boost::bind(&VigirRobotiqGraspController::trajectoryDoneCb, this, _1, _2),
+                                         boost::bind(&VigirRobotiqGraspController::trajectoryActiveCB, this),
+                                         boost::bind(&VigirRobotiqGraspController::trajectoryFeedbackCB, this, _1));
         }
         else
         {
@@ -132,6 +139,23 @@ namespace vigir_robotiq_grasp_controller{
 
     }
 
+    void VigirRobotiqGraspController::trajectoryActiveCB()
+    {
+        //ROS_INFO("TrajectoryActionClient: Status changed to active.");
+    }
+
+    void VigirRobotiqGraspController::trajectoryFeedbackCB(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback)
+    {
+        ROS_INFO("TrajectoryActionClient: Feedback received.");// pos[0]= %f", feedback->actual.positions[0]);
+    }
+
+    void VigirRobotiqGraspController::trajectoryDoneCb(const actionlib::SimpleClientGoalState& state,
+                                                      const control_msgs::FollowJointTrajectoryResultConstPtr& result)
+    {
+        ROS_INFO("Fingers Trajectory finished in state [%s]", state.toString().c_str());
+    }
+
+
     vigir_manipulation_controller::GraspQuality VigirRobotiqGraspController::processHandTactileData()
     {
         bool thumb      = false,
@@ -139,27 +163,32 @@ namespace vigir_robotiq_grasp_controller{
              pinky      = false,
              palm = false;
 
-        this->link_tactile_.name.resize(local_hand_status_msg_.link_states.name.size());
-        this->link_tactile_.tactile_array.resize(local_hand_status_msg_.link_states.tactile_array.size());
+        flor_grasp_msgs::LinkState  link_state;
+        flor_grasp_msgs::HandStatus hand_status;
 
-        for (unsigned i = 0; i < this->link_tactile_.tactile_array.size(); ++i)
+        hand_status  = getHandStatus();
+
+        link_state.name.resize(hand_status.link_states.name.size());
+        link_state.tactile_array.resize(hand_status.link_states.tactile_array.size());
+
+        for (unsigned i = 0; i < link_state.tactile_array.size(); ++i)
         {
-          this->link_tactile_.tactile_array[i].pressure.resize(1); //Setting only one pressure contact for OCS visualization
+          link_state.tactile_array[i].pressure.resize(1); //Setting only one pressure contact for OCS visualization
         }
 
-        for(unsigned int link_idx=0; link_idx<local_hand_status_msg_.link_states.tactile_array.size(); ++link_idx)  //Cycles through links with tactile arrays
+        for(unsigned int link_idx=0; link_idx<hand_status.link_states.tactile_array.size(); ++link_idx)  //Cycles through links with tactile arrays
         {
             float average_filter = 0.0;
             unsigned int count      = 0;
-            for(unsigned int array_idx=0; array_idx<local_hand_status_msg_.link_states.tactile_array[link_idx].pressure.size(); array_idx++){ //Cycles through the array in this link
-                if(local_hand_status_msg_.link_states.tactile_array[link_idx].pressure[array_idx] > 0.1){
-                    average_filter+=local_hand_status_msg_.link_states.tactile_array[link_idx].pressure[array_idx];
+            for(unsigned int array_idx=0; array_idx<hand_status.link_states.tactile_array[link_idx].pressure.size(); array_idx++){ //Cycles through the array in this link
+                if(hand_status.link_states.tactile_array[link_idx].pressure[array_idx] > 0.1){
+                    average_filter+=hand_status.link_states.tactile_array[link_idx].pressure[array_idx];
                     count++;
                 }
             }
-            this->link_tactile_.name[link_idx] = local_hand_status_msg_.link_states.name[link_idx]; //Sets the name of this link
+            link_state.name[link_idx] = hand_status.link_states.name[link_idx]; //Sets the name of this link
             if(count>0){
-                this->link_tactile_.tactile_array[link_idx].pressure[0] = average_filter/count;
+                link_state.tactile_array[link_idx].pressure[0] = average_filter/count;
 
                 //This is only to set a basic grasp quality
                 switch (link_idx) {
@@ -179,9 +208,11 @@ namespace vigir_robotiq_grasp_controller{
                     break;
                 }
             }else
-                this->link_tactile_.tactile_array[link_idx].pressure[0] = 0;
+                link_state.tactile_array[link_idx].pressure[0] = 0;
 
         }
+
+        setLinkState(link_state);
 
         if (palm && index && pinky && thumb)
             return vigir_manipulation_controller::PALM_AND_ALL_FINGERS;
@@ -196,7 +227,6 @@ namespace vigir_robotiq_grasp_controller{
         else
             return vigir_manipulation_controller::NO_GRASP_QUALITY;
     }
-
 
 } /// end namespace vigir_robotiq_grasp_controller
 

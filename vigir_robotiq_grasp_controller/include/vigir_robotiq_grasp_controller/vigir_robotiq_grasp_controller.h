@@ -30,7 +30,15 @@
 
 #include <vigir_manipulation_controller/vigir_manipulation_controller.h>
 
+#include <control_msgs/FollowJointTrajectoryAction.h>
+#include <control_msgs/FollowJointTrajectoryGoal.h>
+
+#include <actionlib/client/simple_action_client.h>
+#include <actionlib/client/terminal_state.h>
+
 namespace vigir_robotiq_grasp_controller{
+
+typedef actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction> TrajectoryActionClient;
 
   //////////////////////////////////////////////////////////////////////////
   // Defines the Robotiq class as a derived class of VigirManipulationController plus
@@ -55,9 +63,14 @@ namespace vigir_robotiq_grasp_controller{
 
     private:
 
-//        void trajectoryActiveCB();
-//        void trajectoryFeedbackCB(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback);
-//        void trajectoryDoneCb(const actionlib::SimpleClientGoalState& state, const control_msgs::FollowJointTrajectoryResultConstPtr &result);
+        //Trajectory Action
+        control_msgs::FollowJointTrajectoryGoal    trajectory_action_;
+        TrajectoryActionClient*                    trajectory_client_;
+
+        void trajectoryActiveCB();
+        void trajectoryFeedbackCB(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback);
+        void trajectoryDoneCb(const actionlib::SimpleClientGoalState& state, const control_msgs::FollowJointTrajectoryResultConstPtr &result);
+
 
   };
 
