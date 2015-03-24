@@ -31,6 +31,7 @@
 
 #include "plane_reps_and_3dmath.h"
 
+#include <stdio.h>	//for remove() file deletion
 #include <cstdlib>
 #include <string>
 #include <vector>
@@ -99,6 +100,7 @@ class Hullify_View {
 		ros::NodeHandle n;
 		string prefix;
 		string* visualization_ref_frame;
+		string mesh_ref_frame;
 		string mesh_folder_path;
 		visualization_msgs::Marker template_marker;
 		std::map <string, ros::Publisher, Key_Compare> topics;

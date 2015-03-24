@@ -94,9 +94,9 @@ find_package(PCL REQUIRED)
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-#  LIBRARIES hullify
-#  CATKIN_DEPENDS message_runtime
-#  DEPENDS system_lib
+  LIBRARIES hullify_seg hullify_math
+  CATKIN_DEPENDS roscpp pcl_ros std_msgs geometry_msgs sensor_msgs
+  DEPENDS Eigen PCL
 )
 
 ###########
@@ -110,9 +110,15 @@ include_directories(${EIGEN_INCLUDE_DIRS})
 include_directories(${PCL_INCLUDE_DIRS})
 
 ## Declare a cpp library
-# add_library(hullify
-#   src/${PROJECT_NAME}/hullify.cpp
-# )
+add_library(hullify_seg
+   src/cluster_segmentation.cpp
+   )
+target_link_libraries(hullify_seg ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+
+add_library(hullify_math
+   src/plane_reps_and_3dmath.cpp src/pose_transform.cpp
+)
+target_link_libraries(hullify_math ${catkin_LIBRARIES} ${PCL_LIBRARIES})
  
 ## Declare a cpp executable
 add_executable(aggregate_laser_scans src/deprecated/aggregate_laser_scans.cpp)

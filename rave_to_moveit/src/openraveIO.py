@@ -1,3 +1,4 @@
+import os
 import roslib
 import rospy
 import tf
@@ -8,8 +9,10 @@ from geometry_msgs.msg import PoseArray
 from geometry_msgs.msg import PoseStamped
 from osu_grasp_msgs.msg import Mesh_and_bounds
 from std_msgs.msg import Header
+from std_msgs.msg import Bool
 from moveit_msgs.msg import RobotState
 
+import scipy
 import numpy
 from numpy import array
 
@@ -31,23 +34,32 @@ class openraveIO:
 		#self.preplugin_pose_publisher = rospy.Publisher("openrave_preplugin_grasp", PoseStamped)
 		self.moveitik_visualization = rospy.Subscriber("convex_hull/moveit_ik_results", RobotState, self.moveitik_callback)
 		self.ikresults = []
+		self.disable_octomap_updates_while_evaluating_grasps = rospy.get_param("/convex_hull/disable_octomap_updates_openrave", False);
+		if self.disable_octomap_updates_while_evaluating_grasps:
+			self.octomap_update_toggle_pub = rospy.Publisher('/convex_hull/disable_ptcloud_depth_octomap_throttle', Bool, queue_size=1)
 
 	def full_info_callback(self, msg):
 		print "Got a Mesh_and_bounds_msg!"
 		print "Plane1: ", msg.ninety_degree_bounding_planes[0]
 		print "Plane2: ", msg.ninety_degree_bounding_planes[1]
 	
-		self.grasper.replace_target(msg.convex_hull)
+		self.grasper.update_process_targets(msg.convex_hull)
 	
 		self.grasper.find_grasps(msg)
+		print "grasp_search completed."
+		return
 
-	def publish_poses(self, pose_array):
-		pose_array = self.change_poses_ref_frames(pose_array)
+	def publish_poses(self, stamped_pose_array):
+		stamped_pose_array = self.change_poses_ref_frames(stamped_pose_array)
+		pose_array = self.mk_poses_from_pose_stamped(stamped_pose_array)
+		
 		pose_msg = PoseArray()
 		pose_msg.poses = pose_array
 		pose_msg.header.stamp = rospy.Time.now()
 		pose_msg.header.frame_id = self.final_pose_ref_frame
-	
+
+		#print "pose_array: ", pose_array
+
 		self.pub.publish(pose_msg)
 
 	def change_poses_ref_frames(self, pose_array):
@@ -57,7 +69,7 @@ class openraveIO:
 			print trans, rot		
 			for idx, pose in enumerate(pose_array):
 				spose = self.transform_pose(pose, trans, rot)
-				pose_array[idx] = spose.pose
+				pose_array[idx] = spose
 
 		return pose_array
 	
@@ -86,6 +98,10 @@ class openraveIO:
 
 		return pose
 
+	def mk_poses_from_pose_stamped(self, stamped_pose_array):
+		poses = [ x.pose for x in stamped_pose_array ]
+		return poses
+
 	def TransformToPoseStamped(self, G):
 		"""
 		Compute geometry_msgs::Pose from 4x4 transform
@@ -110,6 +126,22 @@ class openraveIO:
 	def moveitik_callback(self, msg):
 		print "Got IK result"
 		self.ikresults.append(msg)
+
+	def enable_moveit_octomap_updating(self, enable):
+		if self.disable_octomap_updates_while_evaluating_grasps:
+			msg = Bool()
+			msg.data = enable
+			self.octomap_update_toggle_pub.publish(msg)
+			
+
+def save_grasp_screenshot(env):
+	outfile_name = raw_input("Please input file name for image: ")
+	
+	home_path = os.environ['HOME'] + "/"
+	full_file_name = home_path + outfile_name
+	I = env.GetViewer().GetCameraImage(640,480,  env.GetViewer().GetCameraTransform(),[640,640,320,240])
+
+	scipy.misc.imsave(full_file_name, I)
 
 def testpublisher(raveio):
 	print "Running pose publishing test..."	

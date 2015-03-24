@@ -3,17 +3,20 @@
 Qhull_int::Qhull_int()
 {
     //Set some file names
-    in_file_name = "qhull_in_tempZZZ.txt";
-    res_file_name = "qhull_resultsZZZ.txt";
+    string temp_folder_path = ros::package::getPath("hullify");
+    in_file_name = temp_folder_path + "/qhull_in_tempZZZ.txt";
+    res_file_name = temp_folder_path + "/qhull_resultsZZZ.txt";
 }
 
 Qhull_int::~Qhull_int()
 {
     //Destroy the temp file if necessary
-    string command = "rm " + in_file_name;
+    /*string command = "rm " + in_file_name;
     int res1 = system(command.c_str());
     command = "rm " + res_file_name;
-    int res2 = system(command.c_str());
+    int res2 = system(command.c_str());*/
+    int res1 = remove(in_file_name.c_str());
+    int res2 = remove(res_file_name.c_str());
 
     if (res1 != 0 || res2 != 0){
 	cout << "Trouble deleting qhull IO files. Not a problem if no meshes were created in this session." << endl;
@@ -26,6 +29,7 @@ pcl::PolygonMesh::Ptr Qhull_int::mk_mesh(pcl::PointCloud<pcl::PointXYZ>::Ptr clo
 {
 	//string f_name = "temp_cloud.txt";
 	//string res_name = "result.txt";
+	cout << "Qhull_int cloud to save has " << cloud->size() << " points." << endl;
 	qhull_save_file(in_file_name, cloud);
 	
 	//Execute qhull command here.

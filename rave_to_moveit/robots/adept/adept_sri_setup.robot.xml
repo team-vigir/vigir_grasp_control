@@ -1,0 +1,21 @@
+<Robot name = "adept" File = 'adept_sri.dae'>
+	<Manipulator name = 'adept_arm'>
+		<base>Adept_Viper_s650_Link1</base>
+		<effector>base</effector>
+		<joints>
+			base_to_proximal_0
+			base_to_proximal_3
+			base_to_proximal_6
+
+			proximal_0_to_medial_1
+			proximal_3_to_medial_4
+			proximal_6_to_medial_7
+
+			medial_1_to_distal_2
+			medial_4_to_distal_5
+			medial_7_to_distal_8
+		</joints>
+		<closingdirection>1 1 1 1 1 1 1 1 1</closingdirection> <!--of the finger joints-->
+		<direction>0 1 0</direction>
+	</Manipulator>
+</Robot>

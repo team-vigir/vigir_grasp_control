@@ -148,3 +148,28 @@ void verify_transform(Eigen::Quaterniond transform, Eigen::Vector3d initial_y_ax
 		cout << "Goal y-axis: " << goal_y_axis << endl << "transformed y axis: " << endl << rotated_y_axis <<  endl;
 	}
 }
+
+
+geometry_msgs::PoseStamped set_back_pose_on_y(geometry_msgs::PoseStamped& pose, double distance)
+{
+	Eigen::Quaterniond wrist_transform(pose.pose.orientation.w,
+					pose.pose.orientation.x,
+					pose.pose.orientation.y,
+					pose.pose.orientation.z);
+	Eigen::Vector3d palm_normal(0, 1, 0);
+	palm_normal = wrist_transform._transformVector(palm_normal);
+	palm_normal.normalize();
+
+	if (distance > 0){
+		distance = -distance;
+	}
+
+	Eigen::Vector3d offset = palm_normal * distance;
+	
+	geometry_msgs::PoseStamped offset_pose = pose;
+	offset_pose.pose.position.x += offset[0];
+	offset_pose.pose.position.y += offset[1];
+	offset_pose.pose.position.z += offset[2];
+	
+	return offset_pose;
+}

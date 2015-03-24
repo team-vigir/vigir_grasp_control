@@ -1,3 +1,4 @@
+*pyc
 build
 devel
 bin
@@ -7,3 +8,5 @@ srv_gen
 qtcreator-build
 *~
 *.user
+libgrasper_mod.so
+*.pyc

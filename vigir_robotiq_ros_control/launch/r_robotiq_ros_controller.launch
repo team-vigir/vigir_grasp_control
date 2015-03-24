@@ -20,8 +20,8 @@
         pkg     = "controller_manager"
         type    = "spawner"
         ns      = "right_robotiq"
-        output  = "screen"
-        args    = "right_hand_traj_controller"/>
+        args    = "right_hand_traj_controller"/><!--
+        output  = "screen"-->
         
             
   <!-- load the controllers -->
@@ -32,18 +32,20 @@
         ns      = "right_robotiq" 
         output  = "screen"  
         args    = "joint_state_controller"/>  
+
   <node name    = "right_robotiq_ros_controller"
         pkg     = "vigir_robotiq_ros_control" 
         type    = "vigir_robotiq_ros_controller_node" 
-        ns      = "right_robotiq"
-        output  = "screen">
+        ns      = "right_robotiq"><!--
+        output  = "screen"-->
         <param name="hand_side" value="right" />
         <param name="hand_name" value="r_hand"/>
         <rosparam file    = "$(find vigir_robotiq_ros_control)/config/robotiq_joints.yaml" 
                   command = "load" />
   </node>
-  
-  <arg name="input_joints"  default="/right_robotiq/joint_states" />  <!-- Relaying to /joint_states since namespace contained hand side: /right_robotiq/-->
+
+  <!-- Relaying to /joint_states since namespace contained hand side: /right_robotiq/-->
+  <arg name="input_joints"  default="/right_robotiq/joint_states" />
   <arg name="output_joints" default="/joint_states" />
   
   <node name    = "right_robotiq_republisher" 

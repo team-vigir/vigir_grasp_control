@@ -85,8 +85,8 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES rave_to_moveit
-#  CATKIN_DEPENDS geometry_msgs math numpy opencv roslib rospy tf
-#  DEPENDS system_lib
+  CATKIN_DEPENDS geometry_msgs roslib rospy tf tf_conversions osu_grasp_msgs
+  DEPENDS system_lib
 )
 
 ###########

@@ -1,6 +1,6 @@
 #include "cluster_segmentation.h"
 
-vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud)
+vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, int min_cluster_size)
 {
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > cluster_vector;
 	pcl::PCDWriter writer;
@@ -9,8 +9,9 @@ vector<pcl::PointCloud<pcl::PointXYZ>::Ptr > get_clusters(pcl::PointCloud<pcl::P
 
 	std::vector<pcl::PointIndices> cluster_indices;
 	pcl::EuclideanClusterExtraction<pcl::PointXYZ> ec;
-	ec.setClusterTolerance (0.03); // 2cm
-	ec.setMinClusterSize (50);
+	ec.setClusterTolerance (0.02); // 2cm
+	//int min_cluster_size = 1; ADDED THIS TO ALLOW KINECT CALIBRATION TO PROPERLY WORK (original value was 50). may want to consider adding as a parameter
+	ec.setMinClusterSize (min_cluster_size);
 	ec.setMaxClusterSize (2500000);
 	ec.setSearchMethod (tree);
 	ec.setInputCloud (tree->getInputCloud());
@@ -62,7 +63,9 @@ vector<Plane> find_all_planes(pcl::PointCloud<pcl::PointXYZ>::Ptr &full_cloud)
 		cur_plane.pts = cloud_p;
 		all_planes.push_back(cur_plane);
 	}
-
+	
+	ROS_INFO_STREAM("\tFiltered " << all_planes.size()  << " planes.");
+	
 	// pcl::PointCloud<pcl::PointXYZ>::Ptr plane_cloud = extract_subcloud(full_cloud, *inliers);
 	//writer.write<pcl::PointXYZ> ("/home/eva/Desktop/plane_cluster1.pcd", *plane_cloud, false);
 	return all_planes;
@@ -70,13 +73,6 @@ vector<Plane> find_all_planes(pcl::PointCloud<pcl::PointXYZ>::Ptr &full_cloud)
 
 pcl::PointIndices::Ptr planar_segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, Plane& new_plane) 
 {
-	if (full_cloud->size() == 0){
-		cout << "No more planes to be had!" << endl;
-		pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
-		inliers->indices.clear();
-		return inliers;
-	}
-	
 	pcl::ModelCoefficients::Ptr coefficients (new pcl::ModelCoefficients);
 	pcl::PointIndices::Ptr inliers (new pcl::PointIndices);
 	pcl::SACSegmentation<pcl::PointXYZ> seg;
@@ -93,7 +89,7 @@ pcl::PointIndices::Ptr planar_segmentation(pcl::PointCloud<pcl::PointXYZ>::Ptr f
 
 	if (inliers->indices.size () < 1500)
 	{
-		PCL_ERROR ("Could not estimate a planar model for the given dataset.");
+
 		inliers->indices.clear();
 		return inliers;
 	}
@@ -150,7 +146,7 @@ Line plane_intersect(pcl::ModelCoefficients::Ptr plane1, pcl::ModelCoefficients:
 
 	Line intersection_line(slope, pt_on_intersecting_line);
 
-	cout << "GUYS!!! " << endl;//WE NEED TO VERIFY THAT THE NORMALS ARE NOT PARALLEL! AND DEAL WITH PLANES THAT DONT INTERSECT" << endl;
+	cout << "GUYS!!! WE NEED TO VERIFY THAT THE NORMALS ARE NOT PARALLEL! AND DEAL WITH PLANES THAT DONT INTERSECT" << endl;
 	return intersection_line;  
 }
 
@@ -199,7 +195,7 @@ void stat_outlier_remove(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud)
 		}
 	}
 	if(index_tracker == -1 || point_tracker == -1) {
-		cout << "Error, could not determine largest plane... now exiting function";
+		cout << "\tError, could not determine largest plane... now exiting function" << endl;
 		return  pcl::PointCloud<pcl::PointXYZ>::Ptr(new  pcl::PointCloud<pcl::PointXYZ>);
 	}
 	pcl::PointCloud<pcl::PointXYZ>::Ptr plane_pts = plane_vector[index_tracker].pts;
@@ -208,173 +204,6 @@ void stat_outlier_remove(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud)
 	return plane_pts;
 }
 
-void remove_table_planes(vector<Plane>& plane_vector, vector<pcl::PointCloud<pcl::PointXYZ>::Ptr>& removed_planes)
-{
-	unsigned int num_planes = plane_vector.size();
-	Eigen::VectorXf current_line;
-	vector <int> inliers;
-	for (unsigned int i = 0; i < num_planes; ++i){
-		//Identify the Largest two principle axes given the almost-planar points
-		pcl::PCA<pcl::PointXYZ> component_finder;
-		component_finder.setInputCloud(plane_vector[i].pts);
-		Eigen::Matrix3f principal_axes_float = component_finder.getEigenVectors();
-		Eigen::Vector3f eigenvalues = component_finder.getEigenValues();
-		Eigen::Matrix3d principal_axes = principal_axes_float.cast<double>();
-
-		//Eigen::Vector3d pca1 = principal_axes.col(0);
-		//Eigen::Vector3d pca2 = principal_axes.col(1);
-
-		if (eigenvalues[1] > 4.0){
-			if (eigenvalues[0] < (3 * eigenvalues[1])){
-				//This plane is probably a table or wall, its smaller "side" is more than half the bigger one.
-				ROS_INFO("Removing a table-like flat surface based on its dimensions.");
-				removed_planes.push_back(plane_vector[i].pts);
-				cout << "i: " << i << " size: " << plane_vector.size() << endl;
-				plane_vector.erase(plane_vector.begin() + i);
-				i--;
-				num_planes--;
-			}
-		}
-
-		//ROS_INFO_STREAM("For plane " << i << " the largest principal component e_val is " << endl << eigenvalues[0] << endl << " and the second is: " << endl << eigenvalues[1] << endl);
-	}
-}
-
-/* This idea didn't work...
-		//Fit a linear model to the plane
-		vector<int> indices = get_all_indices(plane_vector[i].pts);
-		//pcl::PointCloud<pcl::PointXYZ>::Ptr planar_copy (new pcl::PointCloud<pcl::PointXYZ>);
-		pcl::PointCloud<pcl::PointXYZ>::Ptr plane_proj_pts = project_pts_plane(plane_vector[i].pts, plane_vector[i].coef);
-		/planar_copy = *plane_proj_pts;
-		cout << "Plane_proj_pts size: " << plane_proj_pts->size() << endl;
-		pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr line_model (new pcl::SampleConsensusModelLine<pcl::PointXYZ>(plane_proj_pts, indices));;
-		pcl::RandomSampleConsensus<pcl::PointXYZ> ransac (line_model);
-		ransac.setDistanceThreshold(0.15);
-		ransac.computeModel();
-		ransac.getModelCoefficients(current_line);
-
-		cout << "Line: " << endl << current_line << endl;
-
-		//Specify an accuracy threshold of the projection?
-		variance = line_model.computeVariance();
-		cout << "Variance in linear model: " << variance << endl;
-		if (variance > 1000){
-			//Not well approximated by a line...
-		}
-
-		//Push the determined line out to the edges of the object
-
-
-		pcl::PointCloud<pcl::PointXYZ>::Ptr line_proj_pts (new pcl::PointCloud<pcl::PointXYZ>);
-		line_model->projectPoints(inliers, current_line, *line_proj_pts, false); 
-
-		double width = get_width(line_model, current_line, plane_proj_pts, line_proj_pts);
-		
-		//Use projected points to find farthest co-linear projection.
-		double height = get_height(current_line, line_proj_pts);
-
-		//Specify dimensions to remove
-		if (width > 0.14 && height > 0.14){
-			ROS_INFO_STREAM("Removed a table-like plane with height: " << height << " and width: " << width);
-			removed_planes.push_back(plane_vector[i].pts);
-			plane_vector.erase(plane_vector.begin() + i);
-			i--;
-		}
-
-*/
-/*
-vector<int> get_all_indices(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud)
-{
-	vector<int> inliers;
-	inliers.clear();
-	int num_pts = cloud->points.size();
-	for (int j = 0; j < num_pts; ++j){
-		inliers.push_back(j);
-	}
-
-	return inliers;
-}
-
-double get_height(Eigen::VectorXf current_line, pcl::PointCloud<pcl::PointXYZ>::Ptr line_proj_pts)
-{
-	double slope_x = current_line[3];
-	int max_inline_idx = 0;
-	double max_inline_t = 0;
-	int max_outline_idx = 0;
-	double max_outline_t = 0;
-	
-	double t;
-	unsigned int num_pts = line_proj_pts->size();
-	for (unsigned int j = 0; j < num_pts; ++j){
-		if (current_line[3] != 0){
-			t = ((*line_proj_pts)[j].x - (*line_proj_pts)[j].x) / slope_x;
-		} else if (current_line[4] != 0){
-			t = ((*line_proj_pts)[j].y - (*line_proj_pts)[j].y) / current_line[4];
-		} else {
-			t = ((*line_proj_pts)[j].z - (*line_proj_pts)[j].z) / current_line[5];
-		}
-
-		if (t > 0){
-			if (t > max_inline_t){
-				max_inline_idx = j;
-				max_inline_t = t;
-			}
-		} else {
-			if (t < max_outline_t){
-				max_outline_idx = j;
-				max_outline_t = t;
-			}
-		}
-	}
-
-	double height = pt_dist((*line_proj_pts)[max_inline_idx], (*line_proj_pts)[max_outline_idx]);
-	ROS_INFO_STREAM("Height for plane model: " << height);
-
-	return height;
-}
-
-double get_width(pcl::SampleConsensusModelLine<pcl::PointXYZ>::Ptr line_model, Eigen::VectorXf current_line, pcl::PointCloud<pcl::PointXYZ>::Ptr pts, pcl::PointCloud<pcl::PointXYZ>::Ptr line_proj_pts)
-{
-	vector<double> proj_distances;
-	line_model->getDistancesToModel(current_line, proj_distances);
-
-	cout << "cloud1 location: " << (void*) &(*pts) << " cloud2 location: " << (void*) &(*line_proj_pts) << endl;
-
-	double max_inline_idx = 0;
-	double max_inline_dist = 0;
-	double max_outline_idx = 0;
-	double max_outline_dist = 0;
-	Eigen::Vector3d reference_vector = init_vec((*pts)[0]) - init_vec((*line_proj_pts)[0]);
-	Eigen::Vector3d cur_vec;
-	unsigned int num_pts = pts->size();
-	for (unsigned int i = 0; i < num_pts; ++i){
-		cur_vec = init_vec((*pts)[i]) - init_vec((*line_proj_pts)[i]);
-		cout << "Cur vec: " << (*pts)[i] << endl << "reference vector: " << (*line_proj_pts)[i] << endl;
-		string input;
-		cin >> input;
-		if (get_angle_mag_between(reference_vector, cur_vec) < (M_PI/2)){
-			if (proj_distances[i] > max_inline_dist){
-				max_inline_idx = i;
-				max_inline_dist = proj_distances[i];
-			}
-		} else {
-			if (proj_distances[i] > max_outline_dist){
-				max_outline_idx = i;
-				max_outline_dist = proj_distances[i];
-			}
-		}
-	}
-
-	if (max_inline_dist == 0 || max_outline_dist == 0){
-		ROS_ERROR("In cluster_segmentation/get_width(), one of the distances for plane removal is not defined.");
-		exit(1);
-	}
-
-	double width = sqrt(max_inline_dist) + sqrt(max_outline_dist);
-	ROS_INFO_STREAM("Width of model: " << width);
-	return width;
-}
-*/
 pcl::PointCloud<pcl::PointXYZ>::Ptr combine_cloud_and_planes(vector<Plane>& plane_vector, pcl::PointCloud<pcl::PointXYZ>::Ptr remaining_cloud)
 {
 	pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud (new pcl::PointCloud<pcl::PointXYZ>);
@@ -397,7 +226,7 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr return_nearest_cluster(pcl::PointXYZ selecte
 			idx = i;
 		}
 	}
-	
+
 	return cluster_vector[idx];
 }
 
@@ -406,7 +235,7 @@ double return_distance_nearest_point(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
 	if (cloud->points.size() < 10){
 		return 100000;
 	}
-
+	
 	pcl::KdTreeFLANN<pcl::PointXYZ> kdtree;
 
 	kdtree.setInputCloud(cloud);
@@ -432,15 +261,14 @@ double return_distance_nearest_point(pcl::PointCloud<pcl::PointXYZ>::Ptr cloud, 
 	return pointNKNSquaredDistance[0];
 }
 
-//THIS IS THE ONE FUNCITON TO RULE THEM ALL (UNTESTED CURRENTLY)
 //need to change PCD file load to a more flexible path or ask for user designated path
 //should consider putting limits on "remove_largest_plane()" so that it does not remove the target object
 /*ex: in "remove_largest_plane()", if "return_distance_nearest_point()" returns a point on the largest
   plane, then do not remove the plane
- */
+  */
 //NEED TO FINISH THIS FUNCTION!!!
 pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud, pcl::PointXYZ selected_point) {
-	//	pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud (new pcl::PointCloud<pcl::PointXYZ>);
+//	pcl::PointCloud<pcl::PointXYZ>::Ptr full_cloud (new pcl::PointCloud<pcl::PointXYZ>);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr remainder;
 	//string filename;
 	string selection;
@@ -463,42 +291,40 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr isolate_hull_cluster(pcl::PointCloud<pcl::Po
 	// 	cout << "Please provide the path and filename for the point cloud: " << endl;
 	// 	cin >> filename;
 	/*if (pcl::io::loadPCDFile<pcl::PointXYZ> ("/home/eva/Desktop/sample_full_cloud_1.pcd", *full_cloud) == -1) // load the file. was previously 
-	  {
-	  cout << "Couldn't read file test_pcd.pcd \n";
-	  exit(1);
-	  }*/
+	{
+		cout << "Couldn't read file test_pcd.pcd \n";
+		exit(1);
+	}*/
 
 	stat_outlier_remove(full_cloud);
-
-	cout << "Cloud size after stat outlier removal: " << full_cloud->points.size() << endl;
+	
+	cout << "\tCloud size after stat outlier removal: " << full_cloud->points.size() << endl;
 	vector<Plane> all_planes;
 	all_planes = find_all_planes(full_cloud);
 	remainder = full_cloud;
-	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> removed_clouds;
-	remove_table_planes(all_planes, removed_clouds);
-
-	cout << "Remainder has " << remainder->points.size() << " points." << endl;
+	pcl::PointCloud<pcl::PointXYZ>::Ptr largest_plane = remove_largest_plane(all_planes);
+	
+	cout << "\tRemainder has " << remainder->points.size() << " points." << endl;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr combined_cloud;
 	combined_cloud = combine_cloud_and_planes(all_planes, remainder);
 
-	cout << "Combined cloud has " << combined_cloud->points.size() << " points." << endl;
 	vector<pcl::PointCloud<pcl::PointXYZ>::Ptr> separated_clusters;
 	separated_clusters = get_clusters(combined_cloud);
 
-	cout << "Num clusters: " << separated_clusters.size() << endl;
-	//separated_clusters.push_back(largest_plane);
-	//separated_clusters.insert(separated_clusters.begin(), removed_clouds.begin(), removed_clouds.end());
+	cout << "\tNum clusters (no plane): " << separated_clusters.size() << endl;
+	separated_clusters.push_back(largest_plane);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr isolated_cluster;
-	if (separated_clusters.size() == 0){
-		ROS_INFO("No graspable cluster found in cloud.");
-		return pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>);
+	
+	if (separated_clusters.size() == 1 && largest_plane->size() < 50) {
+		ROS_ERROR("No convex hull can be perceived from pointcloud. How is the density of the cloud?");
+		throw string("No hull.");
+	} else {
+		isolated_cluster = return_nearest_cluster(selected_point, separated_clusters);
 	}
 
-	isolated_cluster = return_nearest_cluster(selected_point, separated_clusters);
-
-	/*string input;
-	  cout << "How does that look?" << endl;
-	  ciseparated_clusters.sizen >> input;
-	 */
+/*string input;
+	cout << "How does that look?" << endl;
+	cin >> input;
+*/
 	return isolated_cluster;
 }
