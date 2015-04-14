@@ -56,16 +56,6 @@ namespace vigir_stump_grasp_controller{
     {
     }
 
-    void VigirStumpGraspController::setOpenFingerPoses(const uint8_t& grasp_type)
-    {
-
-    }
-
-    void VigirStumpGraspController::setCloseFingerPoses(const uint8_t& grasp_type)
-    {
-
-    }
-
     vigir_manipulation_controller::GraspQuality VigirStumpGraspController::processHandTactileData()
     {
     }
