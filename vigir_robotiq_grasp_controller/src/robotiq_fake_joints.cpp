@@ -4,7 +4,7 @@
 #include "sensor_msgs/JointState.h"
 #include "ros/ros.h"
 
-class VTHandFakeJoints
+class RobotiqFakeJoints
 {
     public:
     ros::NodeHandle n;
@@ -12,12 +12,12 @@ class VTHandFakeJoints
     ros::Subscriber grasp_controller_sub;
 
     sensor_msgs::JointState hand_joints_;
-    void VTHandInit(std::string hand);
+    void RobotiqInit(std::string hand);
 
 };
 
 // Initialize hand values to 0
-void VTHandFakeJoints::VTHandInit(std::string hand)
+void RobotiqFakeJoints::RobotiqInit(std::string hand)
 {
     hand_joints_.name.resize(7);
     hand_joints_.position.resize(7);
@@ -33,11 +33,11 @@ void VTHandFakeJoints::VTHandInit(std::string hand)
 
     hand_joints_.name[0] = hand + "_f2_j0";
     hand_joints_.name[1] = hand + "_f0_j2";
-    hand_joints_.name[1] = hand + "_f1_j2";
-    hand_joints_.name[1] = hand + "_f2_j2";
-    hand_joints_.name[1] = hand + "_f0_j3";
-    hand_joints_.name[1] = hand + "_f1_j3";
-    hand_joints_.name[1] = hand + "_f2_j3";
+    hand_joints_.name[2] = hand + "_f1_j2";
+    hand_joints_.name[3] = hand + "_f2_j2";
+    hand_joints_.name[4] = hand + "_f0_j3";
+    hand_joints_.name[5] = hand + "_f1_j3";
+    hand_joints_.name[6] = hand + "_f2_j3";
 
 }
 
@@ -48,24 +48,24 @@ int main(int argc, char** argv)
     ros::init(argc, argv, "robotiq_hand_fake_joints");
 
     //Right hand class
-    VTHandFakeJoints fakeRight;
-    fakeRight.VTHandInit("r");
+    RobotiqFakeJoints fakeRight;
+    fakeRight.RobotiqInit("r");
 
-    ros::Publisher vt_hand_fake_pub;
-    vt_hand_fake_pub = fakeRight.n.advertise<sensor_msgs::JointState>("/joint_states",1);
+    ros::Publisher robotiq_fake_pub;
+    robotiq_fake_pub = fakeRight.n.advertise<sensor_msgs::JointState>("/joint_states",1);
 
     //Left hand class
-    VTHandFakeJoints fakeLeft;
-    fakeLeft.VTHandInit("l");
+    RobotiqFakeJoints fakeLeft;
+    fakeLeft.RobotiqInit("l");
 
 
     while(ros::ok())
     {
         fakeRight.hand_joints_.header.stamp = ros::Time::now();
-        vt_hand_fake_pub.publish(fakeRight.hand_joints_);
+        robotiq_fake_pub.publish(fakeRight.hand_joints_);
 
         fakeLeft.hand_joints_.header.stamp = ros::Time::now();
-        vt_hand_fake_pub.publish(fakeLeft.hand_joints_);
+        robotiq_fake_pub.publish(fakeLeft.hand_joints_);
 
         ros::Duration(0.05).sleep();
         ros::spinOnce();
