@@ -64,14 +64,14 @@ namespace vigir_robotiq_grasp_controller{
 
       for(int i = 0; i < hand_joint_names_.size(); i++){
           ROS_INFO("Joint %d: %s",i,hand_joint_names_[i].c_str());
-          this->trajectory_action_.trajectory.joint_names[i]         = hand_joint_names_[i];
-
-          //THIS ARE SPECIFIC FROM ROBOTIQ HAND
-          this->trajectory_action_.trajectory.points[0].positions[0]  = 1.22;
-          this->trajectory_action_.trajectory.points[0].positions[4]  = 1.13;
-          this->trajectory_action_.trajectory.points[0].positions[8]  = 1.13;
-          this->trajectory_action_.trajectory.points[0].positions[3]  = 0.28;
+          this->trajectory_action_.trajectory.joint_names[i] = hand_joint_names_[i];
       }
+
+      //THIS ARE SPECIFIC FROM ROBOTIQ HAND
+      this->trajectory_action_.trajectory.points[0].positions[0]  = 1.22;
+      this->trajectory_action_.trajectory.points[0].positions[1]  = 0.0;
+      this->trajectory_action_.trajectory.points[0].positions[2]  = 1.13;
+      this->trajectory_action_.trajectory.points[0].positions[3]  = 1.13;
 
       ROS_INFO("Close joint positions initialized");
 
@@ -106,42 +106,21 @@ namespace vigir_robotiq_grasp_controller{
         break;
         case flor_grasp_msgs::GraspState::OPEN:
             this->trajectory_action_.trajectory.points[0].positions[0]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[1]  = 0.0;
+            this->trajectory_action_.trajectory.points[0].positions[1]  = 0.0;  //This joint behaves differentlly, spreads, not used for close
             this->trajectory_action_.trajectory.points[0].positions[2]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[3]  = 0.28;  //This joint behaves differentlly, spreads, not used for close
-            this->trajectory_action_.trajectory.points[0].positions[4]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[5]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[6]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[7]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[8]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[9]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[10] = 0.0;
+            this->trajectory_action_.trajectory.points[0].positions[3]  = 0.0;
         break;
         case flor_grasp_msgs::GraspState::CLOSE:
             this->trajectory_action_.trajectory.points[0].positions[0]  = 1.22;
-            this->trajectory_action_.trajectory.points[0].positions[1]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[2]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[3]  = 0.28;  //This joint behaves differentlly, spreads, not used for close
-            this->trajectory_action_.trajectory.points[0].positions[4]  = 1.13;
-            this->trajectory_action_.trajectory.points[0].positions[5]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[6]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[7]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[8]  = 1.13;
-            this->trajectory_action_.trajectory.points[0].positions[9]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[10] = 0.0;
+            this->trajectory_action_.trajectory.points[0].positions[1]  = 0.0;  //This joint behaves differentlly, spreads, not used for close
+            this->trajectory_action_.trajectory.points[0].positions[2]  = 1.13;
+            this->trajectory_action_.trajectory.points[0].positions[3]  = 1.13;
         break;
         case flor_grasp_msgs::GraspState::PERCENTAGE:
             this->trajectory_action_.trajectory.points[0].positions[0]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0122+float(grasp.finger_effort[0].data)*0.0122;
-            this->trajectory_action_.trajectory.points[0].positions[1]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[2]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[3]  = float(grasp.finger_effort[3].data)*0.0028;  //This joint behaves differentlly, spreads, not used for close
-            this->trajectory_action_.trajectory.points[0].positions[4]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113+float(grasp.finger_effort[1].data)*0.0113;
-            this->trajectory_action_.trajectory.points[0].positions[5]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[6]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[7]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[8]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113+float(grasp.finger_effort[2].data)*0.0113;
-            this->trajectory_action_.trajectory.points[0].positions[9]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[10] = 0.0;
+            this->trajectory_action_.trajectory.points[0].positions[1]  = float(grasp.finger_effort[3].data)*0.0028;  //This joint behaves differentlly, spreads, not used for close
+            this->trajectory_action_.trajectory.points[0].positions[2]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113+float(grasp.finger_effort[1].data)*0.0113;
+            this->trajectory_action_.trajectory.points[0].positions[3]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113+float(grasp.finger_effort[2].data)*0.0113;
         break;
         default:return;
         }

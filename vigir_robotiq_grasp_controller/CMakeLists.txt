@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  sensor_msgs
   control_msgs
   actionlib
   vigir_manipulation_controller
@@ -85,7 +86,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include include/${PROJECT_NAME}
   LIBRARIES vigir_robotiq_grasp_controller
-  CATKIN_DEPENDS roscpp rospy std_msgs control_msgs actionlib vigir_manipulation_controller
+  CATKIN_DEPENDS roscpp rospy std_msgs sensor_msgs control_msgs actionlib vigir_manipulation_controller
 #  DEPENDS system_lib
 )
 
@@ -121,6 +122,11 @@ add_executable(${PROJECT_NAME}_node ${SOURCE} ${HEADERS})
 add_dependencies(${PROJECT_NAME}_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(${PROJECT_NAME}_node  ${catkin_LIBRARIES})
 
+# Declare a cpp executable
+add_executable(robotiq_fake_joints_node src/robotiq_fake_joints.cpp )
+add_dependencies(robotiq_fake_joints_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(robotiq_fake_joints_node ${catkin_LIBRARIES})
+
 #############
 ## Install ##
 #############
@@ -128,5 +134,6 @@ target_link_libraries(${PROJECT_NAME}_node  ${catkin_LIBRARIES})
 ## Mark executables and/or libraries for installation
 install(TARGETS
    ${PROJECT_NAME}_node
+   robotiq_fake_joints_node
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )

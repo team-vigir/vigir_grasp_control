@@ -19,8 +19,3 @@ joint_limits:
     max_velocity: 12
     has_acceleration_limits: true
     max_acceleration: 2.4
-  right_f2_j0:
-    has_velocity_limits: true
-    max_velocity: 12
-    has_acceleration_limits: true
-    max_acceleration: 2.4

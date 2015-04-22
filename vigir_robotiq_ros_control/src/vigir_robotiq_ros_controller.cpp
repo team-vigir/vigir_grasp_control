@@ -33,9 +33,9 @@
 #define RAD_TO_BYTE    209.01638145
 #define RAD_BC_TO_BYTE 225.663693848
 #define SPREAD_RAD     0.28   //Radians range of the spread fingers
-#define BYTE_TO_SPR    (SPREAD_RAD/255.0)
-#define SPR_TO_BYTE    (1/BYTE_TO_SPR)
-#define SPR_ZERO       (BYTE_TO_SPR * 137)
+#define BYTE_TO_SPR    (SPREAD_RAD/255.0)  //  0.001098039
+#define SPR_TO_BYTE    (1/BYTE_TO_SPR)     //910.714464605
+#define SPR_ZERO       (BYTE_TO_SPR * 137) //  0.150431343
 #define PER_TO_BYTE    2.55
 
 namespace RobotiqHardwareInterface
@@ -290,11 +290,8 @@ void RobotiqHardwareInterface::read(ros::Time time, ros::Duration period)
             break;
         case 3: //Finger BC Spread
             hand_status_.joint_status[3]          = robotiq_input_msg_.gDTS;
-            hand_status_.joint_status[4]          = robotiq_input_msg_.gDTS;
             hand_status_.joint_states.position[3] = joint_positions_states_[joint_names_[3]] = robotiq_input_msg_.gPOS *  BYTE_TO_SPR - SPR_ZERO; //position of scissors finger B.
-            hand_status_.joint_states.position[4] = joint_positions_states_[joint_names_[4]] = robotiq_input_msg_.gPOS * -BYTE_TO_SPR + SPR_ZERO; //position of scissors finger C.
             hand_status_.joint_states.effort[3]   = joint_efforts_states_[  joint_names_[3]] = robotiq_input_msg_.gCUS; //Current of scissors finger B.
-            hand_status_.joint_states.effort[4]   = joint_efforts_states_[  joint_names_[4]] = robotiq_input_msg_.gCUS; //Current of scissors finger C.
             break;
         default:
             break;
