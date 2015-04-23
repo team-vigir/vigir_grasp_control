@@ -1,20 +1,26 @@
 <?xml version="1.0" ?>
 <launch>
-	<!-- Enable a Pi launch regardless of previous exposure -->
-	<env name="ROSLAUNCH_SSH_UNKNOWN" value="1" />
-	<include file="$(find hullify)/launch/rpi.machine" />
+	<!-- Pi launch parameters -->
+	<arg name="hand" default="l" />
+	<arg name="hand_full" default="left" />
+	<arg name="pi_machine_name" default="$(arg hand)_pi" />
+	<arg name="cam_ns" value="$(arg hand_full)_palm/camera" /> <!-- This must be the same as in the onboard_crop_decimate_nodelets launch -->
 
-	<!-- Start up image processing on the main computer side: decompress and relay to greater system -->
-	<node name="l_palm_camera_republish" type="republish" pkg="image_transport" args="compressed in:=left_palm/camera/image raw out:=left_palm/camera/image_raw" />
-	<node name="l_palm_camera_info_republish" type="relay" pkg="topic_tools" args="left_palm/camera/camera_info_pi left_palm/camera/camera_info" />
+	<include file="$(find hullify)/launch/$(arg pi_machine_name).machine" />
+
+	<!-- Start up image relaying on the main computer side: decompress and relay to greater system -->
+	<node name="$(arg hand)_palm_camera_republish" type="republish" pkg="image_transport" args="compressed in:=$(arg cam_ns)/image raw out:=$(arg cam_ns)/image_raw" />
+	<node name="$(arg hand)_palm_camera_info_republish" type="relay" pkg="topic_tools" args="$(arg cam_ns)/camera_info_pi $(arg cam_ns)/camera_info" />
 
 	<!-- Start up the raspberry pi's camera -->
-	<node machine="pi" name="raspicam_node" type="raspicam_node" pkg="raspicam" output="screen" args="_tf_prefix:=left_palm_camera_optical_frame" >
-		<remap from="camera/camera_info" to="left_palm/camera/camera_info_pi" />
-		<remap from="camera/image/compressed" to="left_palm/camera/image/compressed" />
+	<node machine="$(arg pi_machine_name)" name="raspicam_node" type="raspicam_node" pkg="raspicam" output="screen" args="_tf_prefix:=$(arg hand_full)_palm_camera_optical_frame" >
+		<remap from="camera/camera_info" to="$(arg cam_ns)/camera_info_pi" />
+		<remap from="camera/image/compressed" to="$(arg cam_ns)/image/compressed" />
 	</node>
 
 	<!-- Start up the takktiles -->
-	<!--<node machine="pi" name="takktile_node" type="takktile_node.py" pkg="takktile_ros" output="screen"/> -->
+	<!--<node machine="$(arg pi_machine_name)" name="$(arg hand)_hand_takktile_node" type="takktile_node.py" pkg="takktile_ros" output="screen"> 
+		<remap from="$(arg hand_full)_palm/tactile/calibrated" to="takktile/calibrated"
+	</node>-->
 	
 </launch>

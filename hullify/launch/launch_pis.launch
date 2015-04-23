@@ -1,0 +1,17 @@
+<?xml version="1.0" ?>
+<launch>
+
+
+	<!-- Left pi launch-->
+	<include file="$(find hullify)/launch/raspberrypi.launch" >
+		<arg name="hand" value="l" />
+		<arg name="hand_full" value="left" />		
+		<env name="PI_MASTER_HOSTNAME" value="$(env ROS_MASTER_URI)" />
+	</include>
+
+	<!-- Right pi launch -->
+	<!--<include file="$(find hullify)/launch/raspberrypi.launch" >
+		<arg name="hand" value="r" />
+		<arg name="hand_full" value="right" />		
+	</include>-->
+</launch>
