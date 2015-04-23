@@ -47,28 +47,41 @@ int main(int argc, char** argv)
     // Create publisher
     ros::init(argc, argv, "robotiq_hand_fake_joints");
 
+    ros::NodeHandle np("~");
+
+
+    std::string hand_prefix = "left";
+    int fake_time = 120;
+
+
     //Right hand class
-    RobotiqFakeJoints fakeRight;
-    fakeRight.RobotiqInit("r");
+    RobotiqFakeJoints fakeJoints;
+
+    if (!np.getParam("hand_prefix", hand_prefix))
+    {
+      ROS_ERROR("Could not get /hand_prefix parameter");
+    }
+    if (!np.getParam("fake_time", fake_time))
+    {
+      ROS_ERROR("Could not get /fake_time parameter");
+    }
+    fakeJoints.RobotiqInit(hand_prefix);
 
     ros::Publisher robotiq_fake_pub;
-    robotiq_fake_pub = fakeRight.n.advertise<sensor_msgs::JointState>("/joint_states",1);
+    robotiq_fake_pub = fakeJoints.n.advertise<sensor_msgs::JointState>("/joint_states",1);
 
-    //Left hand class
-    RobotiqFakeJoints fakeLeft;
-    fakeLeft.RobotiqInit("l");
+    ros::Time current_time     = ros::Time::now();
+    ros::Time start_grasp_time = ros::Time::now();
 
-
-    while(ros::ok())
+    while((current_time - start_grasp_time).toSec() < fake_time)
     {
-        fakeRight.hand_joints_.header.stamp = ros::Time::now();
-        robotiq_fake_pub.publish(fakeRight.hand_joints_);
+        fakeJoints.hand_joints_.header.stamp = ros::Time::now();
+        robotiq_fake_pub.publish(fakeJoints.hand_joints_);
 
-        fakeLeft.hand_joints_.header.stamp = ros::Time::now();
-        robotiq_fake_pub.publish(fakeLeft.hand_joints_);
+        current_time = ros::Time::now();
 
-        ros::Duration(0.05).sleep();
         ros::spinOnce();
+        ros::Duration(5).sleep();
     }
 
     return 0;
