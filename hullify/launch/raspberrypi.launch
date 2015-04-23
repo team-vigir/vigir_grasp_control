@@ -1,14 +1,20 @@
 <?xml version="1.0" ?>
 <launch>
+	<!-- Enable a Pi launch regardless of previous exposure -->
+	<env name="ROSLAUNCH_SSH_UNKNOWN" value="1" />
 	<include file="$(find hullify)/launch/rpi.machine" />
 
-	<!-- Start up image processing on the main computer side -->
-	<node name="republish" type="republish" pkg="image_transport" args="compressed in:=camera/image raw out:=camera/image_decompressed" />
-	<!--<node name="image_view" type="image_view" pkg="image_view" args="image:=camera/image_decompressed"/>-->
+	<!-- Start up image processing on the main computer side: decompress and relay to greater system -->
+	<node name="l_palm_camera_republish" type="republish" pkg="image_transport" args="compressed in:=left_palm/camera/image raw out:=left_palm/camera/image_raw" />
+	<node name="l_palm_camera_info_republish" type="relay" pkg="topic_tools" args="left_palm/camera/camera_info_pi left_palm/camera/camera_info" />
 
 	<!-- Start up the raspberry pi's camera -->
-<!--	<node machine="pi" name="raspicam_node" type="raspicam_node" pkg="raspicam" output="screen"/>-->
+	<node machine="pi" name="raspicam_node" type="raspicam_node" pkg="raspicam" output="screen" args="_tf_prefix:=left_palm_camera_optical_frame" >
+		<remap from="camera/camera_info" to="left_palm/camera/camera_info_pi" />
+		<remap from="camera/image/compressed" to="left_palm/camera/image/compressed" />
+	</node>
 
 	<!-- Start up the takktiles -->
 	<!--<node machine="pi" name="takktile_node" type="takktile_node.py" pkg="takktile_ros" output="screen"/> -->
+	
 </launch>
