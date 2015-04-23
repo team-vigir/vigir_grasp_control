@@ -71,7 +71,7 @@ int main(int argc, char** argv)
     robotiq_fake_pub = fakeJoints.n.advertise<sensor_msgs::JointState>("/joint_states",1);
 
     ros::Time current_time     = ros::Time::now();
-    ros::Time start_grasp_time = ros::Time::now();
+    ros::Time start_grasp_time = current_time;
 
     while((current_time - start_grasp_time).toSec() < fake_time)
     {
