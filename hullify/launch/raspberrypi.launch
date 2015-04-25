@@ -13,14 +13,15 @@
 	<node name="$(arg hand)_palm_camera_info_republish" type="relay" pkg="topic_tools" args="$(arg cam_ns)/camera_info_pi $(arg cam_ns)/camera_info" />
 
 	<!-- Start up the raspberry pi's camera -->
-	<node machine="$(arg pi_machine_name)" name="raspicam_node" type="raspicam_node" pkg="raspicam" output="screen" args="_tf_prefix:=$(arg hand_full)_palm_camera_optical_frame" >
+	<node machine="$(arg pi_machine_name)" name="$(arg hand)_raspicam_node" type="raspicam_node" pkg="raspicam" output="screen" args="_tf_prefix:=$(arg hand_full)_palm_camera_optical_frame" >
 		<remap from="camera/camera_info" to="$(arg cam_ns)/camera_info_pi" />
 		<remap from="camera/image/compressed" to="$(arg cam_ns)/image/compressed" />
 	</node>
 
-	<!-- Start up the takktiles -->
-	<!--<node machine="$(arg pi_machine_name)" name="$(arg hand)_hand_takktile_node" type="takktile_node.py" pkg="takktile_ros" output="screen"> 
-		<remap from="$(arg hand_full)_palm/tactile/calibrated" to="takktile/calibrated"
-	</node>-->
-	
+	<!-- Start up the takktiles: data relay and raspberry pi process -->
+	<arg name="tactile_intermediate_topic" value="$(arg hand_full)_hand/tactile/calibrated" />
+	<node machine="$(arg pi_machine_name)" name="$(arg hand)_hand_takktile_node" type="takktile_node.py" pkg="takktile_ros" output="screen"> 
+		<remap to="$(arg tactile_intermediate_topic)" from="takktile/calibrated" />
+	</node>
+	<node type="relay" name="$(arg hand)_tactile_relay" pkg="topic_tools" args="$(arg tactile_intermediate_topic) $(arg hand_full)_hand/tactile_data" />
 </launch>
