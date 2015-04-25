@@ -73,7 +73,9 @@ int main(int argc, char** argv)
     ros::Time current_time     = ros::Time::now();
     ros::Time start_grasp_time = current_time;
 
-    while((current_time - start_grasp_time).toSec() < fake_time)
+    int i=0;
+
+    while(i < fake_time/5)
     {
         fakeJoints.hand_joints_.header.stamp = ros::Time::now();
         robotiq_fake_pub.publish(fakeJoints.hand_joints_);
@@ -82,6 +84,7 @@ int main(int argc, char** argv)
 
         ros::spinOnce();
         ros::Duration(5).sleep();
+        i++;
     }
 
     return 0;
