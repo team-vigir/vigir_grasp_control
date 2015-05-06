@@ -55,14 +55,20 @@ typedef actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>
 
     protected:
 
+        sensor_msgs::JointState                           last_joint_state_msg_;
+
         void graspCommandCallback(const flor_grasp_msgs::GraspState &grasp)    ;
         vigir_manipulation_controller::GraspQuality processHandTactileData()   ;
+
+        void robotiqJointStates_Callback(const sensor_msgs::JointState::ConstPtr& js_msg);
 
     private:
 
         //Trajectory Action
         control_msgs::FollowJointTrajectoryGoal    trajectory_action_;
         TrajectoryActionClient*                    trajectory_client_;
+
+        ros::Subscriber                            robotiqJointStates_sub_;
 
         void trajectoryActiveCB();
         void trajectoryFeedbackCB(const control_msgs::FollowJointTrajectoryFeedbackConstPtr& feedback);

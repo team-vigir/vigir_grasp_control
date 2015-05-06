@@ -53,6 +53,12 @@ namespace vigir_robotiq_grasp_controller{
 
       ROS_INFO("Initializing Robotic Grasp controller");
 
+      //Getting Joint States
+
+      ros::SubscribeOptions robotiqJointStatesSo =
+      ros::SubscribeOptions::create<sensor_msgs::JointState>("/grasp_control/" + wrist_name_ + "/joint_states", 1, boost::bind(&VigirRobotiqGraspController::robotiqJointStates_Callback, this, _1),ros::VoidPtr(), nh.getCallbackQueue());
+      robotiqJointStates_sub_ = nh.subscribe(robotiqJointStatesSo);
+
       //Initializing Trajectory action for fingers
       this->trajectory_action_.trajectory.joint_names.resize(hand_joint_names_.size());
       this->trajectory_action_.trajectory.points.resize(1);
@@ -118,7 +124,7 @@ namespace vigir_robotiq_grasp_controller{
         break;
         case flor_grasp_msgs::GraspState::PERCENTAGE:
             this->trajectory_action_.trajectory.points[0].positions[0]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0122+float(grasp.finger_effort[0].data)*0.0122;
-            this->trajectory_action_.trajectory.points[0].positions[1]  = float(grasp.finger_effort[3].data)*0.0028;  //This joint behaves differentlly, spreads, not used for close
+            this->trajectory_action_.trajectory.points[0].positions[1]  = last_joint_state_msg_.position[1];//float(grasp.finger_effort[3].data)*0.0028;  //This joint behaves differentlly, spreads, not used for close
             this->trajectory_action_.trajectory.points[0].positions[2]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113+float(grasp.finger_effort[1].data)*0.0113;
             this->trajectory_action_.trajectory.points[0].positions[3]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113+float(grasp.finger_effort[2].data)*0.0113;
         break;
@@ -156,6 +162,13 @@ namespace vigir_robotiq_grasp_controller{
                                                       const control_msgs::FollowJointTrajectoryResultConstPtr& result)
     {
         ROS_INFO("Fingers Trajectory finished in state [%s]", state.toString().c_str());
+    }
+
+    /////// ---------------------------------- Hardware callbacks ---------------------------------------
+    void VigirRobotiqGraspController::robotiqJointStates_Callback(const sensor_msgs::JointState::ConstPtr& js_msg)
+    {
+        boost::lock_guard<boost::mutex> guard(this->write_data_mutex_);
+        last_joint_state_msg_ = *(js_msg);
     }
 
 
