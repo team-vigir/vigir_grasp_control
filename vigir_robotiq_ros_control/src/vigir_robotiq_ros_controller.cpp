@@ -305,9 +305,14 @@ void RobotiqHardwareInterface::read(ros::Time time, ros::Duration period)
     hand_status_.header.stamp    = ros::Time::now();
     hand_status_.hand_status     = robotiq_input_msg_.gIMC;
 
-    if(robotiq_input_msg_.gFLT  != 0)
-        hand_status_.hand_status = robotiq_input_msg_.gFLT;
-
+    switch(robotiq_input_msg_.gFLT){  //Converting especific robotiq error status into standard HandStatus.msg
+        case 0: hand_status_.hand_status = hand_status_.NORMAL;
+            break;
+        case 9: hand_status_.hand_status = hand_status_.CONNECTION_ERROR;
+            break;
+        default: hand_status_.hand_status = hand_status_.UNKNOWN_ERROR;
+            break;
+    }
     for(int link_idx=0, sensor_idx=0;link_idx<hand_status_.link_states.tactile_array.size();link_idx++)
         for(int array_idx=0;array_idx<hand_status_.link_states.tactile_array[link_idx].pressure.size();array_idx++, sensor_idx++)
             hand_status_.link_states.tactile_array[link_idx].pressure[array_idx] = last_tactile_msg_.pressure[sensor_idx];
