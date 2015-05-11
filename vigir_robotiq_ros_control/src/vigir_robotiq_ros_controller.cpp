@@ -104,10 +104,7 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
     if (private_nh.hasParam("robotiq_activation_time"))
         private_nh.param<double>("robotiq_activation_time", robotiq_activation_time_, 16);
     else
-    {
-        ROS_ERROR("Parameter robotiq_activation_time not set, shutting down node...");
-        throw std::invalid_argument("robotiq_activation_time");
-    }
+        ROS_ERROR("Parameter robotiq_activation_time not set, using 17 seconds as default");
 
     ROS_INFO("Robotiq Hand will activate in %f seconds", robotiq_activation_time_);
 

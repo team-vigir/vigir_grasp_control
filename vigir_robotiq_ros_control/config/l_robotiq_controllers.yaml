@@ -1,4 +1,4 @@
- - name: /left_robotiq/left_hand_traj_controller
+ - name: /hand_controllers/left_hand_traj_controller
    action_ns: follow_joint_trajectory
    type: FollowJointTrajectory
    default: true

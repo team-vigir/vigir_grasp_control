@@ -42,6 +42,13 @@
         <param name="hand_name" value="r_hand"/>
         <rosparam file    = "$(find vigir_robotiq_ros_control)/config/robotiq_joints.yaml" 
                   command = "load" />
+        <remap from="/right_robotiq/right_hand_traj_controller/command"                          to="/hand_controllers/right_hand_traj_controller/command"                          />
+        <remap from="/right_robotiq/right_hand_traj_controller/state"                            to="/hand_controllers/right_hand_traj_controller/state"                            />
+        <remap from="/right_robotiq/right_hand_traj_controller/follow_joint_trajectory/cancel"   to="/hand_controllers/right_hand_traj_controller/follow_joint_trajectory/cancel"   />
+        <remap from="/right_robotiq/right_hand_traj_controller/follow_joint_trajectory/feedback" to="/hand_controllers/right_hand_traj_controller/follow_joint_trajectory/feedback" />
+        <remap from="/right_robotiq/right_hand_traj_controller/follow_joint_trajectory/goal"     to="/hand_controllers/right_hand_traj_controller/follow_joint_trajectory/goal"     />
+        <remap from="/right_robotiq/right_hand_traj_controller/follow_joint_trajectory/result"   to="/hand_controllers/right_hand_traj_controller/follow_joint_trajectory/result"   />
+        <remap from="/right_robotiq/right_hand_traj_controller/follow_joint_trajectory/status"   to="/hand_controllers/right_hand_traj_controller/follow_joint_trajectory/status"   />
   </node>
 
   <!-- Relaying to /joint_states since namespace contained hand side: /right_robotiq/-->

@@ -81,7 +81,7 @@ namespace vigir_robotiq_grasp_controller{
 
       ROS_INFO("Close joint positions initialized");
 
-      this->trajectory_client_ = new  vigir_robotiq_grasp_controller::TrajectoryActionClient("/"+this->hand_side_+"_robotiq/"+this->hand_side_+"_hand_traj_controller/follow_joint_trajectory", true);
+      this->trajectory_client_ = new  vigir_robotiq_grasp_controller::TrajectoryActionClient("/hand_controllers/"+this->hand_side_+"_hand_traj_controller/follow_joint_trajectory", true);
       while(!this->trajectory_client_->waitForServer(ros::Duration(5.0)))
          ROS_INFO("Waititing for %s TrajectoryActionServer", this->hand_side_.c_str());
 

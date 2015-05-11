@@ -29,11 +29,11 @@
         pkg     = "controller_manager"
         type    = "spawner" 
         respawn = "false" 
-        ns      = "left_robotiq" 
+        ns      = "left_robotiq"
         output  = "screen"  
         args    = "joint_state_controller"/>  
 
-  <node name    = "left_robotiq_ros_controller" 
+  <node name    = "left_robotiq_ros_controller"
         pkg     = "vigir_robotiq_ros_control" 
         type    = "vigir_robotiq_ros_controller_node" 
         ns      = "left_robotiq"><!--
@@ -42,6 +42,13 @@
         <param name="hand_name" value="l_hand"/>
         <rosparam file    = "$(find vigir_robotiq_ros_control)/config/robotiq_joints.yaml" 
                   command = "load" />
+        <remap from="/left_robotiq/left_hand_traj_controller/command"                            to="/hand_controllers/left_hand_traj_controller/command"                           />
+        <remap from="/left_robotiq/left_hand_traj_controller/state"                              to="/hand_controllers/left_hand_traj_controller/state"                             />
+        <remap from="/left_robotiq/left_hand_traj_controller/follow_joint_trajectory/cancel"     to="/hand_controllers/left_hand_traj_controller/follow_joint_trajectory/cancel"    />
+        <remap from="/left_robotiq/left_hand_traj_controller/follow_joint_trajectory/feedback"   to="/hand_controllers/left_hand_traj_controller/follow_joint_trajectory/feedback"  />
+        <remap from="/left_robotiq/left_hand_traj_controller/follow_joint_trajectory/goal"       to="/hand_controllers/left_hand_traj_controller/follow_joint_trajectory/goal"      />
+        <remap from="/left_robotiq/left_hand_traj_controller/follow_joint_trajectory/result"     to="/hand_controllers/left_hand_traj_controller/follow_joint_trajectory/result"    />
+        <remap from="/left_robotiq/left_hand_traj_controller/follow_joint_trajectory/status"     to="/hand_controllers/left_hand_traj_controller/follow_joint_trajectory/status"    />
   </node>
   
   <!-- Relaying to /joint_states since namespace contained hand side: /left_robotiq/-->
