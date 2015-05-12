@@ -11,8 +11,8 @@
 	<include file="$(find hullify)/launch/$(arg pi_machine_name).machine" />
 
 	<!-- Start up image relaying on the main computer side: decompress and relay to greater system -->
-	<node name="$(arg hand)_palm_camera_republish" type="republish" pkg="image_transport" args="compressed in:=$(arg cam_ns)/image raw out:=$(arg cam_ns)/image_raw" />
-	<node name="$(arg hand)_palm_camera_info_republish" type="relay" pkg="topic_tools" args="$(arg cam_ns)/camera_info_pi $(arg cam_ns)/camera_info" />
+	<node name="$(arg hand)_palm_camera_republish" type="republish" pkg="image_transport" args="compressed in:=$(arg cam_ns)/image raw out:=/$(arg cam_ns)/image_raw" />
+	<node name="$(arg hand)_palm_camera_info_republish" type="relay" pkg="topic_tools" args="$(arg cam_ns)/camera_info_pi /$(arg cam_ns)/camera_info" />
 
 	<!-- Start up the raspberry pi's camera -->
 	<node machine="$(arg pi_machine_name)" name="$(arg hand)_raspicam_node" type="raspicam_node" pkg="raspicam" output="screen" args="_tf_prefix:=$(arg hand_full)_palm_camera_optical_frame" >
@@ -29,9 +29,14 @@
 	</node>
 	<node type="relay" name="$(arg hand)_tactile_data_relay" pkg="topic_tools" args="$(arg tactile_data_intermediate_topic) $(arg hand_full)_hand/tactile_data" />
 	<node type="relay" name="$(arg hand)_tactile_info_relay" pkg="topic_tools" args="$(arg tactile_info_intermediate_topic) $(arg hand_full)_hand/sensor_info" />
-	<node machine="$(arg pi_machine_name)" name="$(arg hand)_takktile_reset" type="takk_electric_reset.py" pkg="takktile_ros" output="screen" launch-prefix="sudo " >
+	<node machine="$(arg pi_machine_name)" name="takktile_reset" type="takk_electric_reset.py" pkg="takktile_ros" output="screen" >
 		<param name="hand_side" value="$(arg hand_full)" type="str" />
 		<param name="takktile_reset_topic" value="$(arg tactile_data_intermediate_topic)" type="str" />
+	</node>
+
+	<!-- Startup a takktile data processor -->
+	<node machine="$(arg pi_machine_name)" name="contact_node" type="contact_node.py" pkg="takktile_ros" output="screen">
+		<param name="hand_side" value="$(arg hand_full)" type="str" />
 	</node>
 </group>
 </launch>
