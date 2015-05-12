@@ -1,7 +1,8 @@
 <?xml version="1.0" ?>
 <launch>
-
-
+	<!--Common Pi Parameters-->
+	<param name="takktile_off_duration" type="double" value="2" />
+	
 	<!-- Left pi launch-->
 	<include file="$(find hullify)/launch/raspberrypi.launch" >
 		<arg name="hand" value="l" />
@@ -9,8 +10,10 @@
 	</include>
 
 	<!-- Right pi launch -->
-	<include file="$(find hullify)/launch/raspberrypi.launch" >
+	<!--<include file="$(find hullify)/launch/raspberrypi.launch" >
 		<arg name="hand" value="r" />
 		<arg name="hand_full" value="right" />		
-	</include>
+	</include>-->
+
+	<node name="contact_node" type="contact_node.py" pkg="takktile_ros" />
 </launch>

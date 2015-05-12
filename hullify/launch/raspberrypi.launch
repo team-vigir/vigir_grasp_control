@@ -1,11 +1,13 @@
 <?xml version="1.0" ?>
 <launch>
+
 	<!-- Pi launch parameters -->
 	<arg name="hand" default="l" />
 	<arg name="hand_full" default="left" />
 	<arg name="pi_machine_name" default="$(arg hand)_pi" />
 	<arg name="cam_ns" value="$(arg hand_full)_palm/camera" /> <!-- This must be the same as in the onboard_crop_decimate_nodelets launch -->
 
+<group ns="$(arg hand)_pi">
 	<include file="$(find hullify)/launch/$(arg pi_machine_name).machine" />
 
 	<!-- Start up image relaying on the main computer side: decompress and relay to greater system -->
@@ -18,10 +20,18 @@
 		<remap from="camera/image/compressed" to="$(arg cam_ns)/image/compressed" />
 	</node>
 
-	<!-- Start up the takktiles: data relay and raspberry pi process -->
-	<arg name="tactile_intermediate_topic" value="$(arg hand_full)_hand/tactile/calibrated" />
-	<node machine="$(arg pi_machine_name)" name="$(arg hand)_hand_takktile_node" type="takktile_node.py" pkg="takktile_ros" output="screen"> 
-		<remap to="$(arg tactile_intermediate_topic)" from="takktile/calibrated" />
+	<!-- Start up the takktiles: data and sensor info relays and raspberry pi takktile process -->
+	<arg name="tactile_data_intermediate_topic" value="$(arg hand_full)_hand/tactile/calibrated" />
+	<arg name="tactile_info_intermediate_topic" value="$(arg hand_full)_hand/tactile/sensor_info" />
+	<node machine="$(arg pi_machine_name)" name="$(arg hand)_hand_takktile_node" type="takktile_node.py" pkg="takktile_ros" output="screen" respawn="true"> 
+		<remap to="$(arg tactile_data_intermediate_topic)" from="takktile/calibrated" />
+		<remap to="$(arg tactile_info_intermediate_topic)" from="takktile/sensor_info" />
 	</node>
-	<node type="relay" name="$(arg hand)_tactile_relay" pkg="topic_tools" args="$(arg tactile_intermediate_topic) $(arg hand_full)_hand/tactile_data" />
+	<node type="relay" name="$(arg hand)_tactile_data_relay" pkg="topic_tools" args="$(arg tactile_data_intermediate_topic) $(arg hand_full)_hand/tactile_data" />
+	<node type="relay" name="$(arg hand)_tactile_info_relay" pkg="topic_tools" args="$(arg tactile_info_intermediate_topic) $(arg hand_full)_hand/sensor_info" />
+	<node machine="$(arg pi_machine_name)" name="$(arg hand)_takktile_reset" type="takk_electric_reset.py" pkg="takktile_ros" output="screen" launch-prefix="sudo " >
+		<param name="hand_side" value="$(arg hand_full)" type="str" />
+		<param name="takktile_reset_topic" value="$(arg tactile_data_intermediate_topic)" type="str" />
+	</node>
+</group>
 </launch>
