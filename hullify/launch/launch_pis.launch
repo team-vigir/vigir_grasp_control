@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <launch>
 	<!--Common Pi Parameters-->
-	<param name="takktile_off_duration" type="double" value="2" />
+	<param name="takktile_off_duration" type="double" value="0.1" />
 	
 	<!-- Left pi launch-->
 	<include file="$(find hullify)/launch/raspberrypi.launch" >
