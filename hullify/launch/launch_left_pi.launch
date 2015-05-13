@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<launch>
+
+	<!-- Left pi launch-->
+	<include file="$(find hullify)/launch/raspberrypi.launch" >
+		<arg name="hand" value="l" />
+		<arg name="hand_full" value="left" />		
+	</include>
+
+</launch>

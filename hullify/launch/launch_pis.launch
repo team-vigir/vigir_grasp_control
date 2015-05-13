@@ -1,16 +1,5 @@
 <?xml version="1.0" ?>
 <launch>
-
-
-	<!-- Left pi launch-->
-	<include file="$(find hullify)/launch/raspberrypi.launch" >
-		<arg name="hand" value="l" />
-		<arg name="hand_full" value="left" />		
-	</include>
-
-	<!-- Right pi launch -->
-	<include file="$(find hullify)/launch/raspberrypi.launch" >
-		<arg name="hand" value="r" />
-		<arg name="hand_full" value="right" />		
-	</include>
+	<include file="$(find hullify)/launch/launch_left_pi.launch" />
+	<include file="$(find hullify)/launch/launch_right_pi.launch"/>
 </launch>
