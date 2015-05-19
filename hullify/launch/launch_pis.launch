@@ -1,8 +1,10 @@
 <?xml version="1.0" ?>
 <launch>
 	<!--Common Pi Parameters-->
-	<param name="takktile_off_duration" type="double" value="0.1" />
-	
+	<param name="takktile_off_duration" type="double" value="2.0" />
+	<param name="use_sim_time" type="bool" value="false" />
+	<param name="enable_statistics" type="bool" value="true" />
+
 	<!-- Left pi launch-->
 	<include file="$(find hullify)/launch/raspberrypi.launch" >
 		<arg name="hand" value="l" />

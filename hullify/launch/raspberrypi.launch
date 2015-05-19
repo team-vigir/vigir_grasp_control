@@ -1,42 +1,27 @@
 <?xml version="1.0" ?>
 <launch>
-
 	<!-- Pi launch parameters -->
 	<arg name="hand" default="l" />
 	<arg name="hand_full" default="left" />
 	<arg name="pi_machine_name" default="$(arg hand)_pi" />
 	<arg name="cam_ns" value="$(arg hand_full)_palm/camera" /> <!-- This must be the same as in the onboard_crop_decimate_nodelets launch -->
+	<arg name="framerate" value="10" />
 
 <group ns="$(arg hand)_pi">
-	<include file="$(find hullify)/launch/$(arg pi_machine_name).machine" />
-
-	<!-- Start up image relaying on the main computer side: decompress and relay to greater system -->
-	<node name="$(arg hand)_palm_camera_republish" type="republish" pkg="image_transport" args="compressed in:=$(arg cam_ns)/image raw out:=/$(arg cam_ns)/image_raw" />
-	<node name="$(arg hand)_palm_camera_info_republish" type="relay" pkg="topic_tools" args="$(arg cam_ns)/camera_info_pi /$(arg cam_ns)/camera_info" />
+	<include file="$(find hullify)/launch/pi_atlas.launch">
+		<arg name="hand" value="$(arg hand)"/>
+		<arg name="hand_full" value="$(arg hand_full)"/>
+		<arg name="cam_ns" value="$(arg cam_ns)"/>
+	</include>
 
 	<!-- Start up the raspberry pi's camera -->
-	<node machine="$(arg pi_machine_name)" name="$(arg hand)_raspicam_node" type="raspicam_node" pkg="raspicam" output="screen" args="_tf_prefix:=$(arg hand_full)_palm_camera_optical_frame" >
-		<remap from="camera/camera_info" to="$(arg cam_ns)/camera_info_pi" />
-		<remap from="camera/image/compressed" to="$(arg cam_ns)/image/compressed" />
-	</node>
-
-	<!-- Start up the takktiles: data and sensor info relays and raspberry pi takktile process -->
-	<arg name="tactile_data_intermediate_topic" value="$(arg hand_full)_hand/tactile/calibrated" />
-	<arg name="tactile_info_intermediate_topic" value="$(arg hand_full)_hand/tactile/sensor_info" />
-	<node machine="$(arg pi_machine_name)" name="$(arg hand)_hand_takktile_node" type="takktile_node.py" pkg="takktile_ros" output="screen" respawn="true"> 
-		<remap to="$(arg tactile_data_intermediate_topic)" from="takktile/calibrated" />
-		<remap to="$(arg tactile_info_intermediate_topic)" from="takktile/sensor_info" />
-	</node>
-	<node type="relay" name="$(arg hand)_tactile_data_relay" pkg="topic_tools" args="$(arg tactile_data_intermediate_topic) $(arg hand_full)_hand/tactile_data" />
-	<node type="relay" name="$(arg hand)_tactile_info_relay" pkg="topic_tools" args="$(arg tactile_info_intermediate_topic) $(arg hand_full)_hand/sensor_info" />
-	<node machine="$(arg pi_machine_name)" name="takktile_reset" type="takk_electric_reset.py" pkg="takktile_ros" output="screen" >
-		<param name="hand_side" value="$(arg hand_full)" type="str" />
-		<param name="takktile_reset_topic" value="$(arg tactile_data_intermediate_topic)" type="str" />
-	</node>
-
-	<!-- Startup a takktile data processor -->
-	<node machine="$(arg pi_machine_name)" name="contact_node" type="contact_node.py" pkg="takktile_ros" output="screen">
-		<param name="hand_side" value="$(arg hand_full)" type="str" />
-	</node>
+	<!--<include file="$(find hullify)/launch/pi_onboard.launch">
+		<arg name="hand" value="$(arg hand)"/>
+		<arg name="hand_full" value="$(arg hand_full)"/>
+		<arg name="pi_machine_name" value="$(arg pi_machine_name)"/>
+		<arg name="cam_ns" value="$(arg cam_ns)"/>
+		<arg name="framerate" value="$(arg framerate)"/>
+	</include>-->
+	<node type="launch_pi.py" name="launch_pi" pkg="hullify" args="hand:=$(arg hand) hand_full:=$(arg hand_full) pi_machine_name:=$(arg pi_machine_name) cam_ns:=$(arg cam_ns) framerate:=$(arg framerate)" output="screen"/>
 </group>
 </launch>

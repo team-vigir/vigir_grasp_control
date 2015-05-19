@@ -1,0 +1,41 @@
+## Steps to Launch the Raspberry Pi
+Pi's machine name: vigirLPi or vigirRPi
+Pi's password: DarpaRC$13
+Pi's main user: vigir
+Login Command: ssh vigir@vigirLPi
+
+# Final Command API
+/l_pi/operator_pi_reboot		# Type: std_msgs/Empty
+					# Purpose: Operator can issue a pi rest if the takktile sensors become completely unresponsive (30+ seconds of no data)
+/l_pi/operator_takk_reset		# Type: std_msgs/Empty
+					# Purpose: Operator can issue a manual reset if he/she thinks the takktile sensors might still be recoverable. 
+
+# Prelaunch check
+If the pi cases have been opened, verify that the takktile sensors are connected to the takktile board and that the takktile board is connected to one of the pi's USB ports. Ensure that a female female header cable connects the takktile board's middle pin (CLK) to logical pin 14 of the raspberry pi GPIO (the pin just beneath the ground pin that we plug into on the outermost rail. See pictures). Verify that the camera is connected to the port behind the ethernet switch with the blue side facing the ethernet switch.
+
+Verify that the ethernet switch is connected to both the pi and to the main network.
+
+Verify that a roscore is running on the network. If one is not, start one.
+
+# Launch instructions
+Give the pi power. Verify that the ethernet switch lights are blinking and that the red power light on the raspberry pi is shining.
+	- You might see a flash on the takktile senors, this is ok.
+
+Open a terminal on the host computer and type "roslaunch hullify launch_pis.launch"
+
+Startup complete.
+
+# Viewing results
+To see aggregated takktile data:
+	- On host computer, in a new terminal type "rostopic echo /l_pi/robotiq_hands/l_hand/hand_contacts" or "rostopic echo /r_pi/robotiq_hands/l_hand/hand_contacts"
+	
+	To see image feeds:
+	- Feed in rviz: Add a new display using the Add button, choose the image type from the list, and set the topic to be "/left_palm/camera/image_raw". The image should appear beneath the Add button.
+
+# Troubleshooting:
+	Check if the pi can communicate with the roscore:
+		- In a terminal connected to the pi, type "export ROS_MASTER_URI='http://eva:11311' " (or atlas if the roscore was started on atlas). This directs ros traffic to the core.
+		- Next, type "rostopic list". If the result is not a list of ROS topics, you have a connection error. Try pinging the host computer from the pi (e.g. ping eva), and pinging the pi from the host computer (ping vigirLPi). If one does not work, verify your network settings (AdeptRobotiq network) and call Jackson if need be.
+
+	If the takktiles keep dying:
+		- issue a reset command.

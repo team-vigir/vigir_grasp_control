@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<launch>
+	<arg name="hand"/>
+	<arg name="hand_full"/>
+	<arg name="cam_ns"/>
+
+	<!-- Start up image relaying on the main computer side: decompress and relay to greater system -->
+	<node name="palm_camera_republish" type="republish" pkg="image_transport" args="compressed in:=$(arg cam_ns)/image raw out:=/$(arg cam_ns)/image_raw" />
+	<node name="palm_camera_info_republish" type="relay" pkg="topic_tools" args="$(arg cam_ns)/camera_info_pi /$(arg cam_ns)/camera_info" />
+
+	<node type="relay" name="contact_relay" pkg="topic_tools" args="robotiq_hands/$(arg hand)_hand/hand_contacts /robotiq_hands/$(arg hand)_hand/hand_contacts" />
+</launch>
