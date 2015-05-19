@@ -13,15 +13,8 @@
 		<arg name="hand_full" value="$(arg hand_full)"/>
 		<arg name="cam_ns" value="$(arg cam_ns)"/>
 	</include>
-
-	<!-- Start up the raspberry pi's camera -->
-	<!--<include file="$(find hullify)/launch/pi_onboard.launch">
-		<arg name="hand" value="$(arg hand)"/>
-		<arg name="hand_full" value="$(arg hand_full)"/>
-		<arg name="pi_machine_name" value="$(arg pi_machine_name)"/>
-		<arg name="cam_ns" value="$(arg cam_ns)"/>
-		<arg name="framerate" value="$(arg framerate)"/>
-	</include>-->
+	
+	<!-- This node will launch the pi's onboard software -->
 	<node type="launch_pi.py" name="launch_pi" pkg="hullify" args="hand:=$(arg hand) hand_full:=$(arg hand_full) pi_machine_name:=$(arg pi_machine_name) cam_ns:=$(arg cam_ns) framerate:=$(arg framerate)" output="screen"/>
 </group>
 </launch>
