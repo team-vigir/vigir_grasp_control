@@ -1,0 +1,17 @@
+Takktile Software Installation
+1. roscd takktile_ros
+2. git checkout catkin
+3. git pull
+4. ssh into a pi and clear out takktile_ros/src
+5. repopulate the takktile_ros/src folder on the pi with the updated takktile_ros/src folder on the main computer
+6. Perform this overwriting process for the other pi
+
+Give the vigir user passwordless sudo privileges and let sudos preserve the environment
+1. ssh into a pi
+2. sudo visudo (password is the regular Vigir computer password) (This edits the sudoers file in etc)
+3. Add this line "vigir ALL=(ALL) NOPASSWD: ALL" to the bottom of the file.
+4. At the top of the file, change the line "Defaults env_reset" to "Defaults setenv"
+5. Beneath this line, paste 'Defaults        env_keep += "PYTHONPATH ROS_PACKAGE_PATH ROS_MASTER_URI ROS_ETC_DIR ROS_ROOT ROS_DISTRO PATH CMAKE_PREFIX_PATH CATKIN_TEST_RESULTS_DIR LD_LIBRARY_PATH PKG_CONFIG_PATH"' (This preserves appropriate environment varaibles
+
+Microcontroller Hookup Instructions:
+1. Connect the provided female-female header wire between the middle pin in the bent male headers of the takktile board and the 4th pin down 
