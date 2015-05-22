@@ -1,4 +1,4 @@
 <?xml version="1.0" ?>
 <launch>
-	<machine name="r_pi" address="vigirRPi" user="vigir" env-loader="~/env.sh"/>
+	<machine name="r_pi" address="vigirRPi" user="vigir" env-loader="~/env.sh" timeout="100"/>
 </launch>

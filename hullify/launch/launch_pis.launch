@@ -1,10 +1,11 @@
 <?xml version="1.0" ?>
 <launch>
 	<!--Common Pi Parameters-->
+	<!-- The pi will not work in gazebo simulations. sim_time floods the connection and overloads the processor. -->
 	<param name="takktile_off_duration" type="double" value="2.0" />
-	<param name="use_sim_time" type="bool" value="false" />
+	<!--<param name="use_sim_time" type="bool" value="false" />-->
 	<param name="enable_statistics" type="bool" value="true" />
 
 	<include file="$(find hullify)/launch/launch_left_pi.launch" />
-	<include file="$(find hullify)/launch/launch_right_pi.launch"/>
+	<!--<include file="$(find hullify)/launch/launch_right_pi.launch"/>-->
 </launch>
