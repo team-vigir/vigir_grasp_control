@@ -105,6 +105,8 @@ namespace vigir_robotiq_grasp_controller{
     {
         boost::lock_guard<boost::mutex> guard(this->write_data_mutex_);
 
+        bool grasp_set = true;
+
         //THIS IS ROBOTIQ SPECIFIC
         switch(grasp.grasp_state.data){
         case flor_grasp_msgs::GraspState::GRASP_ID:
@@ -128,11 +130,14 @@ namespace vigir_robotiq_grasp_controller{
             this->trajectory_action_.trajectory.points[0].positions[2]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113;
             this->trajectory_action_.trajectory.points[0].positions[3]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113;
         break;
-        default:return;
+        default:
+            ROS_ERROR("Grasp state: %d not recognized, (open, close, percentage or grasp ID) not publishing trajectory", int(grasp.grasp_state.data));
+            grasp_set = false;
+            return;
         }
 
         //Create ROS trajectory and publish
-        if(this->trajectory_client_->isServerConnected())
+        if(this->trajectory_client_->isServerConnected() && grasp_set)
         {
             this->trajectory_action_.trajectory.header.stamp = ros::Time::now();
             this->trajectory_client_->sendGoal(trajectory_action_,
