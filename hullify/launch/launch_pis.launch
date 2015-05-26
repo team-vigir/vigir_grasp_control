@@ -7,5 +7,5 @@
 	<param name="enable_statistics" type="bool" value="true" />
 
 	<include file="$(find hullify)/launch/launch_left_pi.launch" />
-	<!--<include file="$(find hullify)/launch/launch_right_pi.launch"/>-->
+	<include file="$(find hullify)/launch/launch_right_pi.launch"/>
 </launch>
