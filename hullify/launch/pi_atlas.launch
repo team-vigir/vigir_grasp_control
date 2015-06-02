@@ -8,5 +8,7 @@
 	<node name="palm_camera_republish" type="republish" pkg="image_transport" args="compressed in:=$(arg cam_ns)/image raw out:=/$(arg cam_ns)/image_raw" />
 	<node name="palm_camera_info_republish" type="relay" pkg="topic_tools" args="$(arg cam_ns)/camera_info_pi /$(arg cam_ns)/camera_info" />
 
-	<node type="relay" name="contact_relay" pkg="topic_tools" args="robotiq_hands/$(arg hand)_hand/hand_contacts /robotiq_hands/$(arg hand)_hand/hand_contacts" />
+	<!--<node type="relay" name="contact_relay" pkg="topic_tools" args="robotiq_hands/$(arg hand)_hand/hand_contacts /robotiq_hands/$(arg hand)_hand/hand_contacts" />-->
+	
+	<node type="relay" name="mic_relay" pkg="topic_tools" args="onboard/mic_audio_level mic_audio_level" />
 </launch>

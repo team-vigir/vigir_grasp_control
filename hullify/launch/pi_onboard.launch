@@ -23,14 +23,17 @@
 	</node>-->
 	<!--<node type="relay" name="$(arg hand)_tactile_data_relay" pkg="topic_tools" args="$(arg tactile_data_intermediate_topic) $(arg hand_full)_hand/tactile_data" />
 	<node type="relay" name="$(arg hand)_tactile_info_relay" pkg="topic_tools" args="$(arg tactile_info_intermediate_topic) $(arg hand_full)_hand/sensor_info" />-->
-	<node machine="$(arg pi_machine_name)" name="takktile_reset" type="takk_electric_reset.py" pkg="takktile_ros" output="screen" >
+	<!--<node machine="$(arg pi_machine_name)" name="takktile_reset" type="takk_electric_reset.py" pkg="takktile_ros" output="screen" >
 		<param name="hand_side" value="$(arg hand_full)" type="str" />
 		<param name="takktile_reset_topic" value="takktile/calibrated" type="str" />
-	</node>
+	</node>-->
 
 	<!-- Startup a takktile data processor and republisher-->
-	<node machine="$(arg pi_machine_name)" name="contact_node" type="contact_node.py" pkg="takktile_ros" output="screen">
+	<!--<node machine="$(arg pi_machine_name)" name="contact_node" type="contact_node.py" pkg="takktile_ros" output="screen">
 		<param name="hand_side" value="$(arg hand_full)" type="str" />
-	</node>
+	</node>-->
+
+	<!-- Start up the microphone procecssor -->
+	<node machine='$(arg pi_machine_name)' name="audio_analysis_node" type="vigir_audio_analysis_node" pkg="vigir_audio_analysis" output="screen" ns="onboard"/>
 
 </launch>
