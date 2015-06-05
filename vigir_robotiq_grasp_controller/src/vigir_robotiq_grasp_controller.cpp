@@ -109,8 +109,8 @@ namespace vigir_robotiq_grasp_controller{
           ROS_ERROR("The positions vector from the trajectory got corrupted, it is size: %d, when it should be size: %d resetting", 
             int(this->trajectory_action_.trajectory.points[0].positions.size()),int(hand_joint_names_.size()));
           this->trajectory_action_.trajectory.points[0].positions.resize(hand_joint_names_.size());
-          this->trajectory_action_.trajectory.points[0].time_from_start = ros::Duration(0.5);
-        }        
+        }
+        this->trajectory_action_.trajectory.points[0].time_from_start = ros::Duration(0.5);
 
         bool grasp_set = true;
 
