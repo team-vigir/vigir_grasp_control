@@ -78,7 +78,7 @@ namespace vigir_robotiq_grasp_controller{
       {
           ROS_INFO("Sending trajectory action");
           trajectory_action.trajectory.header.stamp = ros::Time::now();
-          this->trajectory_client_->sendGoal(trajectory_action_,
+          this->trajectory_client_->sendGoal(trajectory_action,
                                        boost::bind(&VigirRobotiqGraspController::trajectoryDoneCb, this, _1, _2),
                                        boost::bind(&VigirRobotiqGraspController::trajectoryActiveCB, this),
                                        boost::bind(&VigirRobotiqGraspController::trajectoryFeedbackCB, this, _1));
@@ -129,7 +129,7 @@ namespace vigir_robotiq_grasp_controller{
         if(this->trajectory_client_->isServerConnected() && grasp_set)
         {
             trajectory_action.trajectory.header.stamp = ros::Time::now();
-            this->trajectory_client_->sendGoal(trajectory_action_,
+            this->trajectory_client_->sendGoal(trajectory_action,
                                          boost::bind(&VigirRobotiqGraspController::trajectoryDoneCb, this, _1, _2),
                                          boost::bind(&VigirRobotiqGraspController::trajectoryActiveCB, this),
                                          boost::bind(&VigirRobotiqGraspController::trajectoryFeedbackCB, this, _1));

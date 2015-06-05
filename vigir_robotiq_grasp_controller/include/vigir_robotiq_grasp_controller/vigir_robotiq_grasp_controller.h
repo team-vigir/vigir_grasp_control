@@ -65,7 +65,6 @@ typedef actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>
     private:
 
         //Trajectory Action
-        control_msgs::FollowJointTrajectoryGoal    trajectory_action_;
         TrajectoryActionClient*                    trajectory_client_;
 
         ros::Subscriber                            robotiqJointStates_sub_;
