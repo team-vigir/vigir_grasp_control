@@ -129,6 +129,7 @@ namespace vigir_robotiq_grasp_controller{
         if(this->trajectory_client_->isServerConnected() && grasp_set)
         {
             trajectory_action.trajectory.header.stamp = ros::Time::now();
+            trajectory_action.trajectory.points[0].time_from_start = ros::Duration(0.5);
             this->trajectory_client_->sendGoal(trajectory_action,
                                          boost::bind(&VigirRobotiqGraspController::trajectoryDoneCb, this, _1, _2),
                                          boost::bind(&VigirRobotiqGraspController::trajectoryActiveCB, this),
