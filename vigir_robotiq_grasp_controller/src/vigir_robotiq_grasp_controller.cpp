@@ -58,26 +58,14 @@ namespace vigir_robotiq_grasp_controller{
       ros::SubscribeOptions robotiqJointStatesSo =
       ros::SubscribeOptions::create<sensor_msgs::JointState>("/grasp_control/" + wrist_name_ + "/joint_states", 1, boost::bind(&VigirRobotiqGraspController::robotiqJointStates_Callback, this, _1),ros::VoidPtr(), nh.getCallbackQueue());
       robotiqJointStates_sub_ = nh.subscribe(robotiqJointStatesSo);
-
-      //Initializing Trajectory action for fingers
-      this->trajectory_action_.trajectory.joint_names.resize(hand_joint_names_.size());
-      this->trajectory_action_.trajectory.points.resize(1);
-      this->trajectory_action_.trajectory.points[0].positions.resize(hand_joint_names_.size());
-      this->trajectory_action_.trajectory.points[0].time_from_start = ros::Duration(0.5);
-      this->trajectory_action_.goal_time_tolerance                  = ros::Duration(5.0);
-
-      ROS_INFO("Trajectory action initialized");
-
-      for(int i = 0; i < hand_joint_names_.size(); i++){
-          ROS_INFO("Joint %d: %s",i,hand_joint_names_[i].c_str());
-          this->trajectory_action_.trajectory.joint_names[i] = hand_joint_names_[i];
-      }
+      control_msgs::FollowJointTrajectoryGoal trajectory_action;
+      resetGrasp(trajectory_action);
 
       //THIS ARE SPECIFIC FROM ROBOTIQ HAND
-      this->trajectory_action_.trajectory.points[0].positions[0]  = 1.22;
-      this->trajectory_action_.trajectory.points[0].positions[1]  = 0.0;
-      this->trajectory_action_.trajectory.points[0].positions[2]  = 1.13;
-      this->trajectory_action_.trajectory.points[0].positions[3]  = 1.13;
+      trajectory_action.trajectory.points[0].positions[0]  = 1.22;
+      trajectory_action.trajectory.points[0].positions[1]  = 0.0;
+      trajectory_action.trajectory.points[0].positions[2]  = 1.13;
+      trajectory_action.trajectory.points[0].positions[3]  = 1.13;
 
       ROS_INFO("Close joint positions initialized");
 
@@ -89,7 +77,7 @@ namespace vigir_robotiq_grasp_controller{
       if(this->trajectory_client_->isServerConnected())
       {
           ROS_INFO("Sending trajectory action");
-          this->trajectory_action_.trajectory.header.stamp = ros::Time::now();
+          trajectory_action.trajectory.header.stamp = ros::Time::now();
           this->trajectory_client_->sendGoal(trajectory_action_,
                                        boost::bind(&VigirRobotiqGraspController::trajectoryDoneCb, this, _1, _2),
                                        boost::bind(&VigirRobotiqGraspController::trajectoryActiveCB, this),
@@ -105,37 +93,31 @@ namespace vigir_robotiq_grasp_controller{
     {
         boost::lock_guard<boost::mutex> guard(this->write_data_mutex_);
 
-        if(this->trajectory_action_.trajectory.points[0].positions.size() != hand_joint_names_.size()){
-          ROS_ERROR("The positions vector from the trajectory got corrupted, it is size: %d, when it should be size: %d resetting", 
-            int(this->trajectory_action_.trajectory.points[0].positions.size()),int(hand_joint_names_.size()));
-          this->trajectory_action_.trajectory.points[0].positions.resize(hand_joint_names_.size());
-        }
-        this->trajectory_action_.trajectory.points[0].time_from_start = ros::Duration(0.5);
-
+        control_msgs::FollowJointTrajectoryGoal trajectory_action;
+        resetGrasp(trajectory_action);
         bool grasp_set = true;
-
         //THIS IS ROBOTIQ SPECIFIC
         switch(grasp.grasp_state.data){
         case flor_grasp_msgs::GraspState::GRASP_ID:
-            this->trajectory_action_.trajectory = grasp.grasp.grasp_posture;
+            trajectory_action.trajectory = grasp.grasp.grasp_posture;
         break;
         case flor_grasp_msgs::GraspState::OPEN:
-            this->trajectory_action_.trajectory.points[0].positions[0]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[1]  = 0.0;  //This joint behaves differentlly, spreads, not used for close
-            this->trajectory_action_.trajectory.points[0].positions[2]  = 0.0;
-            this->trajectory_action_.trajectory.points[0].positions[3]  = 0.0;
+            trajectory_action.trajectory.points[0].positions[0]  = 0.0;
+            trajectory_action.trajectory.points[0].positions[1]  = 0.0;  //This joint behaves differentlly, spreads, not used for close
+            trajectory_action.trajectory.points[0].positions[2]  = 0.0;
+            trajectory_action.trajectory.points[0].positions[3]  = 0.0;
         break;
         case flor_grasp_msgs::GraspState::CLOSE:
-            this->trajectory_action_.trajectory.points[0].positions[0]  = 1.22;
-            this->trajectory_action_.trajectory.points[0].positions[1]  = 0.0;  //This joint behaves differentlly, spreads, not used for close
-            this->trajectory_action_.trajectory.points[0].positions[2]  = 1.13;
-            this->trajectory_action_.trajectory.points[0].positions[3]  = 1.13;
+            trajectory_action.trajectory.points[0].positions[0]  = 1.22;
+            trajectory_action.trajectory.points[0].positions[1]  = 0.0;  //This joint behaves differentlly, spreads, not used for close
+            trajectory_action.trajectory.points[0].positions[2]  = 1.13;
+            trajectory_action.trajectory.points[0].positions[3]  = 1.13;
         break;
         case flor_grasp_msgs::GraspState::PERCENTAGE:
-            this->trajectory_action_.trajectory.points[0].positions[0]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0122;
-            this->trajectory_action_.trajectory.points[0].positions[1]  = last_joint_state_msg_.position[1];//float(grasp.finger_effort[3].data)*0.0028;  //This joint behaves differentlly, spreads, not used for close
-            this->trajectory_action_.trajectory.points[0].positions[2]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113;
-            this->trajectory_action_.trajectory.points[0].positions[3]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113;
+            trajectory_action.trajectory.points[0].positions[0]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0122;
+            trajectory_action.trajectory.points[0].positions[1]  = last_joint_state_msg_.position[1];//float(grasp.finger_effort[3].data)*0.0028;  //This joint behaves differentlly, spreads, not used for close
+            trajectory_action.trajectory.points[0].positions[2]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113;
+            trajectory_action.trajectory.points[0].positions[3]  = float(grasp.grip.data > 100 ? 100 : grasp.grip.data)*0.0113;
         break;
         default:
             ROS_ERROR("Grasp state: %d not recognized, (open, close, percentage or grasp ID) not publishing trajectory", int(grasp.grasp_state.data));
@@ -146,7 +128,7 @@ namespace vigir_robotiq_grasp_controller{
         //Create ROS trajectory and publish
         if(this->trajectory_client_->isServerConnected() && grasp_set)
         {
-            this->trajectory_action_.trajectory.header.stamp = ros::Time::now();
+            trajectory_action.trajectory.header.stamp = ros::Time::now();
             this->trajectory_client_->sendGoal(trajectory_action_,
                                          boost::bind(&VigirRobotiqGraspController::trajectoryDoneCb, this, _1, _2),
                                          boost::bind(&VigirRobotiqGraspController::trajectoryActiveCB, this),
@@ -255,6 +237,23 @@ namespace vigir_robotiq_grasp_controller{
         else
             return vigir_manipulation_controller::NO_GRASP_QUALITY;
     }
+
+void VigirRobotiqGraspController::resetGrasp(control_msgs::FollowJointTrajectoryGoal& traj)
+{
+    //Initializing Trajectory action for fingers
+    traj.trajectory.joint_names.resize(hand_joint_names_.size());
+    traj.trajectory.points.resize(1);
+    traj.trajectory.points[0].positions.resize(hand_joint_names_.size());
+    traj.trajectory.points[0].time_from_start = ros::Duration(0.5);
+    traj.goal_time_tolerance                  = ros::Duration(5.0);
+
+    ROS_INFO("Trajectory action initialized");
+
+    for(int i = 0; i < hand_joint_names_.size(); i++){
+        ROS_INFO("Joint %d: %s",i,hand_joint_names_[i].c_str());
+        traj.trajectory.joint_names[i] = hand_joint_names_[i];
+    }
+}
 
 } /// end namespace vigir_robotiq_grasp_controller
 
