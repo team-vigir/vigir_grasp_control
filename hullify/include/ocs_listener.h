@@ -3,7 +3,7 @@
 
 #include <ros/ros.h>
 #include <geometry_msgs/Point.h>
-#include <flor_perception_msgs/RaycastRequest.h>
+#include <vigir_perception_msgs/RaycastRequest.h>
 #include <std_msgs/Float64.h>
 #include "plane_reps_and_3dmath.h"
 #include <exception>
@@ -19,7 +19,7 @@ class Ocs_listener{
 
 		pcl::PointXYZ get_recent_request_pt();
 
-		void dist_request_callback(const flor_perception_msgs::RaycastRequest::ConstPtr& msg);
+		void dist_request_callback(const vigir_perception_msgs::RaycastRequest::ConstPtr& msg);
 		void dist_result_callback(const std_msgs::Float64::ConstPtr& msg);
 		void kinect_pt_select_callback(const sensor_msgs::PointCloud2::ConstPtr& msg);
 		void kinect_raw_cloud_callback(const sensor_msgs::PointCloud2::ConstPtr& msg);

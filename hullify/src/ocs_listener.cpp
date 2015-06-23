@@ -42,7 +42,7 @@ Ocs_listener::Ocs_listener()
 	current_request_point = NULL;
 }
 
-void Ocs_listener::dist_request_callback(const flor_perception_msgs::RaycastRequest::ConstPtr& msg)
+void Ocs_listener::dist_request_callback(const vigir_perception_msgs::RaycastRequest::ConstPtr& msg)
 {
 	//cout << "Request called!" << endl;
 	camera_pos = Eigen::Vector3d(msg->origin.x, msg->origin.y, msg->origin.z);
