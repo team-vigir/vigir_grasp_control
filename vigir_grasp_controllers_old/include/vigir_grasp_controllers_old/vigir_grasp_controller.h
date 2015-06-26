@@ -47,10 +47,10 @@
 #include <atlas_msgs/AtlasState.h>
 #include <sandia_hand_msgs/RawTactile.h>
 
-#include <flor_grasp_msgs/GraspSelection.h>
-#include <flor_grasp_msgs/TemplateSelection.h>
-#include <flor_grasp_msgs/GraspState.h>
-#include <flor_grasp_msgs/HandStatus.h>
+#include <vigir_grasp_msgs/GraspSelection.h>
+#include <vigir_grasp_msgs/TemplateSelection.h>
+#include <vigir_grasp_msgs/GraspState.h>
+#include <vigir_grasp_msgs/HandStatus.h>
 #include "flor_ocs_msgs/OCSRobotStatus.h"
 #include "flor_ocs_msgs/OCSGhostControl.h"
 #include "flor_ocs_msgs/RobotStatusCodes.h"
@@ -183,10 +183,10 @@ struct VigirGraspSpecification
 
 
       // ROS message callbacks
-     void modeCommanderCallback(const flor_grasp_msgs::GraspState::ConstPtr &mc_msg);
+     void modeCommanderCallback(const vigir_grasp_msgs::GraspState::ConstPtr &mc_msg);
 
      /** called to change from no grasping, to manual to template grasping while (this->run_flag) */
-     int  processSetGraspMode(const flor_grasp_msgs::GraspState& mode_command);
+     int  processSetGraspMode(const vigir_grasp_msgs::GraspState& mode_command);
 
      /** called to update planner status */
      void  plannerStatusCallback(const flor_ocs_msgs::OCSRobotStatus& planner_status);
@@ -197,12 +197,12 @@ struct VigirGraspSpecification
       * Make sure the template info matches,and then do transform selected grasp to wrist pose in world frame.
       * assump template pose is given in world frame
       */
-     void  templateUpdateCallback(const flor_grasp_msgs::TemplateSelection& template_pose);
+     void  templateUpdateCallback(const vigir_grasp_msgs::TemplateSelection& template_pose);
 
      /** This function is called whenever the template needs to be stitched to the real object.
       * assump template pose is given in world frame
       */
-     void  templateStitchCallback(const flor_grasp_msgs::TemplateSelection& template_pose);
+     void  templateStitchCallback(const vigir_grasp_msgs::TemplateSelection& template_pose);
 
      /** called to update the latest wrist pose */
      void  wristPoseCallback(const geometry_msgs::PoseStamped& mode_command);
@@ -213,7 +213,7 @@ struct VigirGraspSpecification
      /** called whenever a new template/grasp pair is selected.
       *  Reset grasping state machine, and wait for updated matching template data with new pose.
       */
-     void  graspSelectionCallback(const flor_grasp_msgs::GraspSelection& grasp);
+     void  graspSelectionCallback(const vigir_grasp_msgs::GraspSelection& grasp);
 
      /** Set the current planning group to "arm only" or "arm + torso"           */
      void  graspPlanningGroupCallback(const flor_ocs_msgs::OCSGhostControl& planning_group);
@@ -221,7 +221,7 @@ struct VigirGraspSpecification
     /** Release any currently active grasp, and return to the NONE state after opening.
      *  This requires a new grasp selection to restart.
      */
-     void  releaseGraspCallback(const flor_grasp_msgs::GraspSelection& grasp);
+     void  releaseGraspCallback(const vigir_grasp_msgs::GraspSelection& grasp);
 
     /**
      * This function must be called to publish the updated wrist target after the template is updated.
@@ -236,9 +236,9 @@ struct VigirGraspSpecification
 
      void requestTemplateService(const uint16_t& requested_template_type);
 
-     void setAttachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data);
-     void setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data);
-     void setStitchingObject(const flor_grasp_msgs::TemplateSelection& last_template_data);
+     void setAttachingObject(const vigir_grasp_msgs::TemplateSelection& last_template_data);
+     void setDetachingObject(const vigir_grasp_msgs::TemplateSelection& last_template_data);
+     void setStitchingObject(const vigir_grasp_msgs::TemplateSelection& last_template_data);
 
 
   protected:
@@ -263,7 +263,7 @@ struct VigirGraspSpecification
     void updateActiveState();
 
     //Redundant, was the same as UpdateTemplateCallback
-    //int processTemplateUpdate(const flor_grasp_msgs::TemplateSelection& template_pose);
+    //int processTemplateUpdate(const vigir_grasp_msgs::TemplateSelection& template_pose);
 
     double sigmoid_squashing_function(double time_elapsed, double grasp_period, double grasp_gain);
 
@@ -281,9 +281,9 @@ struct VigirGraspSpecification
 
 
     // Variables to store sensor data received from ROS interface
-    flor_grasp_msgs::GraspSelection         last_grasp_msg_;
-    flor_grasp_msgs::TemplateSelection      last_template_msg_;
-    flor_grasp_msgs::GraspState             last_mode_msg_;
+    vigir_grasp_msgs::GraspSelection         last_grasp_msg_;
+    vigir_grasp_msgs::TemplateSelection      last_template_msg_;
+    vigir_grasp_msgs::GraspState             last_mode_msg_;
     flor_ocs_msgs::OCSRobotStatus           last_planner_status_msg_;
     flor_control_msgs::FlorControlMode      last_controller_mode_msg_;
     geometry_msgs::PoseStamped              last_wrist_pose_msg_;
@@ -331,7 +331,7 @@ struct VigirGraspSpecification
     flor_planning_msgs::PlanRequest         wrist_target_pose_;
     flor_atlas_msgs::AtlasHandMass          hand_mass_msg_;
     geometry_msgs::PoseStamped              com_;
-    flor_grasp_msgs::GraspState             active_state_;
+    vigir_grasp_msgs::GraspState             active_state_;
 
     // Internal variables used to store grasp mappings
     GraspQuality                            grasp_quality_;

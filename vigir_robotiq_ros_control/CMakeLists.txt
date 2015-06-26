@@ -9,7 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   trajectory_msgs
-  flor_grasp_msgs
+  vigir_grasp_msgs
   flor_ocs_msgs
   flor_control_msgs
   moveit_core
@@ -26,7 +26,7 @@ catkin_package(
         rospy
         std_msgs
         trajectory_msgs
-        flor_grasp_msgs
+        vigir_grasp_msgs
         flor_ocs_msgs
         flor_control_msgs
         moveit_core

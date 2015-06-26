@@ -57,7 +57,7 @@ typedef actionlib::SimpleActionClient<control_msgs::FollowJointTrajectoryAction>
 
         sensor_msgs::JointState                           last_joint_state_msg_;
 
-        void graspCommandCallback(const flor_grasp_msgs::GraspState &grasp)    ;
+        void graspCommandCallback(const vigir_grasp_msgs::GraspState &grasp)    ;
         vigir_manipulation_controller::GraspQuality processHandTactileData()   ;
 
         void robotiqJointStates_Callback(const sensor_msgs::JointState::ConstPtr& js_msg);

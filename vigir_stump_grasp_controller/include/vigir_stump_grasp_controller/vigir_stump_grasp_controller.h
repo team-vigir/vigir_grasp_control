@@ -47,7 +47,7 @@ namespace vigir_stump_grasp_controller{
 
     protected:
 
-        void graspCommandCallback(const flor_grasp_msgs::GraspState &grasp)    ;
+        void graspCommandCallback(const vigir_grasp_msgs::GraspState &grasp)    ;
         vigir_manipulation_controller::GraspQuality processHandTactileData()   ;
 
     private:

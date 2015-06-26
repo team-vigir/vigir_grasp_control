@@ -49,7 +49,7 @@ void RobotiqHardwareInterface::robotiq_Callback(const robotiq_s_model_control::S
     }
 }
 
-void RobotiqHardwareInterface::robotiq_tactile_Callback(const flor_grasp_msgs::Tactile::ConstPtr &msg)
+void RobotiqHardwareInterface::robotiq_tactile_Callback(const vigir_grasp_msgs::Tactile::ConstPtr &msg)
 {
     if(msg){
         last_tactile_msg_ = *msg;
@@ -181,7 +181,7 @@ RobotiqHardwareInterface::RobotiqHardwareInterface()
     robotiq_output_pub_ = nh.advertise<robotiq_s_model_control::SModel_robot_output>("/robotiq_hands/"+hand_name_+"/SModelRobotOutput", 1, true);
 
     // ROS topic advertisers for Robotiq Hand Status
-    hand_status_pub_ = nh.advertise<flor_grasp_msgs::HandStatus>("/grasp_control/"+hand_name_+"/hand_status", 1, true);
+    hand_status_pub_ = nh.advertise<vigir_grasp_msgs::HandStatus>("/grasp_control/"+hand_name_+"/hand_status", 1, true);
 
     subscriber_spinner_.reset(new ros::AsyncSpinner(1, &subscriber_queue_));
     subscriber_spinner_->start();

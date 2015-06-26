@@ -45,8 +45,8 @@
 
 #include <sensor_msgs/JointState.h>
 
-#include <flor_grasp_msgs/HandStatus.h>
-#include <flor_grasp_msgs/Tactile.h>
+#include <vigir_grasp_msgs/HandStatus.h>
+#include <vigir_grasp_msgs/Tactile.h>
 
 namespace RobotiqHardwareInterface
 {
@@ -75,7 +75,7 @@ private:
   //Robotiq specific communication code
 
   void robotiq_Callback(const robotiq_s_model_control::SModel_robot_input::ConstPtr &msg);
-  void robotiq_tactile_Callback(const flor_grasp_msgs::Tactile::ConstPtr &msg);
+  void robotiq_tactile_Callback(const vigir_grasp_msgs::Tactile::ConstPtr &msg);
 
 
   hardware_interface::JointStateInterface       joint_state_interface_;
@@ -99,9 +99,9 @@ private:
   robotiq_s_model_control::SModel_robot_input   robotiq_input_msg_;
   robotiq_s_model_control::SModel_robot_input   last_robotiq_input_msg_;
   robotiq_s_model_control::SModel_robot_output  robotiq_output_msg_;
-  flor_grasp_msgs::Tactile                      last_tactile_msg_;
+  vigir_grasp_msgs::Tactile                      last_tactile_msg_;
 
-  flor_grasp_msgs::HandStatus                   hand_status_;
+  vigir_grasp_msgs::HandStatus                   hand_status_;
 
   std::string                                   hand_side_;
   std::string                                   hand_name_;
