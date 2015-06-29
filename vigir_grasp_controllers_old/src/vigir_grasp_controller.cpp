@@ -35,7 +35,7 @@
 
 //#include <vigir_grasp_control/vigir_grasp_controllers_old/include/vigir_grasp_controllers_old/vigir_grasp_controller.h>
 #include <vigir_grasp_controllers_old/vigir_grasp_controller.h>
-#include <flor_ocs_msgs/OCSGhostControl.h>
+#include <vigir_ocs_msgs/OCSGhostControl.h>
 
 #include <flor_control_msgs/FlorControlModeCommand.h>
 
@@ -190,7 +190,7 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
      wrist_target_pub_         = nh.advertise<geometry_msgs::PoseStamped>("wrist_target",          1, true);
      template_stitch_pose_pub_ = nh.advertise<geometry_msgs::PoseStamped>("template_stitch_pose",  1, true);
      wrist_plan_pub_           = nh.advertise<flor_planning_msgs::PlanRequest>("wrist_plan",       1, true);
-     grasp_status_pub_         = nh.advertise<flor_ocs_msgs::OCSRobotStatus>("grasp_status",       1, true);
+     grasp_status_pub_         = nh.advertise<vigir_ocs_msgs::OCSRobotStatus>("grasp_status",       1, true);
      hand_mass_pub_            = nh.advertise<flor_atlas_msgs::AtlasHandMass>("hand_mass",         1, true);
 
     // These publishers should be remapped in launch file
@@ -241,7 +241,7 @@ int VigirGraspController::processSetGraspMode(const vigir_grasp_msgs::GraspState
 }
 
 
-void VigirGraspController::graspPlanningGroupCallback(const flor_ocs_msgs::OCSGhostControl& planning_group)
+void VigirGraspController::graspPlanningGroupCallback(const vigir_ocs_msgs::OCSGhostControl& planning_group)
 {
 
     if (planning_group.planning_group[2] == 1)
@@ -261,7 +261,7 @@ void VigirGraspController::graspPlanningGroupCallback(const flor_ocs_msgs::OCSGh
 
 }
 
-void  VigirGraspController::plannerStatusCallback(const flor_ocs_msgs::OCSRobotStatus& planner_status)
+void  VigirGraspController::plannerStatusCallback(const vigir_ocs_msgs::OCSRobotStatus& planner_status)
 {
     // Store the latest planner status and controller status at next calculation loop
     boost::lock_guard<boost::mutex> guard(this->write_data_mutex_);

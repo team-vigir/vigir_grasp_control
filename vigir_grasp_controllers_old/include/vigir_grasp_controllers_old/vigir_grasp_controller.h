@@ -51,9 +51,9 @@
 #include <vigir_grasp_msgs/TemplateSelection.h>
 #include <vigir_grasp_msgs/GraspState.h>
 #include <vigir_grasp_msgs/HandStatus.h>
-#include "flor_ocs_msgs/OCSRobotStatus.h"
-#include "flor_ocs_msgs/OCSGhostControl.h"
-#include "flor_ocs_msgs/RobotStatusCodes.h"
+#include "vigir_ocs_msgs/OCSRobotStatus.h"
+#include "vigir_ocs_msgs/OCSGhostControl.h"
+#include "vigir_ocs_msgs/RobotStatusCodes.h"
 #include "flor_control_msgs/FlorControlMode.h"
 #include <flor_planning_msgs/PlanRequest.h>
 #include <flor_atlas_msgs/AtlasHandMass.h>
@@ -189,7 +189,7 @@ struct VigirGraspSpecification
      int  processSetGraspMode(const vigir_grasp_msgs::GraspState& mode_command);
 
      /** called to update planner status */
-     void  plannerStatusCallback(const flor_ocs_msgs::OCSRobotStatus& planner_status);
+     void  plannerStatusCallback(const vigir_ocs_msgs::OCSRobotStatus& planner_status);
 
      void controllerModeCallback(const flor_control_msgs::FlorControlMode& controller_mode);
 
@@ -216,7 +216,7 @@ struct VigirGraspSpecification
      void  graspSelectionCallback(const vigir_grasp_msgs::GraspSelection& grasp);
 
      /** Set the current planning group to "arm only" or "arm + torso"           */
-     void  graspPlanningGroupCallback(const flor_ocs_msgs::OCSGhostControl& planning_group);
+     void  graspPlanningGroupCallback(const vigir_ocs_msgs::OCSGhostControl& planning_group);
 
     /** Release any currently active grasp, and return to the NONE state after opening.
      *  This requires a new grasp selection to restart.
@@ -284,7 +284,7 @@ struct VigirGraspSpecification
     vigir_grasp_msgs::GraspSelection         last_grasp_msg_;
     vigir_grasp_msgs::TemplateSelection      last_template_msg_;
     vigir_grasp_msgs::GraspState             last_mode_msg_;
-    flor_ocs_msgs::OCSRobotStatus           last_planner_status_msg_;
+    vigir_ocs_msgs::OCSRobotStatus           last_planner_status_msg_;
     flor_control_msgs::FlorControlMode      last_controller_mode_msg_;
     geometry_msgs::PoseStamped              last_wrist_pose_msg_;
     geometry_msgs::PoseStamped              last_wrist_error;
@@ -338,7 +338,7 @@ struct VigirGraspSpecification
 
 
     //Grasp status message
-    flor_ocs_msgs::OCSRobotStatus      grasp_status_;
+    vigir_ocs_msgs::OCSRobotStatus      grasp_status_;
     RobotStatusCodes::StatusCode       grasp_status_code_;      // Using RobotStatusCodes with severity
     RobotStatusCodes::StatusLevel      grasp_status_severity_;
 
