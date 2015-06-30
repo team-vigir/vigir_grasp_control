@@ -189,7 +189,7 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
      active_state_pub_         = nh.advertise<vigir_grasp_msgs::GraspState>("active_state",         1, true);
      wrist_target_pub_         = nh.advertise<geometry_msgs::PoseStamped>("wrist_target",          1, true);
      template_stitch_pose_pub_ = nh.advertise<geometry_msgs::PoseStamped>("template_stitch_pose",  1, true);
-     wrist_plan_pub_           = nh.advertise<flor_planning_msgs::PlanRequest>("wrist_plan",       1, true);
+     wrist_plan_pub_           = nh.advertise<vigir_teleop_planning_msgs::PlanRequest>("wrist_plan",       1, true);
      grasp_status_pub_         = nh.advertise<vigir_ocs_msgs::OCSRobotStatus>("grasp_status",       1, true);
      hand_mass_pub_            = nh.advertise<flor_atlas_msgs::AtlasHandMass>("hand_mass",         1, true);
 

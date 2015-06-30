@@ -55,7 +55,7 @@
 #include "vigir_ocs_msgs/OCSGhostControl.h"
 #include "vigir_ocs_msgs/RobotStatusCodes.h"
 #include "flor_control_msgs/FlorControlMode.h"
-#include <flor_planning_msgs/PlanRequest.h>
+#include <vigir_teleop_planning_msgs/PlanRequest.h>
 #include <flor_atlas_msgs/AtlasHandMass.h>
 
 #include <boost/thread.hpp>
@@ -328,7 +328,7 @@ struct VigirGraspSpecification
     tf::Transform                           hand_T_template_;
     tf::Transform                           hand_T_palm_;
 //    tf::TransformListener                   listener_;
-    flor_planning_msgs::PlanRequest         wrist_target_pose_;
+    vigir_teleop_planning_msgs::PlanRequest         wrist_target_pose_;
     flor_atlas_msgs::AtlasHandMass          hand_mass_msg_;
     geometry_msgs::PoseStamped              com_;
     vigir_grasp_msgs::GraspState             active_state_;
