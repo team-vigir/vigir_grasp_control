@@ -54,7 +54,7 @@
 #include "vigir_ocs_msgs/OCSRobotStatus.h"
 #include "vigir_ocs_msgs/OCSGhostControl.h"
 #include "vigir_ocs_msgs/RobotStatusCodes.h"
-#include "flor_control_msgs/FlorControlMode.h"
+#include "vigir_atlas_control_msgs/VigirAtlasControlMode"
 #include <vigir_teleop_planning_msgs/PlanRequest.h>
 #include <flor_atlas_msgs/AtlasHandMass.h>
 
@@ -285,7 +285,7 @@ struct VigirGraspSpecification
     vigir_grasp_msgs::TemplateSelection      last_template_msg_;
     vigir_grasp_msgs::GraspState             last_mode_msg_;
     vigir_ocs_msgs::OCSRobotStatus           last_planner_status_msg_;
-    flor_control_msgs::FlorControlMode      last_controller_mode_msg_;
+    vigir_atlas_control_msgs::VigirAtlasControlMode      last_controller_mode_msg_;
     geometry_msgs::PoseStamped              last_wrist_pose_msg_;
     geometry_msgs::PoseStamped              last_wrist_error;
     double                                  last_position_error;

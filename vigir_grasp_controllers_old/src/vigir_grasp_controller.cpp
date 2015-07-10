@@ -726,7 +726,7 @@ void VigirGraspController::controllerLoop()
     uint8_t   reaching_tries       =   0;
 
     vigir_grasp_msgs::TemplateSelection last_template_data;
-    flor_control_msgs::FlorControlMode controller_mode;
+    vigir_atlas_control_msgs::VigirAtlasControlMode controller_mode;
 
    // prevent shutdown
    boost::lock_guard<boost::mutex> running_lock(this->thread_running_mutex_);
