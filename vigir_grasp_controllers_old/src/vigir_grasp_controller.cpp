@@ -35,7 +35,7 @@
 
 //#include <vigir_grasp_control/vigir_grasp_controllers_old/include/vigir_grasp_controllers_old/vigir_grasp_controller.h>
 #include <vigir_grasp_controllers_old/vigir_grasp_controller.h>
-#include <flor_ocs_msgs/OCSGhostControl.h>
+#include <vigir_ocs_msgs/OCSGhostControl.h>
 
 #include <flor_control_msgs/FlorControlModeCommand.h>
 
@@ -186,11 +186,11 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
     ROS_INFO("Setup communications for the %s grasp controller ... ", hand_name_.c_str());
 
 
-     active_state_pub_         = nh.advertise<flor_grasp_msgs::GraspState>("active_state",         1, true);
+     active_state_pub_         = nh.advertise<vigir_grasp_msgs::GraspState>("active_state",         1, true);
      wrist_target_pub_         = nh.advertise<geometry_msgs::PoseStamped>("wrist_target",          1, true);
      template_stitch_pose_pub_ = nh.advertise<geometry_msgs::PoseStamped>("template_stitch_pose",  1, true);
-     wrist_plan_pub_           = nh.advertise<flor_planning_msgs::PlanRequest>("wrist_plan",       1, true);
-     grasp_status_pub_         = nh.advertise<flor_ocs_msgs::OCSRobotStatus>("grasp_status",       1, true);
+     wrist_plan_pub_           = nh.advertise<vigir_planning_msgs::PlanRequest>("wrist_plan",       1, true);
+     grasp_status_pub_         = nh.advertise<vigir_ocs_msgs::OCSRobotStatus>("grasp_status",       1, true);
      hand_mass_pub_            = nh.advertise<flor_atlas_msgs::AtlasHandMass>("hand_mass",         1, true);
 
     // These publishers should be remapped in launch file
@@ -225,7 +225,7 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
 // Class Callback functions for ros subscribers
 
 
-int VigirGraspController::processSetGraspMode(const flor_grasp_msgs::GraspState& mode_command)
+int VigirGraspController::processSetGraspMode(const vigir_grasp_msgs::GraspState& mode_command)
 {
     // Store the latest state command, and update at next calculation loop
     boost::lock_guard<boost::mutex> guard(this->write_data_mutex_);
@@ -241,7 +241,7 @@ int VigirGraspController::processSetGraspMode(const flor_grasp_msgs::GraspState&
 }
 
 
-void VigirGraspController::graspPlanningGroupCallback(const flor_ocs_msgs::OCSGhostControl& planning_group)
+void VigirGraspController::graspPlanningGroupCallback(const vigir_ocs_msgs::OCSGhostControl& planning_group)
 {
 
     if (planning_group.planning_group[2] == 1)
@@ -261,7 +261,7 @@ void VigirGraspController::graspPlanningGroupCallback(const flor_ocs_msgs::OCSGh
 
 }
 
-void  VigirGraspController::plannerStatusCallback(const flor_ocs_msgs::OCSRobotStatus& planner_status)
+void  VigirGraspController::plannerStatusCallback(const vigir_ocs_msgs::OCSRobotStatus& planner_status)
 {
     // Store the latest planner status and controller status at next calculation loop
     boost::lock_guard<boost::mutex> guard(this->write_data_mutex_);
@@ -279,7 +279,7 @@ void VigirGraspController::controllerModeCallback(const flor_control_msgs::FlorC
 
 }
 
-void VigirGraspController::templateStitchCallback(const flor_grasp_msgs::TemplateSelection& template_pose)
+void VigirGraspController::templateStitchCallback(const vigir_grasp_msgs::TemplateSelection& template_pose)
 {
     ROS_INFO("Confidence : %d",template_pose.confidence.data);
     if(template_pose.confidence.data >= 0)
@@ -307,7 +307,7 @@ void VigirGraspController::templateStitchCallback(const flor_grasp_msgs::Templat
     //Publish to OCS
     if (template_stitch_pose_pub_)
     {
-        flor_grasp_msgs::TemplateSelection last_template_data;
+        vigir_grasp_msgs::TemplateSelection last_template_data;
         last_template_data = this->last_template_msg_;
         this->setStitchingObject(last_template_data); //Stitching collision object to robot
 
@@ -335,7 +335,7 @@ void VigirGraspController::handOffsetCallback(const geometry_msgs::PoseStamped::
     this->hand_offset_pose_.setOrigin(tf::Vector3(msg->pose.position.x,msg->pose.position.y,msg->pose.position.z) );
 }
 
-void VigirGraspController::templateUpdateCallback(const flor_grasp_msgs::TemplateSelection& template_pose)
+void VigirGraspController::templateUpdateCallback(const vigir_grasp_msgs::TemplateSelection& template_pose)
 {
     // Store the latest state command, and update at next calculation loop
     {
@@ -416,7 +416,7 @@ void  VigirGraspController::wristPoseCallback(const geometry_msgs::PoseStamped& 
 
 }
 
-void VigirGraspController::graspSelectionCallback(const flor_grasp_msgs::GraspSelection& grasp)
+void VigirGraspController::graspSelectionCallback(const vigir_grasp_msgs::GraspSelection& grasp)
 {
     // Store the latest grasp command, and update at next calculation loop
     {
@@ -431,7 +431,7 @@ void VigirGraspController::graspSelectionCallback(const flor_grasp_msgs::GraspSe
      return;
 }
 
-void VigirGraspController::releaseGraspCallback(const flor_grasp_msgs::GraspSelection& grasp)
+void VigirGraspController::releaseGraspCallback(const vigir_grasp_msgs::GraspSelection& grasp)
 {
     // Store the latest grasp command, and update at next calculation loop
     {
@@ -452,7 +452,7 @@ void VigirGraspController::releaseGraspCallback(const flor_grasp_msgs::GraspSele
 }
 
 
-void VigirGraspController::modeCommanderCallback(const flor_grasp_msgs::GraspState::ConstPtr &mc_msg)
+void VigirGraspController::modeCommanderCallback(const vigir_grasp_msgs::GraspState::ConstPtr &mc_msg)
     {
       if (mc_msg)
       {
@@ -688,7 +688,7 @@ inline void VigirGraspController::updateActiveState()
 {
   if (active_state_pub_)
   {
-      flor_grasp_msgs::GraspState active_state_msg;
+      vigir_grasp_msgs::GraspState active_state_msg;
       active_state_msg = active_state_; // Should this be timestamped?
       active_state_pub_.publish(active_state_msg);
   }
@@ -725,7 +725,7 @@ void VigirGraspController::controllerLoop()
     uint8_t   planner_status_level = RobotStatusCodes::OK;
     uint8_t   reaching_tries       =   0;
 
-    flor_grasp_msgs::TemplateSelection last_template_data;
+    vigir_grasp_msgs::TemplateSelection last_template_data;
     flor_control_msgs::FlorControlMode controller_mode;
 
    // prevent shutdown
@@ -1410,7 +1410,7 @@ void VigirGraspController::requestTemplateService(const uint16_t& requested_temp
     last_grasp_res_ = srv.response;
 }
 
-void VigirGraspController::setAttachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data){
+void VigirGraspController::setAttachingObject(const vigir_grasp_msgs::TemplateSelection& last_template_data){
     //Add collision object with template pose and bounding box
 
     ROS_INFO("Attaching collision object :%s started",(boost::to_string(int16_t(last_template_data.template_id.data))).c_str());
@@ -1422,7 +1422,7 @@ void VigirGraspController::setAttachingObject(const flor_grasp_msgs::TemplateSel
         ROS_ERROR("Failed to call service request SetAttachedObjectTemplate");
 }
 
-void VigirGraspController::setStitchingObject(const flor_grasp_msgs::TemplateSelection& last_template_data){
+void VigirGraspController::setStitchingObject(const vigir_grasp_msgs::TemplateSelection& last_template_data){
     //Add collision object with template pose and bounding box
 
     ROS_INFO("Stitching collision object :%s started",(boost::to_string(int16_t(last_template_data.template_id.data))).c_str());
@@ -1434,7 +1434,7 @@ void VigirGraspController::setStitchingObject(const flor_grasp_msgs::TemplateSel
         ROS_ERROR("Failed to call service request SetStitchedObjectTemplate");
 }
 
-void VigirGraspController::setDetachingObject(const flor_grasp_msgs::TemplateSelection& last_template_data){
+void VigirGraspController::setDetachingObject(const vigir_grasp_msgs::TemplateSelection& last_template_data){
     //Add collision object with template pose and bounding box
 
     ROS_INFO("Removing collision object :%s started",(boost::to_string(int16_t(last_template_data.template_id.data))).c_str());

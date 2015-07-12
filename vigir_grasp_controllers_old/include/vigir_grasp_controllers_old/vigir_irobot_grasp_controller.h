@@ -176,7 +176,7 @@ namespace vigir_grasp_controllers_old{
         int                                          zero_velocity_counter_;
 
         // Status message variable
-        std::vector<flor_ocs_msgs::OCSRobotStatus>   hand_status_;
+        std::vector<vigir_ocs_msgs::OCSRobotStatus>   hand_status_;
         std::vector<int>                             hand_temperature_counter_;
         std::vector<int>                             tactile_timeout_counter_;
         int                                          publish_counter_;

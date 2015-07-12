@@ -52,7 +52,7 @@ namespace vigir_stump_grasp_controller{
       initializeManipulationController(nh,nhp);
 
     }
-    void VigirStumpGraspController::graspCommandCallback(const flor_grasp_msgs::GraspState &grasp)
+    void VigirStumpGraspController::graspCommandCallback(const vigir_grasp_msgs::GraspState &grasp)
     {
     }
 

@@ -5,7 +5,7 @@ from shape_msgs.msg import Mesh
 from geometry_msgs.msg import PoseArray, Pose, PoseStamped
 from visualization_msgs.msg import Marker
 from takktile_ros.msg import Touch
-from flor_grasp_msgs.msg import GraspSelection
+from vigir_grasp_msgs.msg import GraspSelection
 from copy import deepcopy as copy
 
 import tf

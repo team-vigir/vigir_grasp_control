@@ -144,7 +144,7 @@ namespace vigir_grasp_controllers_old{
         void setHandOpeningData(const double& grasp_fraction)    ;
 
         // Hand specific callbacks used for processing simulation data
-        void handStatusCallback(const flor_grasp_msgs::HandStatus::ConstPtr &msg);
+        void handStatusCallback(const vigir_grasp_msgs::HandStatus::ConstPtr &msg);
 
         // Hand specific callbacks used by the physical Robotiq hand
 
@@ -152,18 +152,18 @@ namespace vigir_grasp_controllers_old{
 
         // Simulation data recieved from ROS interface
         sensor_msgs::JointStateConstPtr              last_joint_state_msg_;
-        flor_grasp_msgs::HandStatusConstPtr          last_hand_status_msg_;
+        vigir_grasp_msgs::HandStatusConstPtr          last_hand_status_msg_;
 
         // Variables to store sensor data locally for thread safe operation
         sensor_msgs::JointState                      local_joint_state_msg_;
-        flor_grasp_msgs::HandStatus                  local_hand_status_msg_;
+        vigir_grasp_msgs::HandStatus                  local_hand_status_msg_;
 
         VigirRobotiqFingerPoses                       finger_poses_;
         std::vector< VigirRobotiqFingerPoses>         initial_finger_poses_; // cylindrical,prismatic, spherical
         std::vector< VigirRobotiqFingerPoses>         final_finger_poses_;   // cylindrical,prismatic, spherical
         VigirRobotiqFingerPoses                       current_finger_poses_;
         VigirRobotiqFingerPoses                       real_initial_finger_poses_;
-        flor_grasp_msgs::LinkState                   link_tactile_;
+        vigir_grasp_msgs::LinkState                   link_tactile_;
 
         std::vector<std::string>                     joint_names_;     // use this to hold finger names instead of using the joint_commands_.names
         VigirRobotiqJointCommands                     joint_commands_;

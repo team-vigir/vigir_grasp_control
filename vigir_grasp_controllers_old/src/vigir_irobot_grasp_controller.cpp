@@ -31,7 +31,7 @@
 #include <algorithm>
 #include <unistd.h>
 
-#include <flor_ocs_msgs/RobotStatusCodes.h>
+#include <vigir_ocs_msgs/RobotStatusCodes.h>
 
 #include <vigir_grasp_controllers_old/vigir_irobot_grasp_controller.h>
 #include <handle_msgs/Finger.h>
@@ -155,7 +155,7 @@ namespace vigir_grasp_controllers_old{
       ROS_INFO("Setup parameters and communications for the iRobot Hand grasp controller plugin for %s hand", irobot_hand_name.c_str());
       joint_commands_pub_ = nh.advertise<handle_msgs::HandleControl>("/"+irobot_hand_name+"/control", 1, true);
       irobot_states_pub_= nh.advertise<sensor_msgs::JointState>("irobot_states", 1, true);
-      irobot_status_pub_= nh.advertise<flor_ocs_msgs::OCSRobotStatus>("/"+irobot_hand_name+"/status", 1, true);
+      irobot_status_pub_= nh.advertise<vigir_ocs_msgs::OCSRobotStatus>("/"+irobot_hand_name+"/status", 1, true);
 
       aco_pub_                  = nh.advertise<moveit_msgs::AttachedCollisionObject>("/attached_collision_object", 1, true);
 
@@ -236,7 +236,7 @@ namespace vigir_grasp_controllers_old{
 
         RobotStatusCodes::StatusLevel hand_status_level;
         RobotStatusCodes::StatusCode hand_status_code;
-        flor_ocs_msgs::OCSRobotStatus temp_status;
+        vigir_ocs_msgs::OCSRobotStatus temp_status;
 
         hand_status_level = RobotStatusCodes::OK;
         hand_status_code = RobotStatusCodes::NO_ERROR;
