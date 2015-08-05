@@ -11,7 +11,6 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
   vigir_grasp_msgs
   vigir_ocs_msgs
-  flor_control_msgs
   moveit_core
   robotiq_s_model_control
   hardware_interface
@@ -28,7 +27,6 @@ catkin_package(
         trajectory_msgs
         vigir_grasp_msgs
         vigir_ocs_msgs
-        flor_control_msgs
         moveit_core
         robotiq_s_model_control
         hardware_interface
