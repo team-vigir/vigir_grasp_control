@@ -56,7 +56,7 @@
 #include "vigir_ocs_msgs/RobotStatusCodes.h"
 #include "vigir_atlas_control_msgs/VigirAtlasControlMode"
 #include <vigir_teleop_planning_msgs/PlanRequest.h>
-#include <flor_atlas_msgs/AtlasHandMass.h>
+#include <vigir_atlas_control_msgs/VigirHandMass.h>
 
 #include <boost/thread.hpp>
 #include <vector>
@@ -191,7 +191,7 @@ struct VigirGraspSpecification
      /** called to update planner status */
      void  plannerStatusCallback(const vigir_ocs_msgs::OCSRobotStatus& planner_status);
 
-     void controllerModeCallback(const flor_control_msgs::FlorControlMode& controller_mode);
+     void controllerModeCallback(const vigir_control_msgs::FlorControlMode& controller_mode);
 
      /** This function is called whenever the template pose is updated by the world modeling code
       * Make sure the template info matches,and then do transform selected grasp to wrist pose in world frame.
@@ -329,7 +329,7 @@ struct VigirGraspSpecification
     tf::Transform                           hand_T_palm_;
 //    tf::TransformListener                   listener_;
     vigir_teleop_planning_msgs::PlanRequest         wrist_target_pose_;
-    flor_atlas_msgs::AtlasHandMass          hand_mass_msg_;
+    vigir_atlas_control_msgs::VigirHandMass          hand_mass_msg_;
     geometry_msgs::PoseStamped              com_;
     vigir_grasp_msgs::GraspState             active_state_;
 

@@ -37,7 +37,7 @@
 #include <vigir_grasp_controllers_old/vigir_grasp_controller.h>
 #include <vigir_ocs_msgs/OCSGhostControl.h>
 
-#include <flor_control_msgs/FlorControlModeCommand.h>
+#include <vigir_control_msgs/VigirControlModeCommand.h>
 
 //#include<trajectory.h>
 #include <trajectory_msgs/JointTrajectory.h>
@@ -191,7 +191,7 @@ void VigirGraspController::initializeGraspController(ros::NodeHandle &nh, ros::N
      template_stitch_pose_pub_ = nh.advertise<geometry_msgs::PoseStamped>("template_stitch_pose",  1, true);
      wrist_plan_pub_           = nh.advertise<vigir_teleop_planning_msgs::PlanRequest>("wrist_plan",       1, true);
      grasp_status_pub_         = nh.advertise<vigir_ocs_msgs::OCSRobotStatus>("grasp_status",       1, true);
-     hand_mass_pub_            = nh.advertise<flor_atlas_msgs::AtlasHandMass>("hand_mass",         1, true);
+     hand_mass_pub_            = nh.advertise<vigir_atlas_control_msgs::VigirHandMass>("hand_mass",         1, true);
 
     // These publishers should be remapped in launch file
      mode_commander_sub_    = nh.subscribe("mode_command",       1, &VigirGraspController::modeCommanderCallback,  this);
@@ -270,7 +270,7 @@ void  VigirGraspController::plannerStatusCallback(const vigir_ocs_msgs::OCSRobot
 
 }
 
-void VigirGraspController::controllerModeCallback(const flor_control_msgs::FlorControlMode& controller_mode)
+void VigirGraspController::controllerModeCallback(const vigir_control_msgs::FlorControlMode& controller_mode)
 {
     // Store the latest gravity (appendage) controller mode and update grasp controller status at next calculation loop
     boost::lock_guard<boost::mutex> guard(this->write_data_mutex_);
@@ -1025,7 +1025,7 @@ void VigirGraspController::controllerLoop()
            case atlas_msgs::AtlasSimInterfaceCommand::STAND: // @todo - this should check against allowed_control_modes, but for now they are the same
            case atlas_msgs::AtlasSimInterfaceCommand::STEP:
            case atlas_msgs::AtlasSimInterfaceCommand::WALK:
-           //case flor_control_msgs::FlorControlModeCommand::STAND_PREP: no longer valid mode command from OCS
+           //case vigir_control_msgs::VigirControlModeCommand::STAND_PREP: no longer valid mode command from OCS
                this->setGraspStatus(RobotStatusCodes::GRASP_NO_APPENDAGE_CONTROL, RobotStatusCodes::WARNING);
                break;
            default:

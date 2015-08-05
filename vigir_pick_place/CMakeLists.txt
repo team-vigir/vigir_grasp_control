@@ -12,7 +12,7 @@ find_package(catkin REQUIRED COMPONENTS
   trajectory_msgs
   vigir_grasp_msgs
   vigir_ocs_msgs
-  flor_control_msgs
+  vigir_control_msgs
   moveit_core
   moveit_ros_planning
   moveit_ros_planning_interface
@@ -33,7 +33,7 @@ catkin_package(
         trajectory_msgs
         vigir_grasp_msgs
         vigir_ocs_msgs
-        flor_control_msgs
+        vigir_control_msgs
         moveit_core
         moveit_ros_planning_interface
         interactive_markers
