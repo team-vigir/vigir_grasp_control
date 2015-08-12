@@ -1,4 +1,0 @@
-<launch>
-	<node type = "convex_hull" name = "convex_hull" pkg = "hullify" output = "screen" launch-prefix = "xterm -e gdb --ex run --args" />
-
-</launch>

@@ -1,5 +1,0 @@
-<launch>
-	<include file = "$(find flor_grasp_controllers)/launch/osu_robotiq_handle.launch" />
-
-	<node name = "SModelSimpleController" type = "SModelSimpleController.py" pkg = "robotiq_s_model_control" output = "screen" launch-prefix = "xterm -e" />
-</launch>
